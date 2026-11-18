@@ -2413,6 +2413,27 @@ img { max-width: 100%; display: block; }
   .ctc-vista .ctc-vista__legenda, .ctc-vista .ctc-fbtn, .ctc-vista .ctc-vista__flutua .ctc-dropdown__panel { background: rgba(255,255,255,.92); }
 }
 
+/* v6.9.5: filtro por coluna no estilo do Excel */
+.ctc-th-excel { all: unset; cursor: pointer; display: inline-grid; place-items: center; width: 22px; height: 22px; margin-left: 2px; border-radius: 6px;
+  font-size: 12px; color: inherit; opacity: .75; border: 1px solid rgba(255,255,255,.35); }
+.ctc-th-excel:hover { opacity: 1; background: rgba(255,255,255,.15); }
+.ctc-th-excel.is-active { opacity: 1; background: #facc15; color: #0f172a; border-color: #facc15; }
+.ctc-th-excel:focus-visible { outline: 2px solid #facc15; outline-offset: 1px; }
+.ctc-excel { position: fixed; z-index: 10060; width: min(300px, calc(100vw - 16px)); max-height: min(480px, calc(100vh - 16px)); display: flex; flex-direction: column; gap: 6px;
+  padding: 10px; border-radius: 14px; background: rgba(255,255,255,.96); border: 1px solid #e2e8f0; color: #1e293b; font-size: 13px;
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 16px 40px rgba(15,23,42,.25); }
+.ctc-excel__acao { all: unset; cursor: pointer; padding: 7px 8px; border-radius: 8px; font-size: 13px; }
+.ctc-excel__acao:hover { background: #f1f5f9; }
+.ctc-excel__acao:disabled { opacity: .4; cursor: default; background: none; }
+.ctc-excel__lista { overflow: auto; flex: 1 1 auto; min-height: 80px; max-height: 260px; border: 1px solid #e2e8f0; border-radius: 10px; padding: 4px; background: #fff; }
+.ctc-excel__item { display: flex; align-items: center; gap: 8px; padding: 6px 6px; border-radius: 6px; cursor: pointer; min-height: 32px; }
+.ctc-excel__item:hover { background: #f8fafc; }
+.ctc-excel__item span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctc-excel__item small { color: #64748b; font-variant-numeric: tabular-nums; }
+.ctc-excel__item input { width: 18px; height: 18px; accent-color: #1e3a5f; flex: none; }
+.ctc-excel__todos { font-weight: 600; }
+.ctc-excel__vazio { padding: 10px; color: #64748b; text-align: center; }
+.ctc-excel__botoes { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
 </style>
 </head>
 <body>
@@ -4711,12 +4732,13 @@ function criarAlerta({
 function criarTabela({
   colunas = [], dados = [], porPagina = 0, camposBusca, ordenacao = null,
   linhaVariante, rotuloTotal = 'Total', vazio = {}, compacta = false, listrada = false,
-  grade = false, cabecalhoClaro = false, altura, onLinhaClick, onAtualizar,
+  grade = false, cabecalhoClaro = false, altura, onLinhaClick, onAtualizar, filtroExcel = false,
 } = {}) {
   const estado = {
     dados: dados.slice(),
     busca: '',
     filtros: {},
+    filtrosExcel: {},   // v6.9.5: { campo: [valores marcados] } — filtros por coluna no estilo do Excel
     ordenacao: ordenacao ? { ...ordenacao } : null,
     pagina: 1,
     resultado: null,
@@ -4755,6 +4777,7 @@ function criarTabela({
 
   // Cabecalho com botao de ordenacao acessivel
   const botoesOrdem = new Map();
+  const botoesExcel = new Map();   // v6.9.5: botoes do filtro estilo Excel (criados com o cabecalho)
   const linhaCab = h('tr');
   colunas.forEach((col, i) => {
     const th = h('th', { class: classeColuna(col, i), scope: 'col', style: col.largura ? { width: col.largura } : null });
@@ -4770,13 +4793,98 @@ function criarTabela({
         },
       }, criarIcone('ordenar', 12));
       botoesOrdem.set(col.campo, { botao, th });
-      th.append(h('div', { class: 'ctc-th-filter' }, h('span', {}, col.titulo), botao));
+      th.append(h('div', { class: 'ctc-th-filter' }, h('span', {}, col.titulo), botao, filtroExcel ? botaoFiltroExcel(col) : null));
+    } else if (filtroExcel && col.campo) {
+      th.append(h('div', { class: 'ctc-th-filter' }, h('span', {}, col.titulo), botaoFiltroExcel(col)));
     } else {
       th.append(col.titulo ?? '');
     }
     linhaCab.append(th);
   });
   thead.append(linhaCab);
+
+  /* ---- v6.9.5: filtro por coluna no estilo do Excel (lista de valores com caixas de marcar) ---- */
+  const textoValor = (col, v) => {
+    if (v == null || v === '') return '(Vazias)';
+    if (typeof col.formatar === 'function') return String(col.formatar(v, {}) ?? v);
+    return String(formatarPorTipo(v, col.tipo, col.casas) ?? v);
+  };
+  function botaoFiltroExcel(col) {
+    const b = h('button', {
+      type: 'button', class: 'ctc-th-excel', 'aria-label': `Filtrar ${col.titulo}`, title: `Filtrar ${col.titulo}`,
+      onClick: (ev) => { ev.stopPropagation(); abrirFiltroExcel(col, b); },
+    }, '▾');
+    botoesExcel.set(col.campo, b);
+    return b;
+  }
+  function atualizarBotoesExcel() {
+    botoesExcel.forEach((b, campo) => {
+      const ativo = Array.isArray(estado.filtrosExcel[campo]);
+      b.classList.toggle('is-active', ativo);
+      b.textContent = ativo ? '⏷' : '▾';
+    });
+  }
+  let popExcel = null;
+  function fecharFiltroExcel() { if (popExcel) { popExcel.remove(); popExcel = null; document.removeEventListener('mousedown', foraExcel, true); } }
+  function foraExcel(ev) { if (popExcel && !popExcel.contains(ev.target)) fecharFiltroExcel(); }
+  function abrirFiltroExcel(col, ancora) {
+    fecharFiltroExcel();
+    // valores disponiveis considerando os filtros das OUTRAS colunas (como no Excel)
+    const outros = { ...estado.filtrosExcel }; delete outros[col.campo];
+    const base = filtrar(estado.dados, outros);
+    const contagem = new Map();
+    base.forEach((l) => { const v = obterValor(l, col.campo); const k = v == null ? '' : String(v); contagem.set(k, (contagem.get(k) || 0) + 1); });
+    const valores = [...contagem.keys()].sort((a, b) => compararValores(a === '' ? null : a, b === '' ? null : b, col.tipo || 'auto'));
+    const atual = estado.filtrosExcel[col.campo];
+    const marcados = new Set(Array.isArray(atual) ? atual.map(String) : valores);
+    const lista = h('div', { class: 'ctc-excel__lista' });
+    const todos = h('input', { type: 'checkbox' });
+    const pesquisa = h('input', { type: 'search', class: 'ctc-input ctc-input--sm', placeholder: 'Pesquisar', 'aria-label': 'Pesquisar valores' });
+    const visiveis = () => { const t = normalizarTexto(pesquisa.value); return valores.filter((v) => !t || normalizarTexto(textoValor(col, v)).includes(t)); };
+    const desenharLista = () => {
+      const vis = visiveis();
+      todos.checked = vis.length > 0 && vis.every((v) => marcados.has(v));
+      todos.indeterminate = !todos.checked && vis.some((v) => marcados.has(v));
+      lista.replaceChildren(...vis.map((v) => {
+        const cx = h('input', { type: 'checkbox', checked: marcados.has(v), onChange: () => { if (cx.checked) marcados.add(v); else marcados.delete(v); desenharLista(); } });
+        return h('label', { class: 'ctc-excel__item' }, cx, h('span', {}, textoValor(col, v)), h('small', {}, String(contagem.get(v))));
+      }));
+      if (!vis.length) lista.append(h('div', { class: 'ctc-excel__vazio' }, 'Nenhum valor encontrado'));
+    };
+    todos.addEventListener('change', () => { visiveis().forEach((v) => (todos.checked ? marcados.add(v) : marcados.delete(v))); desenharLista(); });
+    pesquisa.addEventListener('input', desenharLista);
+    const aplicar = () => {
+      // pesquisa ativa: como no Excel, vale so o que esta na lista filtrada e marcado
+      const vis = new Set(visiveis());
+      const escolhidos = valores.filter((v) => marcados.has(v) && (!pesquisa.value || vis.has(v)));
+      if (escolhidos.length === valores.length) delete estado.filtrosExcel[col.campo];
+      else estado.filtrosExcel[col.campo] = escolhidos;
+      estado.pagina = 1;
+      fecharFiltroExcel();
+      recarregar();
+    };
+    const ordenar = (direcao) => { fecharFiltroExcel(); ordenarPor(col.campo, direcao); };
+    popExcel = h('div', { class: 'ctc-excel', role: 'dialog', 'aria-label': `Filtro de ${col.titulo}` },
+      h('button', { type: 'button', class: 'ctc-excel__acao', onClick: () => ordenar('asc') }, '↑ Classificar de A a Z'),
+      h('button', { type: 'button', class: 'ctc-excel__acao', onClick: () => ordenar('desc') }, '↓ Classificar de Z a A'),
+      h('button', { type: 'button', class: 'ctc-excel__acao', disabled: !Array.isArray(atual), onClick: () => { delete estado.filtrosExcel[col.campo]; fecharFiltroExcel(); recarregar(); } }, `✕ Limpar filtro de "${col.titulo}"`),
+      pesquisa,
+      h('label', { class: 'ctc-excel__item ctc-excel__todos' }, todos, h('span', {}, '(Selecionar tudo)')),
+      lista,
+      h('div', { class: 'ctc-excel__botoes' },
+        h('button', { type: 'button', class: 'ctc-btn ctc-btn--outline ctc-btn--sm', onClick: fecharFiltroExcel }, 'Cancelar'),
+        h('button', { type: 'button', class: 'ctc-btn ctc-btn--primary ctc-btn--sm', onClick: aplicar }, 'OK')));
+    document.body.append(popExcel);
+    desenharLista();
+    const r = ancora.getBoundingClientRect();
+    const larg = popExcel.offsetWidth; const alt = popExcel.offsetHeight;
+    popExcel.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - larg - 8))}px`;
+    popExcel.style.top = `${r.bottom + 4 + alt > window.innerHeight ? Math.max(8, r.top - alt - 4) : r.bottom + 4}px`;
+    setTimeout(() => document.addEventListener('mousedown', foraExcel, true), 0);
+    pesquisa.focus();
+  }
+  function limparFiltrosExcel() { estado.filtrosExcel = {}; estado.pagina = 1; recarregar(); }
+  const temFiltroExcel = () => Object.keys(estado.filtrosExcel).length > 0;
 
   function atualizarIndicadores() {
     botoesOrdem.forEach(({ botao, th }, campo) => {
@@ -4868,7 +4976,7 @@ function criarTabela({
     const resultado = aplicarConsulta(estado.dados, {
       busca: estado.busca,
       camposBusca: busca,
-      filtros: estado.filtros,
+      filtros: { ...estado.filtros, ...estado.filtrosExcel },
       ordenacao: estado.ordenacao ? { ...estado.ordenacao, tipo: coluna?.tipo || 'auto' } : null,
       pagina: estado.pagina,
       porPagina,
@@ -4879,6 +4987,7 @@ function criarTabela({
     renderizarTotais(resultado.filtrados);
     renderizarPaginacao(resultado.paginacao);
     atualizarIndicadores();
+    if (filtroExcel) atualizarBotoesExcel();
     if (avisar) emitirAtualizacao();
   }
 
@@ -4904,6 +5013,7 @@ function criarTabela({
   queueMicrotask(emitirAtualizacao);
 
   return {
+    limparFiltrosExcel, temFiltroExcel,
     elemento,
     definirDados,
     atualizarConsulta,
@@ -7479,7 +7589,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.9.4
+   Versao: 6.9.5
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7519,6 +7629,8 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
    6.9.2: vidro translucido (estilo iPhone) na legenda, nos botoes flutuantes e no painel Camadas.
    6.9.3: sem o campo "Cota final da camisa" na cravacao; eixos e linhas tambem no 3D.
    6.9.4: salvar na nuvem / na base existente nao pede login de novo para quem entrou pelo Portal KZ.
+   6.9.5: Banco de dados com filtro por coluna no estilo do Excel (lista de valores, pesquisa, ordenar);
+          o Exportar leva so as linhas filtradas.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -14858,13 +14970,20 @@ function paginaBanco() {
     const linhas = lista.map((e) => linhaBanco(e, extras));
     const nomes = [];
     linhas.forEach((l) => Object.keys(l).forEach((k) => { if (!nomes.includes(k) && k !== 'Tipo') nomes.push(k); }));
+    const botaoLimpar = criarBotao({ texto: 'Limpar filtros', icone: 'fechar', variante: 'outline', onClick: () => tabela.limparFiltrosExcel() });
+    const contagemFiltro = h('span', { class: 'ctc-text-sm ctc-text-muted' });
     const tabela = criarTabela({
       dados: linhas.map((l, i) => Object.fromEntries([['i', i], ...nomes.map((k, j) => [`c${j}`, l[k] ?? ''])])),
-      porPagina: 30, compacta: true, listrada: true,
+      porPagina: 0, altura: 'full', compacta: true, listrada: true, filtroExcel: true,   // tudo numa pagina: rola para baixo e para a direita
       onLinhaClick: (l) => abrirFichaCompleta(lista[l.i]),
       colunas: nomes.map((k, j) => ({ campo: `c${j}`, titulo: k, fixa: j === 0 })),
+      onAtualizar: ({ total, filtrados }) => {
+        botaoLimpar.hidden = !tabela.temFiltroExcel();
+        contagemFiltro.textContent = filtrados < total ? `${formatarNumero(filtrados, 0)} de ${formatarNumero(total, 0)} linhas no filtro` : '';
+      },
     });
-    const barra = criarBarraFiltros({ busca: { placeholder: 'Pesquisar elemento, grupo, data ou valor...' }, onMudar: (estado) => tabela.atualizarConsulta(estado) });
+    botaoLimpar.hidden = true;
+    const barra = criarBarraFiltros({ busca: { placeholder: 'Pesquisar elemento, grupo, data ou valor...' }, onMudar: (estado) => tabela.atualizarConsulta({ busca: estado.busca }) });
     const executados = lista.filter((e) => Object.keys(e.reg).length).length;
     return h('div', { class: 'ctc-stack' },
       h('div', { class: 'ctc-grid ctc-grid--3' },
@@ -14872,7 +14991,9 @@ function paginaBanco() {
         kpiElemento({ rotulo: 'Com registro de execução', valor: executados, formato: 'numero', variante: executados ? 'success' : undefined }),
         kpiElemento({ rotulo: 'Colunas', valor: nomes.length, formato: 'numero', sub: 'projeto · etapas · valores reais' })),
       barra.elemento,
-      criarBotao({ texto: `Exportar ${TIPOS[tipo].nome} (Excel)`, icone: 'download', variante: 'outline', onClick: () => exportarBancoCsv(lista) }),
+      h('div', { class: 'ctc-cluster' },
+        criarBotao({ texto: `Exportar ${TIPOS[tipo].nome} (Excel)`, icone: 'download', variante: 'outline', onClick: () => exportarBancoCsv(tabela.obterFiltrados().map((l) => lista[l.i])) }),
+        botaoLimpar, contagemFiltro),
       tabela.elemento);
   };
   const abas = criarAbas({
