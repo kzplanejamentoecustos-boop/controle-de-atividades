@@ -3441,7 +3441,7 @@ function criarSessao() {
       Object.assign(estado, { perfil, usuario, base, nomeArquivo, alteracoes: 0, ultimoSalvamento: base?.salvoEm ?? null });
       avisar();
     },
-    podeEditar: () => estado.perfil === 'controlador' || estado.perfil === 'administrador',
+    podeEditar: () => ['controlador', 'administrador', 'apontamento'].includes(estado.perfil),
     marcarAlteracao() { estado.alteracoes += 1; avisar(); },
     limparAlteracoes(nomeArquivo) {
       estado.alteracoes = 0;
@@ -5962,7 +5962,7 @@ function criarTelaEntrada({
     return false;
   }
 
-  const NOMES_PERFIL = { administrador: 'Administrador', controlador: 'Controlador', visualizador: 'Visualizador' };
+  const NOMES_PERFIL = { administrador: 'Administrador', controlador: 'Controlador', apontamento: 'Apontamento', visualizador: 'Visualizador' };
   function entrar(perfil, usuario = null) {
     exigirAceitePrivacidade(() => entrarAceito(perfil, usuario));
   }
@@ -5989,17 +5989,30 @@ function criarTelaEntrada({
   }
 
   /* ---- Controlador ---- */
-  async function entrarControlador() {
+  /*
+   * v6.9: dois perfis que registram. Apontamento (Portal: Editor) registra tudo, mas nao desfaz nem altera datas
+   * ja salvas; Controlador (Portal: Admin) pode tudo. Sem o Portal, valem os controladores da base.
+   */
+  const entrarControlador = () => entrarQueRegistra('controlador');
+  const entrarApontamento = () => entrarQueRegistra('apontamento');
+  async function entrarQueRegistra(perfilAlvo) {
     if (!exigirBase()) return;
+    const nomeAlvo = NOMES_PERFIL[perfilAlvo];
     if (acessoPortal) {
-      if (portalPermite('editor')) { entrar('controlador', usuarioPortal()); return; }
-      toast.aviso('Acesso somente para consulta', `Seu acesso ao ${nomeControle} nesta obra é ${NOME_PAPEL_PORTAL[acessoPortal.papel] || 'Leitor'}. Entre como Visualizador ou peça ao gestor da obra para liberar a edição.`);
+      const minimo = perfilAlvo === 'controlador' ? 'admin' : 'editor';
+      if (portalPermite(minimo)) { entrar(perfilAlvo, usuarioPortal()); return; }
+      const papel = NOME_PAPEL_PORTAL[acessoPortal.papel] || 'Leitor';
+      if (perfilAlvo === 'controlador' && portalPermite('editor')) {
+        toast.aviso('Entre como Apontamento', `Seu acesso ao ${nomeControle} nesta obra é ${papel}: você registra pelo Apontamento. Só o Controlador (Admin no Portal) desfaz e corrige datas.`);
+        return;
+      }
+      toast.aviso('Acesso somente para consulta', `Seu acesso ao ${nomeControle} nesta obra é ${papel}. Entre como Visualizador ou peça ao gestor da obra para liberar a edição.`);
       return;
     }
     if (!base.controladores.length) {
       // sem controladores na base: o acesso vem do login do Portal KZ
       if (onLoginPortal) {
-        if (await loginPortal()) entrarControlador();
+        if (await loginPortal()) entrarQueRegistra(perfilAlvo);
         return;
       }
       criarModal({
@@ -6026,12 +6039,12 @@ function criarTelaEntrada({
           return;
         }
         modal.fechar();
-        entrar('controlador', { login: registro.login, nome: registro.nome || registro.login });
+        entrar(perfilAlvo, { login: registro.login, nome: registro.nome || registro.login });
       },
     });
     const focarSenha = ligarLoginASenha(formulario);
     const modal = criarModal({
-      titulo: 'Entrar como Controlador',
+      titulo: `Entrar como ${nomeAlvo}`,
       tamanho: 'sm',
       destruirAoFechar: true,
       conteudo: formulario.elemento,
@@ -6262,8 +6275,8 @@ function criarTelaEntrada({
       });
       if (!ok) return;
     }
-    if (acessoPortal && !portalPermite('editor')) {
-      toast.aviso('Sem permissão', 'Criar um projeto novo exige acesso de Editor nesta obra.');
+    if (acessoPortal && !portalPermite('admin')) {
+      toast.aviso('Sem permissão', 'Criar um projeto novo é só para o Controlador (Admin no Portal KZ).');
       return;
     }
     if (!acessoPortal) {
@@ -6295,6 +6308,7 @@ function criarTelaEntrada({
     novo: '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M12 12v6"/><path d="M9 15h6"/></svg>',
     olho: '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>',
     lapis: '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+    capacete: '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h18"/><path d="M4 18v-2a8 8 0 0 1 16 0v2"/><path d="M10 8V5h4v3"/><path d="M12 8v4"/></svg>',
     escudo: '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>',
   };
   const icoLd = (classe, svg, estilo) => { const s = h('span', { class: classe, style: estilo || '' }); s.innerHTML = svg; return s; };
@@ -6361,8 +6375,8 @@ function criarTelaEntrada({
         h('span', { class: 'ctc-entrada__rotulo' }, '2. Como você vai acessar?'),
         h('div', { class: 'ctc-ld-acessos' },
           cartaoLd({ svg: SVG_LD.olho, fundo: '#f1f5f9', cor: '#334155', titulo: 'Visualizador', sub: 'Consulta', dica: 'Somente leitura', onClick: entrarVisualizador }),
-          cartaoLd({ svg: SVG_LD.lapis, fundo: '#dbeafe', cor: '#1e3a8a', titulo: 'Controlador', sub: 'Edita e salva', dica: 'Registra e salva', onClick: entrarControlador }),
-          cartaoLd({ svg: SVG_LD.escudo, fundo: '#ede9fe', cor: '#6d28d9', titulo: 'Administrador', sub: 'Acessos', dica: 'Gerenciar acessos', onClick: entrarAdministrador }))),
+          cartaoLd({ svg: SVG_LD.capacete, fundo: '#fef3c7', cor: '#b45309', titulo: 'Apontamento', sub: 'Registra em campo', dica: 'Registra as etapas; não desfaz nem altera datas já salvas', onClick: entrarApontamento }),
+          cartaoLd({ svg: SVG_LD.lapis, fundo: '#dbeafe', cor: '#1e3a8a', titulo: 'Controlador', sub: 'Pode tudo', dica: 'Registra, desfaz e corrige datas', onClick: entrarControlador }))),
       h('div', { class: 'ctc-entrada__links' },
         h('button', { type: 'button', onClick: () => abrirPrivacidade({ aba: 0 }) }, 'Privacidade'), ' · ',
         h('button', { type: 'button', onClick: () => abrirPrivacidade({ aba: 1 }) }, 'Termos de Uso')),
@@ -7424,7 +7438,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.8.0
+   Versao: 6.9.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7454,6 +7468,11 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
    6.7.1: vigas U da linha A do 01A conforme o DWG-00016 rev. A (PM-103, PM-104, PM-104).
    6.8.0: prancha e 3D mais visuais: tom proprio por tipo de peca no que nao comecou e codigo
           de cada peca escrito dentro dela na prancha quando ha espaco (ao aproximar).
+   6.9.0: perfil Apontamento (Portal: Editor) no lugar do cartao Administrador: registra tudo,
+          mas nao desfaz nem altera/apaga datas ja salvas nem exclui recebimentos; Controlador
+          (Portal: Admin) pode tudo. Menu enxuto no Apontamento, completo no Controlador.
+          Quadro "Todas as etapas": o horario da concretagem so e exigido quando a etapa recebe a data
+          (antes impedia o Salvar tudo em pecas de concreto).
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -7502,7 +7521,9 @@ const ADMINISTRADOR = {
   hash: 'f2f245cf92a833af7871b94deaf025b0b361f7a3757789124153738c26132614',
 };
 
-const NOME_PERFIL = { controlador: 'Controlador', visualizador: 'Visualizador', administrador: 'Administrador' };
+const NOME_PERFIL = { controlador: 'Controlador', apontamento: 'Apontamento', visualizador: 'Visualizador', administrador: 'Administrador' };
+/** v6.9: so o Controlador (e o Administrador da base) desfaz registros e altera datas ja salvas. */
+const podeCorrigirRegistros = () => ['controlador', 'administrador'].includes(sessao.obter().perfil);
 
 const sessao = criarSessao();
 let aplicativo = null;
@@ -13542,6 +13563,10 @@ function abrirRegistroEtapa(e, etapa, { aoSalvar } = {}) {
         v[c.chave] = hora;
       }
       campos.forEach((c) => { if (temValor(v[c.chave])) valores[c.chave] = (c.texto || c.hora || c.opcoes) ? String(v[c.chave]) : num(v[c.chave]); });
+      if (!podeCorrigirRegistros() && ((atual.inicio && v.inicio !== atual.inicio) || (atual.data && v.data !== atual.data))) {
+        formulario.definirErro(atual.data && v.data !== atual.data ? 'data' : 'inicio', 'Datas já registradas só podem ser alteradas pelo Controlador.');
+        return;
+      }
       if (!etapa.pontual) {
         // o inicio e validado contra as etapas anteriores ignorando o proprio registro
         const guardado = e.reg[etapa.chave];
@@ -13686,14 +13711,14 @@ async function podeDesfazer() {
     }).abrir();
     return false;
   };
+  if (!podeCorrigirRegistros()) return negar('Só o Controlador pode desfazer um registro ou alterar datas já salvas. Peça ao Controlador da obra.');
+  if (!usuarioKZ) return true;   // Controlador pelos controladores da base (sem Portal)
   try {
-    await garantirNuvemKZ();
     const acesso = await acessoNoControle(obraNuvem);
-    if (['editor', 'admin'].includes(acesso.papel)) return true;
-    const papel = { leitor: 'Leitor', '': 'sem acesso' }[acesso.papel ?? ''] || acesso.papel || 'sem acesso';
-    return negar(`Seu acesso neste controle no Portal KZ é ${papel}. Só Editor ou Administrador pode desfazer um registro. Fale com o administrador da obra.`);
+    if (acesso.papel === 'admin') return true;
+    return negar('Seu acesso no Portal KZ mudou: só o Controlador (Admin no Portal) pode desfazer. Fale com o administrador da obra.');
   } catch (erro) {
-    return negar(`Para desfazer, o controle confere no Portal KZ se você é Editor (${erro.message}). Entre com o seu login do Portal, com internet, ou fale com o administrador da obra.`);
+    return negar(`Não foi possível conferir seu acesso no Portal KZ (${erro.message}). Tente de novo com internet.`);
   }
 }
 
@@ -13901,7 +13926,8 @@ function abrirFichaCompleta(e) {
       ...(et.pontual
         ? [{ nome: 'data', rotulo: et.rotuloData || (et.texto === 'Montagem' ? 'Data da montagem' : 'Data'), tipo: 'data', ...des }]
         : [{ nome: 'inicio', rotulo: 'Início', tipo: 'data', ...des }, { nome: 'data', rotulo: 'Término (em branco = em andamento)', tipo: 'data', ...des }]),
-      ...(et.campos || []).map((c) => campoDeEtapa(c, des)),
+      // v6.9: no quadro os valores so sao exigidos quando a etapa recebe a data (conferido no Salvar tudo)
+      ...(et.campos || []).map((c) => ({ ...campoDeEtapa(c, des), obrigatorio: false })),
     ];
     forms[et.chave] = criarFormulario({ colunas: 3, semBotoes: true, valores, campos });
     const situacao = feita(e, et.chave) ? 'Feita' : (emAndamento(e, et.chave) ? 'Em andamento' : 'A registrar');
@@ -13980,6 +14006,11 @@ function abrirFichaCompleta(e) {
       // comprimento igual ao de projeto nao e "mudanca": nao grava so por ter aberto com o valor de projeto
       campos.filter((c) => c.projeto).forEach((c) => { if (temValor(valores[c.chave]) && Math.abs(num(valores[c.chave]) - num(e.info[c.projeto])) < 0.005 && !backup[et.chave]?.valores?.[c.chave]) delete valores[c.chave]; });
       const antigo = backup[et.chave];
+      if (antigo && !podeCorrigirRegistros()) {
+        const mudouInicio = Boolean(antigo.inicio) && antigo.inicio !== v.inicio;
+        const mudouData = Boolean(antigo.data) && antigo.data !== v.data;
+        if (mudouInicio || mudouData) return falhar(et, mudouData ? 'data' : 'inicio', 'Datas já registradas só podem ser alteradas ou apagadas pelo Controlador.');
+      }
       const temData = et.pontual ? Boolean(v.data) : Boolean(v.inicio || v.data);
       if (!temData) {
         const preenchidos = Object.keys(valores);
@@ -13988,6 +14019,10 @@ function abrirFichaCompleta(e) {
         continue;
       }
       if (!et.pontual && !v.inicio) return falhar(et, 'inicio', 'Informe a data de início.');
+      if (v.data) {
+        const falta = (et.campos || []).find((c) => c.obrigatorio && !temValor(v[c.chave]));
+        if (falta) return falhar(et, falta.chave, `Informe: ${falta.rotulo}.`);
+      }
       if (antigo?.valores?.geologo) valores.geologo = antigo.valores.geologo;
       const novo = { ...(et.pontual ? {} : { inicio: v.inicio }), ...(v.data ? { data: v.data } : {}), ...(Object.keys(valores).length ? { valores } : {}) };
       const semGeologo = (r) => JSON.stringify({ ...r, valores: r?.valores ? { ...r.valores, geologo: undefined } : undefined });
@@ -14739,7 +14774,7 @@ function paginaBanco() {
 
 /* ---- Estoque de pre-moldados: recebimento por tipo e quantidade; saldo = recebido - montado ---- */
 function abrirEntradaEstoque(m) {
-  const podeExcluir = sessao.podeEditar();
+  const podeExcluir = podeCorrigirRegistros();
   const s = saldoTipoPM(m.tipoPM);
   const modal = criarModal({
     titulo: `Recebimento ${m.tipoPM} · ${dataTexto(m.data)}`, tamanho: 'md', destruirAoFechar: true,
@@ -15941,9 +15976,9 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
   };
   atualizarPilulaSinc();
   const temporizadorSinc = setInterval(atualizarPilulaSinc, 3000);
-  const apontador = perfil === 'controlador' && !(usuarioKZ && usuarioKZ.papel === 'admin');
+  const apontador = perfil === 'apontamento';
   const botaoControlador = criarBotaoSessao({
-    sessao, texto: 'Controlador',
+    sessao, texto: perfil === 'apontamento' ? 'Apontamento' : 'Controlador',
     onClick: () => abrirPainelControlador({
       sessao, titulo: `Controlador — ${usuario ? usuario.nome : NOME_PERFIL[perfil]}`, prefixoArquivo: 'controle-campo-otf3',
       obterBaseParaSalvar, armazenamento, administrador: ADMINISTRADOR,
