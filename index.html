@@ -2374,6 +2374,9 @@ img { max-width: 100%; display: block; }
 .ctc-sinc-linhas b { color: #0f172a; }
 @media (prefers-reduced-motion: reduce) { .ctc-desfazer, .ctc-desfazer__tempo { animation: none; } }
 
+/* v6.9.1: faixa de eixos nas Camadas */
+.ctc-faixa-eixos { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ctc-faixa-eixos .ctc-select { width: auto; min-width: 64px; }
 </style>
 </head>
 <body>
@@ -7438,7 +7441,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.9.0
+   Versao: 6.9.1
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7473,6 +7476,8 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           (Portal: Admin) pode tudo. Menu enxuto no Apontamento, completo no Controlador.
           Quadro "Todas as etapas": o horario da concretagem so e exigido quando a etapa recebe a data
           (antes impedia o Salvar tudo em pecas de concreto).
+   6.9.1: Controlador/Apontamento no menu (sai do cabecalho); botao Centralizar no desenho;
+          faixa de eixos "Do eixo X ate Y" nas Camadas (o que esta fora fica quase invisivel).
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -13010,6 +13015,7 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     ordenados.forEach((o) => {
       let alfa = o.alfa ?? 1;
       if (alfa <= 0.001) return;   // camada desligada
+      if (est.area && est.area.ids && !est.area.ids.has(o.id)) alfa = Math.min(alfa, 0.08);   // v6.9.1: fora da faixa de eixos
       if (est.focoId != null && o.id !== est.focoId) alfa *= 1 - 0.78 * est.fade;
       const solido = !est.translucido || o.id === est.selecionadoId || o.id === est.focoId;
       let polis;
@@ -13130,6 +13136,7 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     travarArea(area) {
       const objs = area.objs();
       if (!objs.length) return false;
+      if (area.somenteDentro) area.ids = new Set(objs.map((o) => o.id));
       est.area = area;
       est.focoId = null;
       animar(camArea(est.prancha > 0.5), 0, null, est.prancha > 0.5 ? 1 : 0);
@@ -13339,7 +13346,7 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     });
     ['pointerup', 'touchend', 'dblclick'].forEach((ev) => canvas.addEventListener(ev, () => setTimeout(atualizarModo, 900)));
     atualizarModo();
-    const botaoEnq = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', title: 'Enquadrar (volta ao desenho inteiro)', 'aria-label': 'Enquadrar', onClick: enquadrarAtual }, '⤢');
+    const botaoEnq = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', title: 'Centralizar: traz o desenho de volta ao centro da tela', 'aria-label': 'Centralizar o desenho', onClick: enquadrarAtual }, '🎯');
     vista.flutua = h('div', { class: 'ctc-vista__flutua' }, botaoModo, botaoEnq);
     vista.elemento = h('div', { class: 'ctc-vista' }, canvas, legenda, vista.flutua);
     vista.piscar = () => { vista.elemento.classList.add('is-piscando'); setTimeout(() => vista.elemento.classList.remove('is-piscando'), 1600); };
@@ -14202,6 +14209,27 @@ function paginaCampo() {
     areas.eixos.length ? seletorArea('eixo', 'Eixo', areas.eixos) : null,
     areas.linhas.length ? seletorArea('linha', 'Linha', areas.linhas) : null,
     areas.quadrantes.length ? seletorArea('quadrante', 'Quadrante', areas.quadrantes) : null,
+    areas.eixos.length > 1 ? (() => {   // v6.9.1: escolher um trecho entre dois eixos
+      const opc = (sel) => areas.eixos.map(([v, t], i) => h('option', { value: v, selected: i === sel }, t.replace('Eixo ', '')));
+      const ft = travada?.tipo === 'faixa' ? travada.valor.split('|') : null;
+      const iDe = ft ? areas.eixos.findIndex(([v]) => v === ft[0]) : 0;
+      const iAte = ft ? areas.eixos.findIndex(([v]) => v === ft[1]) : areas.eixos.length - 1;
+      const de = h('select', { class: 'ctc-select ctc-allow-readonly', 'aria-label': 'Do eixo' }, opc(iDe));
+      const ate = h('select', { class: 'ctc-select ctc-allow-readonly', 'aria-label': 'Até o eixo' }, opc(iAte));
+      const ver = h('button', {
+        type: 'button', class: 'ctc-btn ctc-btn--primary ctc-btn--sm ctc-allow-readonly',
+        onClick: () => {
+          let a = Number(de.value); let b = Number(ate.value);
+          if (a > b) [a, b] = [b, a];
+          if (a === b) { zoomArea('eixo', String(a), `Eixo ${textoEixo(a)}`); return; }
+          const area = { tipo: 'faixa', valor: `${a}|${b}`, texto: `Eixos ${textoEixo(a)} a ${textoEixo(b)}`, somenteDentro: true, objs: () => objetosDaArea(seg, 'faixa', `${a}|${b}`) };
+          if (!vista.travarArea(area)) { toast.info('Trecho sem elementos visíveis', 'Ligue as camadas ou escolha outros eixos.'); return; }
+          seletores.forEach((s2) => { s2.value = ''; });
+          abrirCamadas(false);
+        },
+      }, 'Ver');
+      return h('div', { class: 'ctc-dropdown__item ctc-faixa-eixos' }, h('span', {}, 'Do eixo'), de, h('span', {}, 'até'), ate, ver);
+    })() : null,
     temArea ? null : h('div', { class: 'ctc-dropdown__item' }, 'Este local não tem eixos e linhas de projeto.'),
     tituloGrupo('Serviços', 'frentes'),
     ...frentes.map((f) => itemInterruptor('frentes', f, `${FRENTES[f].texto} (${contar(f)})`)),
@@ -14349,6 +14377,12 @@ function objetosDaArea(seg, tipo, valor) {
   if (tipo === 'linha') {
     const [a, b] = faixa(ys, LINHAS.indexOf(valor));
     return objs.filter((o) => { const c = centro(o); return c.y >= a && c.y < b; });
+  }
+  if (tipo === 'faixa') {   // v6.9.1: do eixo a ate o eixo b (inclui as pecas sobre os dois eixos)
+    const [a, b] = valor.split('|').map(Number);
+    const xIni = (y) => (a === -1 ? xEixoMenos1(y) - 2.5 : geoX(a) - 1.3);
+    const xFim = (y) => (b === -1 ? xEixoMenos1(y) + 1.3 : geoX(b) + 1.3);
+    return objs.filter((o) => { const c = centro(o); return c.x >= xIni(c.y) && c.x <= xFim(c.y); });
   }
   if (tipo === 'quadrante') {
     const [e0, e1, l0, l1] = valor.split('|');
@@ -16002,16 +16036,18 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
       acoes: [
         pilulaSinc,
         { texto: 'Ajuda', titulo: 'Ajuda', classe: 'ctc-btn--icone-tablet', icone: 'info', variante: 'outline', onClick: abrirAjuda },
-        botaoControlador,
       ],
     },
     menu: {
-      onNavegar: (id) => { if (id === 'privacidade') abrirPrivacidade({ aba: 0 }); },
+      onNavegar: (id) => {
+        if (id === 'privacidade') abrirPrivacidade({ aba: 0 });
+        if (id === 'painel-sessao') botaoControlador.click();   // v6.9.1: o painel do Controlador / Apontamento abre pelo menu
+      },
       /* v6.3: menu no padrao do Controle de Custos (vidro claro, emojis, cascata e Sair/Trocar)
          v6.6: modo apontador (Controlador sem papel Admin): so o que se usa em campo */
       secoes: apontador ? [
         { titulo: 'Campo', itens: [{ id: 'campo', texto: 'Campo', emoji: '🗺️' }, { id: 'estoque', texto: 'Estoque de pré-moldados', emoji: '📦' }] },
-        { titulo: 'Sistema', itens: [{ id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
+        { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: 'Apontamento (salvar e ferramentas)', emoji: '👤' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ] : [
         {
           titulo: 'Campo',
@@ -16035,7 +16071,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
             },
           ],
         },
-        { titulo: 'Sistema', itens: [{ id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
+        { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
       rodape: apontador ? 'Modo apontador · Controle de Campo v6.6' : 'Controle de Execução em Campo v6.6',
     },
