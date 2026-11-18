@@ -2247,6 +2247,21 @@ img { max-width: 100%; display: block; }
 .ctc-entrada__links button { all: unset; cursor: pointer; color: #64748b; font-size: 11.5px; }
 .ctc-entrada__links button:hover { color: #1e3a5f; text-decoration: underline; }
 
+/* =============================================================================
+   20. TABLET (v6.5): cabecalho sem cortes e sem quebrar os botoes; area de toque maior
+   ========================================================================== */
+@media (max-width: 900px) {
+  .ctc-header { gap: 10px; }
+  .ctc-header__title { white-space: normal; font-size: 15px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .ctc-header__actions { flex-wrap: nowrap; gap: 6px; flex: none; }
+  .ctc-header .ctc-btn--icone-tablet > span { display: none; }
+  .ctc-header .ctc-btn--icone-tablet { padding: 0 9px; }
+}
+@media (pointer: coarse) {
+  .ctc-main .ctc-btn:not(.ctc-btn--icon) { min-height: 36px; }
+  .ctc-main :is(.ctc-tab, .ctc-chip, .ctc-segmented__btn) { min-height: 36px; }
+}
+
 </style>
 </head>
 <body>
@@ -7297,7 +7312,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.4.1
+   Versao: 6.5.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7313,6 +7328,8 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           e vidro completo: botoes de icone, abas ativas, chips e segmentados.
    6.4.1: corrige o aplicativo aberto duas vezes (um embaixo do outro) com toque duplo
           em "Concordo e continuar".
+   6.5.0: tablet: desenho na densidade da tela (nitido), redesenho ao girar o tablet,
+          cabecalho sem cortes (botoes so com icone em pe) e area de toque maior.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -12297,8 +12314,8 @@ const interpolar = (a, b, t) => a + (b - a) * t;
 function pontoNoCanvas(canvas, evento) {
   const caixa = canvas.getBoundingClientRect();
   return {
-    x: ((evento.clientX - caixa.left) * canvas.width) / caixa.width,
-    y: ((evento.clientY - caixa.top) * canvas.height) / caixa.height,
+    x: ((evento.clientX - caixa.left) * (canvas._logW || canvas.width)) / caixa.width,
+    y: ((evento.clientY - caixa.top) * (canvas._logH || canvas.height)) / caixa.height,
   };
 }
 
@@ -12316,9 +12333,15 @@ const ESTADO_VISTAS_3D = {};
  *   caixa: x0, x1, y0, y1, z0, z1 · cilindro: x, y, r, z0, z1 (varios objetos podem ter o mesmo id)
  */
 function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, aoSelecionar, aoConfirmar, semRodape = false }) {
-  const canvas = h('canvas', { class: 'ctc-w-full', width: 1500, height: altura, role: 'img', 'aria-label': titulo });
+  // v6.5: o desenho continua com 1500 de largura "logica", mas a imagem e gerada na densidade
+  // da tela (tablet com tela densa: sem ficar borrado nem com aparencia esticada).
+  const k = Math.min(2.5, Math.max(1, ((window.innerWidth || 1500) * (window.devicePixelRatio || 1)) / 1500));
+  const canvas = h('canvas', { class: 'ctc-w-full', width: Math.round(1500 * k), height: Math.round(altura * k), role: 'img', 'aria-label': titulo });
+  canvas._logW = 1500;
+  canvas._logH = altura;
   const ctx = canvas.getContext('2d');
-  const W = canvas.width;
+  ctx.setTransform(k, 0, 0, k, 0, 0);
+  const W = 1500;
   const H = altura;
   const est = ESTADO_VISTAS_3D[chave] || (ESTADO_VISTAS_3D[chave] = { cam: null, focoId: null, selecionadoId: null, fade: 0, translucido: true, prancha: 1 });
   if (est.prancha == null) est.prancha = 1;
@@ -12874,7 +12897,7 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     return null;
   };
   /** Pixels de tela (CSS) -> pixels do canvas. */
-  const fatorTela = () => { const cx = canvas.getBoundingClientRect(); return { fx: canvas.width / (cx.width || 1), fy: canvas.height / (cx.height || 1) }; };
+  const fatorTela = () => { const cx = canvas.getBoundingClientRect(); return { fx: (canvas._logW || canvas.width) / (cx.width || 1), fy: (canvas._logH || canvas.height) / (cx.height || 1) }; };
   const tocarEm = (evento) => {
     const id = acharId(evento);
     if (id == null) return;
@@ -15415,6 +15438,16 @@ function criarBaseDoProjeto() {
   return { ...criarBaseVazia(FORMATO_BASE), dados: { modelo: MODELO_DADOS, registros: [], funcionarios: [], apropriacoes: [] } };
 }
 
+/* v6.5: ao girar o tablet (em pe <-> deitado), a tela Campo e redesenhada no formato da nova posicao. */
+let orientacaoEmPe = window.innerHeight > window.innerWidth;
+window.addEventListener('resize', debounce(() => {
+  const emPe = window.innerHeight > window.innerWidth;
+  if (emPe === orientacaoEmPe) return;
+  orientacaoEmPe = emPe;
+  Object.values(ESTADO_VISTAS_3D).forEach((est) => { est.cam = null; });   // reenquadra no novo formato
+  if (aplicativo && aplicativo.paginaAtual() === 'campo') aplicativo.navegar('campo');
+}, 300));
+
 function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
   if (aplicativo) return;   // ja aberto: evita duas copias empilhadas na tela
   identidade = { ...IDENTIDADE_PADRAO, ...(base.identidade || {}) };
@@ -15454,8 +15487,8 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
     cabecalho: {
       titulo: identidade.titulo, subtitulo: identidade.subtitulo || '',
       acoes: [
-        { texto: 'Sincronizar', icone: 'download', variante: 'outline', onClick: () => sincronizar() },
-        { texto: 'Ajuda', icone: 'info', variante: 'outline', onClick: abrirAjuda },
+        { texto: 'Sincronizar', titulo: 'Sincronizar', classe: 'ctc-btn--icone-tablet', icone: 'download', variante: 'outline', onClick: () => sincronizar() },
+        { texto: 'Ajuda', titulo: 'Ajuda', classe: 'ctc-btn--icone-tablet', icone: 'info', variante: 'outline', onClick: abrirAjuda },
         botaoControlador,
       ],
     },
@@ -15487,7 +15520,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: 'Controle de Execução em Campo v6.4.1',
+      rodape: 'Controle de Execução em Campo v6.5',
     },
     paginas: {
       campo: { titulo: 'Campo', caminho: ['Execução'], render: paginaCampo },
@@ -15521,7 +15554,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.4.1 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.5 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
