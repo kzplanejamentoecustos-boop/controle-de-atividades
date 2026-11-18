@@ -5595,6 +5595,7 @@ function abrirPrivacidade({ aba = 0, aceite = false, onAceitar } = {}) {
   }, t));
   texto.replaceChildren(secoes[aba]);
   const caixa = h('input', { type: 'checkbox' });
+  let jaAceitou = false;
   const conteudo = [h('div', { class: 'ctc-pv__abas' }, abas), texto];
   if (aceite) conteudo.push(h('div', { class: 'ctc-pv__aceite' },
     h('label', { class: 'ctc-pv__flag' }, caixa, h('span', {}, 'Li e estou de acordo com o ', h('b', {}, 'Aviso de Privacidade'), ' e os ', h('b', {}, 'Termos de Uso'), '.'))));
@@ -5606,7 +5607,14 @@ function abrirPrivacidade({ aba = 0, aceite = false, onAceitar } = {}) {
     conteudo: h('div', { class: 'ctc-pv' }, conteudo),
     acoes: aceite
       ? [{ texto: 'Cancelar', variante: 'outline' },
-        { texto: 'Concordo e continuar', variante: 'primary', onClick: () => { if (!caixa.checked) return false; _pvAceitoSessao = true; if (typeof onAceitar === 'function') setTimeout(onAceitar, 0); return true; } }]
+        { texto: 'Concordo e continuar', variante: 'primary', onClick: () => {
+          if (!caixa.checked) return false;
+          if (jaAceitou) return true;   // toque duplo: entra uma vez so
+          jaAceitou = true;
+          _pvAceitoSessao = true;
+          if (typeof onAceitar === 'function') setTimeout(onAceitar, 0);
+          return true;
+        } }]
       : [{ texto: 'Fechar', variante: 'primary' }],
   });
   if (aceite) {
@@ -5619,9 +5627,11 @@ function abrirPrivacidade({ aba = 0, aceite = false, onAceitar } = {}) {
   return modal;
 }
 /** Na primeira entrada da sessao pede o aceite; depois segue direto. */
+let _pvJanelaAceite = null;
 function exigirAceitePrivacidade(continuar) {
   if (_pvAceitoSessao) { continuar(); return; }
-  abrirPrivacidade({ aceite: true, onAceitar: continuar });
+  if (_pvJanelaAceite && _pvJanelaAceite.estaAberto()) return;   // toque duplo no perfil: uma janela so
+  _pvJanelaAceite = abrirPrivacidade({ aceite: true, onAceitar: continuar });
 }
 /** Sair/Trocar volta a pedir o aceite na proxima entrada (como no Controle de Custos). */
 function reiniciarAceitePrivacidade() { _pvAceitoSessao = false; }
@@ -5830,6 +5840,7 @@ function criarTelaEntrada({
     exigirAceitePrivacidade(() => entrarAceito(perfil, usuario));
   }
   function entrarAceito(perfil, usuario = null) {
+    if (!elemento.isConnected) return;   // ja entrou (toque duplo): nao monta o aplicativo de novo
     elemento.remove();
     // o aplicativo recebe uma COPIA: o que for editado e nao salvo nao altera a base carregada aqui
     const copia = JSON.parse(JSON.stringify(base));
@@ -7286,7 +7297,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.4.0
+   Versao: 6.4.1
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7300,6 +7311,8 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           nome da pagina sob o titulo, botoes em vidro e Exportar/Excel em verde.
    6.4.0: aceite de Privacidade e Termos de Uso ao entrar (modelo do Controle de Custos Rev80)
           e vidro completo: botoes de icone, abas ativas, chips e segmentados.
+   6.4.1: corrige o aplicativo aberto duas vezes (um embaixo do outro) com toque duplo
+          em "Concordo e continuar".
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -15403,6 +15416,7 @@ function criarBaseDoProjeto() {
 }
 
 function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
+  if (aplicativo) return;   // ja aberto: evita duas copias empilhadas na tela
   identidade = { ...IDENTIDADE_PADRAO, ...(base.identidade || {}) };
   if (identidade.titulo === 'Controle de Estacas Raiz') identidade.titulo = IDENTIDADE_PADRAO.titulo;
   sessao.iniciar({ perfil, usuario, base, nomeArquivo });
@@ -15473,7 +15487,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: 'Controle de Execução em Campo v6.4',
+      rodape: 'Controle de Execução em Campo v6.4.1',
     },
     paginas: {
       campo: { titulo: 'Campo', caminho: ['Execução'], render: paginaCampo },
@@ -15507,7 +15521,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.4 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.4.1 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
