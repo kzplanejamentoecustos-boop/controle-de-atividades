@@ -7477,7 +7477,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.9.2
+   Versao: 6.9.3
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7515,6 +7515,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
    6.9.1: Controlador/Apontamento no menu (sai do cabecalho); botao Centralizar no desenho;
           faixa de eixos "Do eixo X ate Y" nas Camadas (o que esta fora fica quase invisivel).
    6.9.2: vidro translucido (estilo iPhone) na legenda, nos botoes flutuantes e no painel Camadas.
+   6.9.3: sem o campo "Cota final da camisa" na cravacao; eixos e linhas tambem no 3D.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -7772,7 +7773,7 @@ const TIPOS = {
     etapas: [
       // mesmo molde da estaca raiz: cada etapa com data de inicio e de fim
       // metragem sem limites: o campo registra o que foi executado (cota e comprimento reais)
-      E('cravacao', 'Cravação da camisa metálica', { campos: [{ chave: 'cota', rotulo: 'Cota final da camisa (EL. m)', obrigatorio: true }, { chave: 'comprimento', rotulo: 'Comprimento real cravado da camisa (m)' }] }),
+      E('cravacao', 'Cravação da camisa metálica', { campos: [{ chave: 'comprimento', rotulo: 'Comprimento real cravado da camisa (m)' }] }),   // v6.9.3: sem a cota final da camisa
       // cota diferente da de projeto: o app pede a validacao do geologo (Sim = prossegue)
       E('escavacao', 'Pinagem (escavação do pino)', { campos: [{ chave: 'cota', rotulo: 'Cota final do pino (EL. m)', obrigatorio: true }, { chave: 'comprimento', rotulo: 'Comprimento real do pino (m)' }] }),
       E('armadura', 'Armadura instalada'),
@@ -12859,6 +12860,44 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
 
   /** Moldura, eixos com bolhas, cotas e carimbo da prancha. */
   /** Eixos com bolhas e cotas (seguem o zoom). A moldura e o carimbo ficam em desenharCarimbo. */
+  /** v6.9.3: eixos e linhas tambem no 3D (traco-ponto com bolhas), um pouco acima do topo do modelo. */
+  function desenharEixos3D(objetos, grade, P, folha = {}) {
+    const a3 = 1 - P;
+    if (a3 <= 0.01 || folha.eixos === false) return;
+    const eixos = grade?.eixos || []; const linhas = grade?.linhas || [];
+    if (!eixos.length && !linhas.length) return;
+    const sel = objetos.filter((o) => o.selecionavel !== false && (o.alfa ?? 1) > 0.001);
+    if (!sel.length) return;
+    const ext = sel.map((o) => extensaoGeo(o));
+    const xMin = Math.min(...eixos.map((e) => e.x), ...ext.map((e) => e.x0)); const xMax = Math.max(...eixos.map((e) => e.x), ...ext.map((e) => e.x1));
+    const yMin = Math.min(...linhas.map((l) => l.y), ...ext.map((e) => e.y0)); const yMax = Math.max(...linhas.map((l) => l.y), ...ext.map((e) => e.y1));
+    const z = Math.max(...sel.map((o) => o.z1 ?? 0)) + 0.3;
+    ctx.save();
+    ctx.globalAlpha = a3;
+    const bolha = (p, texto) => {
+      ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(p.x, p.y, 13, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.fill();
+      ctx.strokeStyle = '#b91c1c'; ctx.lineWidth = 1.3; ctx.stroke();
+      ctx.fillStyle = '#7f1d1d'; ctx.font = fonte(12, true); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(texto, p.x, p.y + 0.5);
+      ctx.textBaseline = 'alphabetic';
+    };
+    const linha = (a, b) => {
+      ctx.strokeStyle = 'rgba(185,28,28,.55)'; ctx.lineWidth = 1; ctx.setLineDash([14, 4, 3, 4]);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    };
+    eixos.forEach((e) => {
+      const a = projetar(e.x, yMin - 4, z); const b = projetar(e.x, yMax + 2, z);
+      linha(a, b); bolha(a, e.texto);
+    });
+    linhas.forEach((l) => {
+      const a = projetar(xMin - 4, l.y, z); const b = projetar(xMax + 2, l.y, z);
+      linha(a, b); bolha(a, l.texto);
+    });
+    ctx.restore();
+  }
+
   function desenharFolha(objetos, grade, P, folha = {}) {
     if (P <= 0.01) return;
     const sel = objetos.filter((o) => o.selecionavel !== false || o.contexto);
@@ -13068,6 +13107,7 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
       }
       if (o.selecionavel !== false && alfa > 0.15) areas.push({ id: o.id, polis });
     });
+    desenharEixos3D(objetos, grade, P, folha);
     // selecionado: sem contorno; o destaque e o modo solido (3D) / preenchimento cheio (prancha)
     // rotulos fixos (eixos, linhas) e do elemento em foco / selecionado
     ctx.textAlign = 'center';
