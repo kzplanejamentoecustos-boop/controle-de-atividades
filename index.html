@@ -2060,6 +2060,129 @@ img { max-width: 100%; display: block; }
   .ctc-ld-imp::after, .ctc-ld-opc::after { animation: none !important; }
 }
 
+/* =============================================================================
+   18. MENU, CABECALHO E BOTOES NO PADRAO DO CONTROLE DE CUSTOS
+   (CTC App Standard 1.7.0 / design-system 1.5.0, secao 16)
+   ========================================================================== */
+/* Cabecalho: botoes em vidro claro sobre o azul */
+.ctc-header .ctc-btn {
+  height: 28px; padding: 0 12px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #fff;
+  background: linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,.08));
+  border: 1px solid rgba(255,255,255,.38);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.55), 0 3px 10px rgba(0,0,0,.18);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), background .2s;
+}
+.ctc-header .ctc-btn:hover,
+.ctc-header__menu-toggle[aria-expanded="true"] { background: linear-gradient(180deg, rgba(255,255,255,.38), rgba(255,255,255,.14)); transform: scale(1.04); }
+.ctc-header .ctc-btn svg { width: 14px; height: 14px; }
+.ctc-header__pagina { display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 999px; background: rgba(255,255,255,.10);
+  color: #cbd5e1; font-size: 11px; font-weight: 600; }
+.ctc-header__pagina:empty { display: none; }
+
+/* Menu em cascata: vidro claro e transparente */
+.ctc-app--menu-botao .ctc-sidebar {
+  width: auto; min-width: 230px; max-width: 290px; padding: 6px; color: #1e293b; isolation: isolate;
+  background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.70); border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 0 0 1px rgba(15,23,42,.06), 0 16px 40px rgba(15,23,42,.22);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+}
+.ctc-app--menu-botao .ctc-sidebar::before,
+.ctc-app--menu-botao .ctc-sidebar--cascata .ctc-sidebar__group > .ctc-sidebar__sub::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1; pointer-events: none;
+  -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%);
+}
+.ctc-app--menu-botao .ctc-sidebar--cascata .ctc-sidebar__group > .ctc-sidebar__sub {
+  min-width: 200px; padding: 6px; color: #1e293b; isolation: isolate;
+  background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.70); border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 0 0 1px rgba(15,23,42,.06), 0 16px 40px rgba(15,23,42,.22);
+}
+.ctc-app--menu-botao .ctc-sidebar__label { display: none; }
+.ctc-app--menu-botao .ctc-sidebar__section + .ctc-sidebar__section { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(15,23,42,.10); }
+.ctc-app--menu-botao .ctc-sidebar__item {
+  min-height: 34px; padding: 7px 12px; gap: 10px; border-radius: 10px; color: #1e293b; font-size: 13px; font-weight: 600;
+}
+.ctc-app--menu-botao .ctc-sidebar__item:hover,
+.ctc-app--menu-botao .ctc-sidebar--cascata .ctc-sidebar__group[open] > .ctc-sidebar__item { background: rgba(15,23,42,.06); color: #0f172a; }
+.ctc-app--menu-botao .ctc-sidebar__item.is-active,
+.ctc-app--menu-botao .ctc-sidebar__item[aria-current="page"] { background: rgba(0,122,255,.12); color: #0a58ca; }
+.ctc-app--menu-botao .ctc-sidebar__item.is-active::before,
+.ctc-app--menu-botao .ctc-sidebar__item[aria-current="page"]::before { background: #007aff; }
+.ctc-app--menu-botao .ctc-sidebar__icon { font-size: 14px; line-height: 1; }
+.ctc-app--menu-botao .ctc-sidebar__sub .ctc-sidebar__item { min-height: 32px; font-size: 13px; font-weight: 400; }
+.ctc-app--menu-botao .ctc-sidebar__footer { margin-top: 6px; padding: 6px 12px 4px; border-top: 1px solid rgba(15,23,42,.10); color: #64748b; font-size: 10.5px; }
+@media (max-width: 1024px) {
+  .ctc-app--menu-botao .ctc-sidebar { max-width: none; }
+  .ctc-app--menu-botao .ctc-sidebar--cascata .ctc-sidebar__group > .ctc-sidebar__sub {
+    background: none; border: 0; border-left: 1px solid rgba(15,23,42,.12); border-radius: 0; box-shadow: none; padding: 0 0 0 8px;
+  }
+  .ctc-app--menu-botao .ctc-sidebar--cascata .ctc-sidebar__group > .ctc-sidebar__sub::before { display: none; }
+}
+
+/* Botoes das abas: vidro colorido com brilho ao passar o mouse */
+.ctc-main .ctc-btn:not(.ctc-btn--icon), .ctc-modal .ctc-btn:not(.ctc-btn--icon) { position: relative; overflow: hidden; isolation: isolate; }
+.ctc-main .ctc-btn:not(.ctc-btn--icon) {
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.50), inset 0 -1px 0 rgba(0,0,0,.12), inset 0 0 0 1px rgba(255,255,255,.16), 0 2px 8px rgba(15,23,42,.14);
+  transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s, filter .2s, background .15s, border-color .15s;
+}
+.ctc-main .ctc-btn:not(.ctc-btn--icon)::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: linear-gradient(180deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.10) 46%, rgba(255,255,255,0) 54%, rgba(255,255,255,.07) 100%);
+}
+.ctc-main .ctc-btn:not(.ctc-btn--icon):not(.is-loading)::after,
+.ctc-modal .ctc-btn:not(.ctc-btn--icon):not(.is-loading)::after {
+  content: ""; position: absolute; top: -20%; bottom: -20%; left: -70%; width: 45%; pointer-events: none; z-index: 1; opacity: 0;
+  background: linear-gradient(105deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.55) 50%, rgba(255,255,255,0) 100%); transform: skewX(-18deg);
+}
+.ctc-main .ctc-btn:not(.ctc-btn--icon):not(:disabled):hover::after,
+.ctc-modal .ctc-btn:not(.ctc-btn--icon):not(:disabled):hover::after { animation: ctc-vidro-brilho .85s cubic-bezier(.4,0,.2,1); }
+.ctc-main .ctc-btn:not(.ctc-btn--icon):not(:disabled):hover {
+  transform: translateY(-1px); filter: brightness(1.07) saturate(1.05);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.60), inset 0 -1px 0 rgba(0,0,0,.12), inset 0 0 0 1px rgba(255,255,255,.22), 0 6px 16px rgba(15,23,42,.20);
+}
+.ctc-main .ctc-btn:not(.ctc-btn--icon):not(:disabled):active { transform: scale(.97); filter: brightness(.97); transition-duration: .08s; }
+/* cores das barras de acoes: cinza (padrao), azul (principal), verde (exportar/Excel) */
+.ctc-main :is(.ctc-toolbar, .ctc-page-header__actions, .ctc-panel__actions) .ctc-btn:not(.ctc-btn--icon) { font-size: 12px; font-weight: 600; }
+.ctc-main :is(.ctc-toolbar, .ctc-page-header__actions, .ctc-panel__actions) :is(.ctc-btn--ghost, .ctc-btn--outline, .ctc-btn--secondary):not(.ctc-btn--icon) {
+  --_bg: #475569; --_fg: #fff; --_bd: transparent; --_bg-hover: #334155;
+}
+.ctc-main :is(.ctc-toolbar, .ctc-page-header__actions, .ctc-panel__actions) .ctc-btn--primary:not(.ctc-btn--icon) { --_bg: #1e3a5f; --_bg-hover: #27496f; }
+.ctc-main :is(.ctc-toolbar, .ctc-page-header__actions, .ctc-panel__actions) :is(.ctc-btn--success, .ctc-btn--excel):not(.ctc-btn--icon) {
+  --_bg: #15803d; --_fg: #fff; --_bd: transparent; --_bg-hover: #166534;
+}
+
+/* Janelas: botoes em vidro claro (pilula); a cor do botao vai para o texto; o principal fica azul */
+.ctc-modal .ctc-btn:not(.ctc-btn--icon) {
+  border-radius: 999px; font-weight: 600; letter-spacing: -.1px; color: #1e293b;
+  background: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.30));
+  border: 1px solid rgba(255,255,255,.90);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.95), inset 0 -1px 2px rgba(15,23,42,.06), 0 0 0 1px rgba(15,23,42,.08), 0 3px 10px rgba(15,23,42,.10);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), background .2s, box-shadow .2s;
+}
+.ctc-modal .ctc-btn:not(.ctc-btn--icon):not(:disabled):hover { background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.50)); transform: scale(1.04); }
+.ctc-modal .ctc-btn:not(.ctc-btn--icon):not(:disabled):active { transform: scale(.95); transition-duration: .1s; }
+.ctc-modal :is(.ctc-btn--danger, .ctc-btn--danger-soft):not(.ctc-btn--icon) { color: #b91c1c; }
+.ctc-modal .ctc-btn--warning:not(.ctc-btn--icon) { color: #b45309; }
+.ctc-modal :is(.ctc-btn--success, .ctc-btn--excel):not(.ctc-btn--icon) { color: #15803d; }
+.ctc-modal .ctc-btn--primary:not(.ctc-btn--icon) {
+  color: #fff; border-color: rgba(255,255,255,.45);
+  background: linear-gradient(180deg, rgba(0,122,255,.92), rgba(0,98,214,.86));
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.55), 0 4px 14px rgba(0,98,214,.30);
+}
+.ctc-modal .ctc-btn--primary:not(.ctc-btn--icon):not(:disabled):hover { background: linear-gradient(180deg, rgba(26,136,255,.95), rgba(0,110,230,.90)); }
+.ctc-modal--danger .ctc-modal__footer .ctc-btn--danger { color: #fff; border-color: rgba(255,255,255,.45);
+  background: linear-gradient(180deg, #ef4444, #dc2626); box-shadow: inset 0 1px 1px rgba(255,255,255,.45), 0 4px 14px rgba(220,38,38,.28); }
+.ctc-modal .ctc-btn:disabled { opacity: .5; transform: none; }
+.ctc-modal .ctc-btn.is-loading::after { border-color: currentColor; border-right-color: transparent; }
+.ctc-modal__close {
+  width: 30px; height: 30px; border-radius: 50%; color: #fff;
+  background: linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,.08));
+  border: 1px solid rgba(255,255,255,.38); box-shadow: inset 0 1px 1px rgba(255,255,255,.55), 0 3px 10px rgba(0,0,0,.18);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), background .2s;
+}
+.ctc-modal__close:hover { background: linear-gradient(180deg, rgba(255,255,255,.38), rgba(255,255,255,.14)); transform: scale(1.06); }
+@media (prefers-reduced-motion: reduce) { .ctc-main .ctc-btn::after, .ctc-modal .ctc-btn::after { animation: none !important; } }
+
 </style>
 </head>
 <body>
@@ -3696,6 +3819,7 @@ function criarBotao({
       bloco && 'ctc-btn--block',
       somenteIcone && 'ctc-btn--icon',
       apenasEdicao && 'ctc-edit-only',
+      /exportar|excel/i.test(texto) && 'ctc-btn--excel',
       classe,
     ),
     title: titulo,
@@ -3813,7 +3937,8 @@ function criarMenuLateral({
 
   const iconeItem = (item, nivel) => {
     if (nivel > 0) return null;
-    const conteudo = item.icone ? criarIcone(item.icone, 18) : (item.texto || '?').trim().charAt(0).toUpperCase();
+    const conteudo = item.emoji ? item.emoji
+      : item.icone ? criarIcone(item.icone, 18) : (item.texto || '?').trim().charAt(0).toUpperCase();
     return h('span', { class: 'ctc-sidebar__icon', 'aria-hidden': 'true' }, conteudo);
   };
 
@@ -3983,7 +4108,7 @@ function criarCabecalhoPagina({ titulo = '', caminho = [], acoes = [] } = {}) {
  */
 function montarAplicativo({
   alvo = document.body, marca, cabecalho = {}, menu = {}, paginas = {}, paginaInicial,
-  tipoMenu = 'botao', menuCascata, usarHash = true, somenteLeitura = false, recolhido = false,
+  tipoMenu = 'botao', menuCascata, usarHash = true, somenteLeitura = false, recolhido = false, onSair,
 } = {}) {
   const consultaMobile = window.matchMedia('(max-width: 1024px)');
   let paginaAtual = null;
@@ -4002,12 +4127,23 @@ function montarAplicativo({
     : cabecalho.logo;
 
   const cab = criarCabecalho({ ...cabecalho, logo: logoCabecalho, onMenu: () => api.alternarMenu() });
+  const ID_SAIR = '__ctc-sair';
+  const secoesMenu = typeof onSair === 'function'
+    ? [...(menu.secoes || []), { itens: [{ id: ID_SAIR, texto: 'Sair/Trocar', emoji: '↶' }] }]
+    : menu.secoes;
   const men = criarMenuLateral({
     ...menu,
+    secoes: secoesMenu,
     cascata: modo !== 'classico',
     marca: modo === 'lateral' ? marcaFinal : null,
     sinal: controle.signal,
     onNavegar: (id, item) => {
+      if (id === ID_SAIR) {
+        if (paginaAtual) men.definirAtivo(paginaAtual);
+        api.alternarMenu(false);
+        onSair();
+        return;
+      }
       if (paginas[id]) api.navegar(id);
       if (typeof menu.onNavegar === 'function') menu.onNavegar(id, item);
     },
@@ -4023,6 +4159,9 @@ function montarAplicativo({
       somenteLeitura && 'ctc-app--readonly',
     ),
   }, cab.elemento, men.elemento, main, fundo);
+
+  /* v1.7: nome da pagina aberta sob o titulo, como no Controle de Custos */
+  const chipPagina = h('span', { class: 'ctc-header__pagina' });
 
   /* ---- Modo botao: o botao "Menu" abre/fecha o painel em cascata ---- */
   let botaoMenu = null;
@@ -4052,6 +4191,7 @@ function montarAplicativo({
     if (logoAtual) pilha.append(logoAtual);
     pilha.append(botaoMenu);
     cab.elemento.querySelector('.ctc-header__titles').before(pilha);
+    cab.elemento.querySelector('.ctc-header__titles').append(chipPagina);
     document.addEventListener('click', (e) => {
       if (app.classList.contains('ctc-app--menu-aberto') && !men.elemento.contains(e.target) && !botaoMenu.contains(e.target)) {
         alternarPainel(false);
@@ -4096,6 +4236,7 @@ function montarAplicativo({
     men.definirAtivo(id);
     men.fecharSubmenus();
     mostrarPagina(pagina, typeof pagina.render === 'function' ? pagina.render(api) : []);
+    chipPagina.textContent = pagina.nomeCurto || men.obterItem(id)?.texto || pagina.titulo || '';
     if (usarHash && window.location.hash.slice(1) !== id) {
       window.history.replaceState(null, '', `#${id}`);
     }
@@ -6992,7 +7133,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.2.0
+   Versao: 6.3.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7001,6 +7142,9 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
    6.2.0: login do Portal KZ: o papel na obra (Leitor/Editor/Admin) define o perfil
           (Visualizador/Controlador); a nuvem passa a ser a da KZ por obra
           (obras/{obra}/{controle}); titulo da aba corrigido.
+   6.3.0: menu, cabecalho e botoes no padrao do Controle de Custos (CTC App Standard 1.7.0):
+          menu em vidro claro com emojis, "Consulta" em cascata, "Sair/Trocar" no menu,
+          nome da pagina sob o titulo, botoes em vidro e Exportar/Excel em verde.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -15146,12 +15290,33 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
       ],
     },
     menu: {
+      /* v6.3: menu no padrao do Controle de Custos (vidro claro, emojis, cascata e Sair/Trocar) */
       secoes: [
-        { titulo: 'Campo', itens: [{ id: 'campo', texto: 'Campo (prancha e 3D)', icone: 'painel' }, { id: 'painel', texto: 'Painel do dia', icone: 'grafico' }, { id: 'estoque', texto: 'Estoque de pré-moldados', icone: 'tabela' }, { id: 'avanco', texto: 'Avanço físico (cronograma)', icone: 'grafico' }] },
-        { titulo: 'Consulta', itens: [{ id: 'elementos', texto: 'Elementos', icone: 'tabela' }, { id: 'banco', texto: 'Banco de dados', icone: 'tabela' }, { id: 'pendencias', texto: 'Pendências', icone: 'info' }] },
-        { titulo: 'Sistema', itens: [{ id: 'sincronizacao', texto: 'Sincronização', icone: 'download' }] },
+        {
+          titulo: 'Campo',
+          itens: [
+            { id: 'campo', texto: 'Campo (prancha e 3D)', emoji: '🗺️' },
+            { id: 'painel', texto: 'Painel do dia', emoji: '📊' },
+            { id: 'estoque', texto: 'Estoque de pré-moldados', emoji: '📦' },
+            { id: 'avanco', texto: 'Avanço físico (cronograma)', emoji: '📈' },
+          ],
+        },
+        {
+          titulo: 'Consulta',
+          itens: [
+            {
+              id: 'grupo-consulta', texto: 'Consulta', emoji: '🔎',
+              itens: [
+                { id: 'elementos', texto: 'Elementos' },
+                { id: 'banco', texto: 'Banco de dados' },
+                { id: 'pendencias', texto: 'Pendências' },
+              ],
+            },
+          ],
+        },
+        { titulo: 'Sistema', itens: [{ id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }] },
       ],
-      rodape: 'Controle de Execução em Campo v6.2',
+      rodape: 'Controle de Execução em Campo v6.3',
     },
     paginas: {
       campo: { titulo: 'Campo', caminho: ['Execução'], render: paginaCampo },
@@ -15165,6 +15330,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
     },
     paginaInicial: 'campo',
     somenteLeitura: perfil === 'visualizador',
+    onSair: () => sair(),
   });
   aplicativo = app;
   if (resumo.convertida) toast.info('Base do controle anterior convertida', `${resumo.aplicados} elemento(s) com registros foram trazidos para o novo controle.`);
@@ -15184,7 +15350,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.2 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.3 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
