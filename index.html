@@ -2434,6 +2434,48 @@ img { max-width: 100%; display: block; }
 .ctc-excel__todos { font-weight: 600; }
 .ctc-excel__vazio { padding: 10px; color: #64748b; text-align: center; }
 .ctc-excel__botoes { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+/* v6.9.6: ficha completa do elemento */
+.ctc-ficha__abrir { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; text-align: center; padding: 12px 14px; border-radius: 12px; font-weight: 600; font-size: 14px;
+  color: #1e3a5f; background: linear-gradient(180deg, rgba(219,234,254,.9), rgba(219,234,254,.55)); border: 1px solid #bfdbfe; }
+.ctc-ficha__abrir:hover { background: #dbeafe; }
+.ctc-ficha__abrir:focus-visible { outline: 2px solid #1e3a5f; outline-offset: 2px; }
+.ctc-ficha { display: grid; gap: 16px; color: #1e293b; }
+.ctc-ficha h4 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: #475569; }
+.ctc-ficha__cab { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13.5px; color: #475569; }
+.ctc-ficha__situacao { color: #0f172a; font-weight: 700; padding: 4px 12px; border-radius: 999px; }
+.ctc-ficha__sub { margin: -6px 0 0; font-size: 13px; color: #64748b; }
+.ctc-ficha__qtds { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.ctc-ficha__qtd { display: grid; gap: 2px; padding: 12px 14px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; }
+.ctc-ficha__qtd span { font-size: 12px; color: #64748b; }
+.ctc-ficha__qtd b { font-size: 24px; color: #0f172a; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.ctc-ficha__qtd small { font-size: 12px; color: #64748b; }
+.ctc-ficha__qtd.is-real { background: #f0fdf4; border-color: #bbf7d0; }
+.ctc-ficha__nota { margin: 0 0 8px; font-size: 12.5px; color: #64748b; }
+.ctc-ficha__etapas { display: grid; gap: 8px; }
+.ctc-ficha__etapa { display: flex; gap: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; border-left: 5px solid #cbd5e1; }
+.ctc-ficha__etapa.is-feita { border-left-color: #16a34a; }
+.ctc-ficha__etapa.is-andamento { border-left-color: #eab308; }
+.ctc-ficha__num { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: #f1f5f9; color: #334155; }
+.ctc-ficha__etapa.is-feita .ctc-ficha__num { background: #16a34a; color: #fff; }
+.ctc-ficha__etapa.is-andamento .ctc-ficha__num { background: #facc15; color: #0f172a; }
+.ctc-ficha__etapa-corpo { flex: 1; min-width: 0; display: grid; gap: 6px; }
+.ctc-ficha__etapa-topo { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.ctc-ficha__estado { font-size: 12px; color: #64748b; }
+.ctc-ficha__desvio { font-size: 12px; font-weight: 600; padding: 1px 8px; border-radius: 999px; }
+.ctc-ficha__desvio.is-atraso { background: #fee2e2; color: #b91c1c; }
+.ctc-ficha__desvio.is-ok { background: #dcfce7; color: #15803d; }
+.ctc-ficha__datas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.ctc-ficha__datas > div { display: grid; gap: 1px; padding: 6px 10px; border-radius: 8px; background: #f8fafc; }
+.ctc-ficha__datas small { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: .04em; }
+.ctc-ficha__datas span { font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.ctc-ficha__valores { font-size: 12.5px; color: #334155; background: #eff6ff; border-radius: 8px; padding: 6px 10px; }
+.ctc-ficha__dados { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.ctc-ficha__dados > div { display: grid; gap: 1px; padding: 8px 10px; border-radius: 10px; background: #f8fafc; border: 1px solid #eef2f6; }
+.ctc-ficha__dados small { font-size: 11.5px; color: #64748b; }
+.ctc-ficha__dados b { font-size: 14px; color: #0f172a; }
+@media (max-width: 600px) { .ctc-ficha__datas { grid-template-columns: 1fr; } }
+.ctc-banco-tipo { width: auto; min-width: 260px; max-width: 100%; }
+.ctc-btn[hidden] { display: none !important; }
 </style>
 </head>
 <body>
@@ -7589,7 +7631,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.9.5
+   Versao: 6.9.6
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7631,6 +7673,11 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
    6.9.4: salvar na nuvem / na base existente nao pede login de novo para quem entrou pelo Portal KZ.
    6.9.5: Banco de dados com filtro por coluna no estilo do Excel (lista de valores, pesquisa, ordenar);
           o Exportar leva so as linhas filtradas.
+   6.9.6: ficha completa do elemento (botao no quadro): etapas com previsto x real e desvio,
+          quantidades (concreto, aco, forma, peso, concreto lancado) e todos os dados de projeto.
+          Banco de dados enxuto: sai o aviso, o painel com abas, os indicadores e a pesquisa;
+          o tipo e escolhido numa lista ao lado do Exportar.
+          Camadas: "Blocos do eixo −1" e "Viga do eixo −1" viram duas frentes separadas.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -7849,7 +7896,8 @@ const SEGMENTOS = {
 
 const FRENTES = {
   fundacoes: { texto: 'Fundações', icone: 'painel' },
-  blocos: { texto: 'Blocos e viga eixo −1', icone: 'painel' },
+  blocos: { texto: 'Blocos do eixo −1', icone: 'painel' },
+  'viga-eixo': { texto: 'Viga do eixo −1', icone: 'painel' },   // v6.9.6: separada dos blocos nas Camadas e filtros
   premoldados: { texto: 'Pré-moldados', icone: 'painel' },
   lajes: { texto: 'Lajes pré-moldadas', icone: 'painel' },
   concreto: { texto: 'Concreto no local', icone: 'painel' },
@@ -7930,7 +7978,7 @@ const TIPOS = {
     ],
   },
   'viga-eixo': {
-    frente: 'blocos', nome: 'Viga do eixo −1',
+    frente: 'viga-eixo', nome: 'Viga do eixo −1',
     etapas: [
       E('armacao1', 'Lançamento da armadura', { pontual: true, rotuloData: 'Dia do lançamento da armadura' }),
       E('concretagem1', 'Concretagem 1ª fase (junto com a 1C)', { pontual: true, rotuloData: 'Data de início da concretagem', campos: [CAMPO_HORA, CAMPO_VOLUME] }),
@@ -14105,6 +14153,87 @@ function dadosProjeto(e) {
  * Ficha completa: todas as etapas do elemento no mesmo quadro (inicio, termino e valores de cada uma),
  * a cura calculada pela concretagem e os dados de projeto. "Salvar tudo" valida na ordem executiva.
  */
+/* =============================================================================
+   v6.9.6: FICHA DO ELEMENTO — todas as etapas (previsto x real), valores medidos e dados de projeto
+   ========================================================================== */
+/** Datas previstas por elemento e etapa: preenchidas quando o cronograma for carregado. { [id]: { [etapa]: { inicio, fim, atividade } } } */
+const PREVISTO_ELEMENTOS = {};
+const previstoEtapa = (e, et) => (PREVISTO_ELEMENTOS[e.id] || {})[et.chave] || null;
+
+function abrirFichaElemento(e) {
+  if (!e) return;
+  const etapas = etapasDe(e);
+  const st = statusDe(e);
+  const feitas = etapas.filter((et) => feita(e, et.chave)).length;
+  const codigos = (codigosCronogramaPorElemento().get(e.id) || []);
+  const cor = liberado(e) ? COR_LIBERADO : STATUS[st].cor;
+  const situacao = liberado(e) ? 'Liberado para começar' : textoStatus(e);
+  const chegada = e.info.tipoPM ? chegadasPorPeca().get(e.id) : null;
+
+  // quantidades principais em destaque
+  const qtd = [
+    ['volume', 'Concreto', 'm³'], ['aco', 'Aço', 'kg'], ['forma', 'Forma', 'm²'], ['peso', 'Peso', 't'],
+    ['vol1', 'Concreto 1ª fase', 'm³'], ['vol2', 'Concreto 2ª fase', 'm³'], ['volEstaca', 'Concreto da estaca', 'm³'], ['volPino', 'Concreto do pino', 'm³'],
+  ].filter(([k]) => temValor(e.info[k]) && Number(e.info[k]) > 0)
+    .map(([k, rot, un]) => h('div', { class: 'ctc-ficha__qtd' }, h('span', {}, rot), h('b', {}, formatarNumero(e.info[k], Number.isInteger(e.info[k]) ? 0 : 2)), h('small', {}, un)));
+  // concreto realmente lancado (soma dos volumes registrados)
+  const lancado = volumeLancado(e);
+  if (lancado > 0) qtd.push(h('div', { class: 'ctc-ficha__qtd is-real' }, h('span', {}, 'Concreto lançado (real)'), h('b', {}, formatarNumero(lancado, 2)), h('small', {}, 'm³')));
+
+  const projeto = dadosProjeto(e).filter(([r]) => !/^(Volume|Aço|Forma|Peso|Volume da estaca|Volume do pino|Volume 1ª fase|Volume 2ª fase)/.test(r));
+
+  // linha do tempo das etapas: previsto x real
+  const linhas = etapas.map((et, i) => {
+    const r = e.reg[et.chave] || {};
+    const prev = previstoEtapa(e, et);
+    const realIni = et.pontual ? r.data : r.inicio;
+    const realFim = r.data;
+    const estado = feita(e, et.chave) ? 'feita' : (emAndamento(e, et.chave) ? 'andamento' : 'aguardando');
+    const rotEstado = { feita: 'Concluída', andamento: 'Em andamento', aguardando: 'A executar' }[estado];
+    let desvio = null;
+    if (prev?.fim && realFim) desvio = diasEntre(prev.fim, realFim);
+    else if (prev?.fim && !realFim && prev.fim < hojeIso()) desvio = diasEntre(prev.fim, hojeIso());
+    const valores = valoresTexto(r);
+    return h('div', { class: `ctc-ficha__etapa is-${estado}` },
+      h('span', { class: 'ctc-ficha__num' }, String(i + 1)),
+      h('div', { class: 'ctc-ficha__etapa-corpo' },
+        h('div', { class: 'ctc-ficha__etapa-topo' }, h('b', {}, `${et.texto}${et.opcional ? ' (opcional)' : ''}`), h('span', { class: 'ctc-ficha__estado' }, rotEstado),
+          desvio != null ? h('span', { class: `ctc-ficha__desvio ${desvio > 0 ? 'is-atraso' : 'is-ok'}` }, desvio > 0 ? `${desvio} dia(s) de atraso` : (desvio < 0 ? `${-desvio} dia(s) adiantado` : 'no prazo')) : null),
+        h('div', { class: 'ctc-ficha__datas' },
+          h('div', {}, h('small', {}, 'Previsto'), h('span', {}, prev ? (et.pontual ? dataTexto(prev.fim || prev.inicio) : `${dataTexto(prev.inicio)} → ${dataTexto(prev.fim)}`) : 'aguarda cronograma')),
+          h('div', {}, h('small', {}, 'Real'), h('span', {}, realIni ? (et.pontual ? dataTexto(realIni) : `${dataTexto(realIni)} → ${realFim ? dataTexto(realFim) : 'em andamento'}`) : '—'))),
+        valores ? h('div', { class: 'ctc-ficha__valores' }, valores) : null));
+  });
+  const c = etapas.some((et) => et.chave.startsWith('concretagem')) ? curaDe(e) : null;
+
+  const corpo = h('div', { class: 'ctc-ficha' },
+    h('div', { class: 'ctc-ficha__cab' },
+      h('span', { class: 'ctc-ficha__situacao', style: { background: cor } }, situacao),
+      h('span', {}, `${tipoDe(e).nome} · ${SEGMENTOS[e.seg].texto}${e.grupo ? ` · ${e.grupo}` : ''}`),
+      h('span', {}, `${feitas} de ${etapas.length} etapas concluídas`)),
+    e.sub ? h('p', { class: 'ctc-ficha__sub' }, e.sub) : null,
+    e.pendencia ? criarAlerta({ tipo: 'danger', titulo: 'Pendência', mensagem: e.descricaoPendencia || 'sim' }) : null,
+    qtd.length ? h('section', {}, h('h4', {}, 'Quantidades'), h('div', { class: 'ctc-ficha__qtds' }, qtd)) : null,
+    h('section', {}, h('h4', {}, 'Etapas — previsto × real'),
+      codigos.length ? h('p', { class: 'ctc-ficha__nota' }, `Atividades do cronograma ligadas: ${codigos.join(', ')}.`) : null,
+      Object.keys(PREVISTO_ELEMENTOS).length ? null : h('p', { class: 'ctc-ficha__nota' }, 'As datas previstas aparecem aqui quando o cronograma (com início e término das atividades) for carregado no controle.'),
+      h('div', { class: 'ctc-ficha__etapas' }, linhas),
+      c ? h('p', { class: 'ctc-ficha__nota' }, `Cura: ${textoCura(c)}`) : null,
+      chegada ? h('p', { class: 'ctc-ficha__nota' }, `Chegada ao canteiro: ${dataTexto(chegada)}.`) : null),
+    projeto.length ? h('section', {}, h('h4', {}, 'Dados de projeto'),
+      h('div', { class: 'ctc-ficha__dados' }, projeto.map(([r, v]) => h('div', {}, h('small', {}, r), h('b', {}, v))))) : null,
+    e.observacao ? h('section', {}, h('h4', {}, 'Observação'), h('p', {}, e.observacao)) : null);
+
+  criarModal({
+    titulo: `📋 ${e.rotulo} — ficha completa`, tamanho: 'xl', destruirAoFechar: true,
+    conteudo: corpo,
+    acoes: [
+      { texto: 'Exportar esta ficha (Excel)', variante: 'outline', fechar: false, onClick: () => exportarBancoCsv([e]) },
+      { texto: 'Fechar', variante: 'primary' },
+    ],
+  }).abrir();
+}
+
 function abrirFichaCompleta(e) {
   if (!e) return;
   const podeEditar = sessao.podeEditar();
@@ -14158,6 +14287,7 @@ function abrirFichaCompleta(e) {
       kpiElemento({ rotulo: e.rotulo, valor: liberado(e) ? 'Liberado para começar' : STATUS[st].texto, variante: STATUS[st].kpi, sub: e.pendencia ? e.descricaoPendencia : etapaAtualTexto(e) }),
       kpiElemento({ rotulo: tipoDe(e).nome, valor: e.sub || '—', sub: `${SEGMENTOS[e.seg].texto} · ${e.grupo || ''}` }),
       kpiElemento({ rotulo: 'Etapas registradas', valor: `${etapas.filter((et) => feita(e, et.chave)).length} de ${etapas.length}`, sub: 'preencha todas neste quadro e salve' })),
+    h('button', { type: 'button', class: 'ctc-ficha__abrir', onClick: () => abrirFichaElemento(e) }, '📋 Ver ficha completa: todas as etapas, datas previstas e reais, quantidades e dados'),
     projeto.length ? criarAlerta({ tipo: 'info', titulo: 'Dados de projeto', mensagem: projeto.map(([r, v]) => `${r}: ${v}`).join(' · ') }) : null,
     e.observacao ? criarAlerta({ tipo: 'info', titulo: 'Observação', mensagem: e.observacao }) : null);
 
@@ -14983,28 +15113,18 @@ function paginaBanco() {
       },
     });
     botaoLimpar.hidden = true;
-    const barra = criarBarraFiltros({ busca: { placeholder: 'Pesquisar elemento, grupo, data ou valor...' }, onMudar: (estado) => tabela.atualizarConsulta({ busca: estado.busca }) });
-    const executados = lista.filter((e) => Object.keys(e.reg).length).length;
+    // v6.9.6: banco enxuto: so a escolha do tipo, exportar, limpar filtros e a tabela
+    const seletor = h('select', { class: 'ctc-select ctc-allow-readonly ctc-banco-tipo', 'aria-label': 'Tipo de elemento', onChange: (ev) => { estadoBanco.tipo = ev.target.value; area.replaceChildren(tabelaTipo(ev.target.value)); } },
+      tipos.map((t) => h('option', { value: t, selected: t === tipo }, `${TIPOS[t].nome} (${elementos.filter((e) => e.tipo === t).length})`)));
     return h('div', { class: 'ctc-stack' },
-      h('div', { class: 'ctc-grid ctc-grid--3' },
-        kpiElemento({ rotulo: TIPOS[tipo].nome, valor: lista.length, formato: 'numero', sub: 'elementos no projeto' }),
-        kpiElemento({ rotulo: 'Com registro de execução', valor: executados, formato: 'numero', variante: executados ? 'success' : undefined }),
-        kpiElemento({ rotulo: 'Colunas', valor: nomes.length, formato: 'numero', sub: 'projeto · etapas · valores reais' })),
-      barra.elemento,
       h('div', { class: 'ctc-cluster' },
-        criarBotao({ texto: `Exportar ${TIPOS[tipo].nome} (Excel)`, icone: 'download', variante: 'outline', onClick: () => exportarBancoCsv(tabela.obterFiltrados().map((l) => lista[l.i])) }),
+        seletor,
+        criarBotao({ texto: 'Exportar (Excel)', icone: 'download', variante: 'outline', onClick: () => exportarBancoCsv(tabela.obterFiltrados().map((l) => lista[l.i])) }),
         botaoLimpar, contagemFiltro),
       tabela.elemento);
   };
-  const abas = criarAbas({
-    abas: tipos.map((t) => ({ id: t, texto: `${TIPOS[t].nome} (${elementos.filter((e) => e.tipo === t).length})`, conteudo: () => tabelaTipo(t) })),
-    ativa: estadoBanco.tipo,
-    onMudar: (id) => { estadoBanco.tipo = id; },
-  });
-  return [
-    criarAlerta({ tipo: 'info', titulo: 'Banco de dados dos elementos', mensagem: 'Cada linha traz os dados de projeto e tudo o que foi executado: datas de início e término de cada etapa, valores reais (cotas, comprimentos, volumes, pressão, PIT), validação do geólogo, cura calculada pela concretagem e, nos pré-moldados, a chegada ao canteiro e a montagem. O arquivo da base (JSON) também leva esses dados dos elementos com registro. Toque na linha para abrir todas as etapas.' }),
-    criarPainel({ titulo: 'Elementos por tipo', icone: 'tabela', tag: 'projeto + execução', conteudo: abas.elemento }).elemento,
-  ];
+  const area = h('div', {}, tabelaTipo(estadoBanco.tipo));
+  return [area];
 }
 
 /* ---- Estoque de pre-moldados: recebimento por tipo e quantidade; saldo = recebido - montado ---- */
