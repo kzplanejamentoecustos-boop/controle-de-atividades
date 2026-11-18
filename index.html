@@ -2262,6 +2262,118 @@ img { max-width: 100%; display: block; }
   .ctc-main :is(.ctc-tab, .ctc-chip, .ctc-segmented__btn) { min-height: 36px; }
 }
 
+/* =============================================================================
+   21. CAMPO NO TABLET (v6.6): desenho ocupando a tela, botoes flutuantes, registro de um toque,
+   confirmacao com Desfazer, cartoes coloridos, lista de avanco, estoque em cartoes e sincronizacao
+   ========================================================================== */
+.ctc-campo-barra { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.ctc-campo-barra .ctc-tabs { border-bottom: 0; flex: 1 1 auto; min-width: 0; }
+.ctc-campo-barra .ctc-filterbar { flex: 0 1 380px; margin: 0; padding: 0; background: none; border: 0; box-shadow: none; }
+.ctc-vista { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; background: #fff; transition: box-shadow .3s; }
+.ctc-vista canvas { display: block; }
+.ctc-vista.is-piscando { box-shadow: 0 0 0 4px rgba(250,204,21,.85), 0 0 28px rgba(250,204,21,.7); }
+.ctc-vista__flutua { position: absolute; top: 12px; right: 12px; display: grid; gap: 10px; z-index: 3; justify-items: end; }
+.ctc-fbtn { width: 52px; height: 52px; padding: 0; border-radius: 50%; display: grid; place-items: center; font-size: 22px; line-height: 1; cursor: pointer; color: #1e293b;
+  background: rgba(255,255,255,.80); border: 1px solid rgba(255,255,255,.95); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 1px #fff, 0 0 0 1px rgba(15,23,42,.08), 0 6px 16px rgba(15,23,42,.18); transition: transform .15s; }
+.ctc-fbtn:active { transform: scale(.92); }
+.ctc-fbtn[aria-expanded="true"] { background: #1e3a5f; color: #fff; }
+.ctc-vista__flutua .ctc-dropdown { position: relative; }
+.ctc-vista__flutua .ctc-dropdown__panel { top: 0; right: 62px; left: auto; margin-top: 0; max-height: 70vh; overflow: auto; }
+.ctc-vista__legenda { position: absolute; left: 12px; top: 12px; z-index: 2; pointer-events: none; display: flex; flex-wrap: wrap; gap: 10px; max-width: calc(100% - 100px);
+  padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.88); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border: 1px solid #e2e8f0; font-size: 12px; color: #334155; }
+.ctc-vista__legenda span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.ctc-vista__legenda i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+/* registro de um toque no topo do quadro */
+.ctc-rapido { display: grid; gap: 10px; }
+.ctc-rapido__grande { all: unset; box-sizing: border-box; cursor: pointer; text-align: center; border-radius: 14px; padding: 18px 14px; font-size: 20px; font-weight: 700; color: #fff;
+  background: linear-gradient(180deg, #22c55e, #15803d); box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 8px 20px rgba(21,128,61,.35); }
+.ctc-rapido__grande small { display: block; font-size: 13px; font-weight: 500; opacity: .92; margin-top: 4px; }
+.ctc-rapido__grande:active { transform: scale(.98); }
+.ctc-rapido__grande:focus-visible { outline: 3px solid #1e3a5f; outline-offset: 2px; }
+.ctc-rapido__datas { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; color: #475569; }
+.ctc-chip-data { all: unset; cursor: pointer; font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; color: #1e293b; }
+.ctc-chip-data:hover { border-color: #1e3a5f; }
+.ctc-chip-data:focus-visible { outline: 2px solid #1e3a5f; outline-offset: 2px; }
+.ctc-chips-data { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.ctc-chips-data .ctc-chip-data { font-size: 12.5px; padding: 6px 12px; }
+.ctc-todas-etapas { border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+.ctc-todas-etapas > summary { cursor: pointer; padding: 12px 16px; font-weight: 600; color: #1e293b; list-style: none; display: flex; align-items: center; gap: 8px; }
+.ctc-todas-etapas > summary::-webkit-details-marker { display: none; }
+.ctc-todas-etapas > summary::before { content: "▸"; transition: transform .2s; }
+.ctc-todas-etapas[open] > summary::before { transform: rotate(90deg); }
+.ctc-todas-etapas > .ctc-stack { padding: 0 12px 12px; }
+
+/* confirmacao com Desfazer */
+.ctc-desfazer { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 10070; width: min(640px, calc(100vw - 32px));
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px 18px; border-radius: 14px; background: #0f172a; color: #fff; font-size: 15px; overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0,0,0,.35); animation: ctc-desf-entra .25s ease-out; }
+.ctc-desfazer.saindo { opacity: 0; transition: opacity .3s; }
+.ctc-desfazer > b { color: #86efac; font-size: 22px; }
+.ctc-desfazer > span { flex: 1; min-width: 0; }
+.ctc-desfazer__btn { all: unset; cursor: pointer; font-weight: 700; color: #fde68a; border: 1px solid rgba(253,230,138,.6); border-radius: 999px; padding: 8px 16px; }
+.ctc-desfazer__btn:focus-visible { outline: 2px solid #fde68a; outline-offset: 2px; }
+.ctc-desfazer__tempo { position: absolute; left: 0; bottom: 0; height: 4px; width: 100%; background: #facc15; transform-origin: left; animation: ctc-desf-tempo 7s linear forwards; }
+@keyframes ctc-desf-entra { from { transform: translate(-50%, 16px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+@keyframes ctc-desf-tempo { to { transform: scaleX(0); } }
+
+/* painel do dia: filtros compactos e cartoes coloridos */
+.ctc-barra-compacta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ctc-filtro-compacto { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #334155; background: #fff; border: 1px solid #cbd5e1;
+  border-radius: 12px; padding: 4px 6px 4px 12px; }
+.ctc-filtro-compacto select, .ctc-filtro-compacto input { border: 0; background: transparent; font: inherit; font-weight: 500; min-height: 34px; max-width: 220px; }
+.ctc-barra-compacta__meta { margin-left: auto; font-size: 12.5px; color: #64748b; }
+.ctc-kpis-cor { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.ctc-kpi-cor { border-radius: 16px; padding: 16px 18px; color: #fff; display: grid; gap: 2px; box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 6px 16px rgba(15,23,42,.15); }
+.ctc-kpi-cor i { font-style: normal; font-size: 26px; }
+.ctc-kpi-cor b { font-size: 38px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.ctc-kpi-cor span { font-size: 13.5px; opacity: .95; }
+.ctc-kpi-cor--verde { background: linear-gradient(160deg, #22c55e, #15803d); }
+.ctc-kpi-cor--amar { background: linear-gradient(160deg, #eab308, #a16207); }
+.ctc-kpi-cor--azul { background: linear-gradient(160deg, #38bdf8, #0369a1); }
+.ctc-kpi-cor--verm { background: linear-gradient(160deg, #ef4444, #b91c1c); }
+@media (max-width: 760px) { .ctc-kpis-cor { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* avanco: lista com barras (acordeao) */
+.ctc-acordeao { border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; background: #fff; }
+.ctc-acordeao__item + .ctc-acordeao__item { border-top: 1px solid #eef2f6; }
+.ctc-acordeao__item > summary { cursor: pointer; list-style: none; display: grid; grid-template-columns: 22px minmax(0, 1fr) minmax(120px, 30%) 64px; align-items: center; gap: 12px;
+  padding: 14px 16px; font-size: 14.5px; min-height: 52px; }
+.ctc-acordeao__item > summary::-webkit-details-marker { display: none; }
+.ctc-acordeao__item > summary::before { content: "▸"; color: #64748b; transition: transform .2s; }
+.ctc-acordeao__item[open] > summary { background: #f8fafc; font-weight: 600; }
+.ctc-acordeao__item[open] > summary::before { transform: rotate(90deg); }
+.ctc-acordeao__barra { height: 12px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.ctc-acordeao__barra i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1e3a5f, #2f6f5e); }
+.ctc-acordeao__item > summary b { text-align: right; font-variant-numeric: tabular-nums; }
+.ctc-acordeao__corpo { padding: 12px 16px 16px; background: #f8fafc; }
+.ctc-explica > summary { cursor: pointer; font-weight: 600; color: #1e3a5f; padding: 6px 0; }
+
+/* estoque: botao grande e cartoes por tipo */
+.ctc-acao-grande { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 700; color: #fff;
+  padding: 14px 26px; border-radius: 999px; background: linear-gradient(180deg, #22c55e, #15803d); box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 6px 16px rgba(21,128,61,.35); }
+.ctc-acao-grande:active { transform: scale(.97); }
+.ctc-acao-grande:focus-visible { outline: 3px solid #1e3a5f; outline-offset: 2px; }
+.ctc-pecas { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.ctc-peca { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 12px 14px; display: grid; gap: 4px; font-size: 12.5px; color: #64748b; }
+.ctc-peca b { color: #0f172a; font-size: 14px; }
+.ctc-peca strong { color: #0f172a; font-size: 24px; font-variant-numeric: tabular-nums; }
+.ctc-peca__barra { height: 8px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.ctc-peca__barra i { display: block; height: 100%; background: #16a34a; border-radius: 999px; }
+.ctc-peca.is-negativo { border-color: #fca5a5; background: #fef2f2; }
+
+/* sincronizacao no cabecalho */
+.ctc-header .ctc-sinc-pilula { gap: 6px; }
+.ctc-sinc-ponto { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: #94a3b8; flex: none; }
+.ctc-sinc-ponto.is-ok { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.25); }
+.ctc-sinc-ponto.is-espera { background: #facc15; box-shadow: 0 0 0 3px rgba(250,204,21,.25); }
+.ctc-sinc-ponto.is-erro { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.25); }
+.ctc-sinc-linhas { display: grid; gap: 8px; font-size: 14px; color: #475569; }
+.ctc-sinc-linhas div { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid #eef2f6; padding-top: 8px; }
+.ctc-sinc-linhas b { color: #0f172a; }
+@media (prefers-reduced-motion: reduce) { .ctc-desfazer, .ctc-desfazer__tempo { animation: none; } }
+
 </style>
 </head>
 <body>
@@ -7312,7 +7424,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.5.0
+   Versao: 6.6.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7330,6 +7442,11 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           em "Concordo e continuar".
    6.5.0: tablet: desenho na densidade da tela (nitido), redesenho ao girar o tablet,
           cabecalho sem cortes (botoes so com icone em pe) e area de toque maior.
+   6.6.0: campo no tablet: desenho ocupando a tela com 3 botoes flutuantes e legenda sobre o
+          desenho; registro de um toque no topo do quadro, atalhos Hoje/Ontem nas datas e
+          confirmacao com Desfazer; Painel do dia com 3 seletores e cartoes coloridos; Avanco
+          em lista com barras; Estoque com "Recebi peças" e cartoes; modo apontador no menu;
+          sincronizacao como ponto no cabecalho.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -12332,7 +12449,7 @@ const ESTADO_VISTAS_3D = {};
  * obterCena() -> { objetos: [{ id, forma: 'caixa'|'cilindro', ... , cor, alfa, rotulo, selecionavel }], rotulos: [{ x, y, z, texto }] }
  *   caixa: x0, x1, y0, y1, z0, z1 · cilindro: x, y, r, z0, z1 (varios objetos podem ter o mesmo id)
  */
-function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, aoSelecionar, aoConfirmar, semRodape = false }) {
+function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, aoSelecionar, aoConfirmar, semRodape = false, compacta = false, legenda = null }) {
   // v6.5: o desenho continua com 1500 de largura "logica", mas a imagem e gerada na densidade
   // da tela (tablet com tela densa: sem ficar borrado nem com aparencia esticada).
   const k = Math.min(2.5, Math.max(1, ((window.innerWidth || 1500) * (window.devicePixelRatio || 1)) / 1500));
@@ -13060,6 +13177,31 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
   }, { passive: false });
   canvas.addEventListener('touchcancel', () => { toque = null; });
 
+  vista.alternarTranslucido = () => { est.translucido = !est.translucido; desenhar(); return est.translucido; };
+  vista.translucido = () => est.translucido;
+  if (compacta) {
+    // v6.6: tres botoes flutuantes sobre o desenho (planta/3D, enquadrar e o que a pagina acrescentar, ex.: Camadas)
+    const botaoModo = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly' });
+    const atualizarModo = () => {
+      const planta = est.prancha > 0.5;
+      botaoModo.textContent = planta ? '🧊' : '🗺️';
+      botaoModo.title = planta ? 'Ver em 3D' : 'Ver a planta';
+      botaoModo.setAttribute('aria-label', botaoModo.title);
+    };
+    botaoModo.addEventListener('click', () => {
+      if (est.prancha > 0.5) vista.vistaGeral(); else vista.prancha();
+      setTimeout(atualizarModo, 50); setTimeout(atualizarModo, 900);
+    });
+    ['pointerup', 'touchend', 'dblclick'].forEach((ev) => canvas.addEventListener(ev, () => setTimeout(atualizarModo, 900)));
+    atualizarModo();
+    const botaoEnq = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', title: 'Enquadrar (volta ao desenho inteiro)', 'aria-label': 'Enquadrar', onClick: enquadrarAtual }, '⤢');
+    vista.flutua = h('div', { class: 'ctc-vista__flutua' }, botaoModo, botaoEnq);
+    vista.elemento = h('div', { class: 'ctc-vista' }, canvas, legenda, vista.flutua);
+    vista.piscar = () => { vista.elemento.classList.add('is-piscando'); setTimeout(() => vista.elemento.classList.remove('is-piscando'), 1600); };
+    desenhar();
+    return vista;
+  }
+  vista.piscar = () => {};
   vista.elemento = h('div', { class: 'ctc-stack' },
     h('div', { class: 'ctc-cluster' },
       criarBotao({ texto: 'Prancha (planta)', icone: 'documento', variante: 'outline', tamanho: 'sm', onClick: () => vista.prancha() }),
@@ -13253,6 +13395,7 @@ function abrirRegistroEtapa(e, etapa, { aoSalvar } = {}) {
       }),
     ],
     onEnviar: async (v) => {
+      const antes = JSON.stringify(e.reg);
       const valores = {};
       for (const c of campos.filter((x) => x.hora && temValor(v[x.chave]))) {
         const hora = normalizarHora(v[c.chave]);
@@ -13271,7 +13414,7 @@ function abrirRegistroEtapa(e, etapa, { aoSalvar } = {}) {
       if (!etapa.pontual && !v.data) {
         e.reg[etapa.chave] = { inicio: v.inicio, ...(Object.keys(valores).length ? { valores } : {}) };
         modal.fechar();
-        toast.sucesso(e.rotulo, `${etapa.texto}: início em ${dataTexto(v.inicio)} (em andamento)`);
+        confirmarRegistro(e, `${etapa.texto} — início em ${dataTexto(v.inicio)} (em andamento)`, antes);
       } else {
         const erro = validarRegistro(e, etapa, v.data, valores, v.inicio);
         if (erro) { formulario.definirErro(erro.campo, erro.mensagem); return; }
@@ -13287,7 +13430,7 @@ function abrirRegistroEtapa(e, etapa, { aoSalvar } = {}) {
         }
         e.reg[etapa.chave] ={ ...(etapa.pontual ? {} : { inicio: v.inicio }), data: v.data, ...(Object.keys(valores).length ? { valores } : {}) };
         modal.fechar();
-        toast.sucesso(e.rotulo, etapa.pontual ? `${etapa.texto} em ${dataTexto(v.data)}` : `${etapa.texto}: ${dataTexto(v.inicio)} a ${dataTexto(v.data)}`);
+        confirmarRegistro(e, etapa.pontual ? `${etapa.texto} em ${dataTexto(v.data)}` : `${etapa.texto}: ${dataTexto(v.inicio)} a ${dataTexto(v.data)}`, antes);
       }
       if (aoSalvar) aoSalvar();
       registrarAlteracao();
@@ -13319,19 +13462,66 @@ function abrirRegistroEtapa(e, etapa, { aoSalvar } = {}) {
     ],
   });
   modal.abrir();
+  chipsDeData(modal.corpo);
+}
+
+const ontemIso = () => { const d = new Date(); d.setDate(d.getDate() - 1); return formatarData(d, 'iso'); };
+
+/** v6.6: atalhos "Hoje" e "Ontem" embaixo de cada campo de data (sem digitar dd/mm/aaaa). */
+function chipsDeData(raiz) {
+  if (!raiz) return;
+  raiz.querySelectorAll('input[type="date"]').forEach((inp) => {
+    if (inp.disabled || inp.dataset.chips) return;
+    inp.dataset.chips = '1';
+    const definir = (iso) => {
+      inp.value = iso;
+      inp.dispatchEvent(new Event('input', { bubbles: true }));
+      inp.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    inp.insertAdjacentElement('afterend', h('div', { class: 'ctc-chips-data' },
+      h('button', { type: 'button', class: 'ctc-chip-data', onClick: () => definir(hojeIso()) }, 'Hoje'),
+      h('button', { type: 'button', class: 'ctc-chip-data', onClick: () => definir(ontemIso()) }, 'Ontem'),
+      inp.required ? null : h('button', { type: 'button', class: 'ctc-chip-data', onClick: () => definir('') }, 'Limpar')));
+  });
+}
+
+/** v6.6: confirmacao do registro: faixa "Registrado" com Desfazer por alguns segundos e o elemento piscando. */
+let _temporizadorDesfazer = null;
+function confirmarRegistro(e, mensagem, antes) {
+  estadoCampo.piscarId = e.id;
+  document.getElementById('ctc-desfazer')?.remove();
+  const faixa = h('div', { id: 'ctc-desfazer', class: 'ctc-desfazer', role: 'status' },
+    h('b', { 'aria-hidden': 'true' }, '✓'),
+    h('span', {}, h('strong', {}, 'Registrado: '), `${mensagem} · ${e.rotulo}`),
+    antes != null && sessao.podeEditar() ? h('button', {
+      type: 'button', class: 'ctc-desfazer__btn',
+      onClick: () => {
+        e.reg = JSON.parse(antes);
+        faixa.remove();
+        clearTimeout(_temporizadorDesfazer);
+        toast.info('Registro desfeito', e.rotulo);
+        registrarAlteracao();
+      },
+    }, 'Desfazer') : null,
+    h('i', { class: 'ctc-desfazer__tempo', 'aria-hidden': 'true' }));
+  document.body.append(faixa);
+  clearTimeout(_temporizadorDesfazer);
+  _temporizadorDesfazer = setTimeout(() => { faixa.classList.add('saindo'); setTimeout(() => faixa.remove(), 320); }, 7000);
 }
 
 /** Texto do botao grande para a etapa: registrar (pontual), iniciar ou terminar hoje. */
 const textoAcaoHoje = (e, etapa) => (etapa.pontual ? `Registrar hoje: ${etapa.texto}` : (emAndamento(e, etapa.chave) ? `Terminar hoje: ${etapa.texto}` : `Iniciar hoje: ${etapa.texto}`));
 
 /** Registro com um toque: pontual grava a data; demais gravam o inicio e, no segundo toque, o termino. */
-function registrarHoje(e, etapa) {
-  const hoje = hojeIso();
+function registrarHoje(e, etapa, data = hojeIso()) {
+  const hoje = data;
+  const quando = data === hojeIso() ? 'hoje' : `em ${dataTexto(data)}`;
+  const antes = JSON.stringify(e.reg);
   if (!etapa.pontual && !emAndamento(e, etapa.chave)) {
     const erro = validarInicio(e, etapa, hoje);
     if (erro) { abrirRegistroEtapa(e, etapa); return; }
     e.reg[etapa.chave] = { inicio: hoje };
-    toast.sucesso(e.rotulo, `${etapa.texto}: início registrado hoje`);
+    confirmarRegistro(e, `${etapa.texto} — início ${quando}`, antes);
     registrarAlteracao();
     return;
   }
@@ -13339,7 +13529,7 @@ function registrarHoje(e, etapa) {
   const erro = validarRegistro(e, etapa, hoje, {});
   if (erro) { abrirRegistroEtapa(e, etapa); return; }
   e.reg[etapa.chave] = { ...e.reg[etapa.chave], data: hoje };
-  toast.sucesso(e.rotulo, etapa.pontual ? `${etapa.texto} registrada hoje` : `${etapa.texto}: término registrado hoje`);
+  confirmarRegistro(e, etapa.pontual ? `${etapa.texto} ${quando}` : `${etapa.texto} — término ${quando}`, antes);
   registrarAlteracao();
 }
 
@@ -13581,7 +13771,27 @@ function abrirFichaCompleta(e) {
     projeto.length ? criarAlerta({ tipo: 'info', titulo: 'Dados de projeto', mensagem: projeto.map(([r, v]) => `${r}: ${v}`).join(' · ') }) : null,
     e.observacao ? criarAlerta({ tipo: 'info', titulo: 'Observação', mensagem: e.observacao }) : null);
 
+  // v6.6: registro de um toque no topo do quadro; as etapas ficam recolhidas logo abaixo
+  const proxima = proximaEtapa(e);
+  const faltasProx = proxima && !emAndamento(e, proxima.chave) ? bloqueiosDe(e, proxima.chave) : [];
+  if (proxima?.chave === 'montagem' && e.info.tipoPM && saldoTipoPM(e.info.tipoPM).saldo <= 0) faltasProx.push(`sem ${e.info.tipoPM} em estoque — registre o recebimento em Estoque de pré-moldados`);
+  const fecharE = (fn) => () => { modal.fechar(); fn(); };
+  const rapido = podeEditar && proxima ? h('div', { class: 'ctc-rapido' },
+    faltasProx.length
+      ? criarAlerta({ tipo: 'warning', titulo: `${proxima.texto} — ainda não liberado`, mensagem: faltasProx.join(' · ') })
+      : h('button', { type: 'button', class: 'ctc-rapido__grande', onClick: fecharE(() => registrarHoje(e, proxima)) },
+        `✅ ${textoAcaoHoje(e, proxima)}`, h('small', {}, `Etapa ${etapas.findIndex((x) => x.chave === proxima.chave) + 1} de ${etapas.length} · toque uma vez`)),
+    h('div', { class: 'ctc-rapido__datas' },
+      faltasProx.length ? null : h('span', {}, 'Outra data:'),
+      faltasProx.length ? null : h('button', { type: 'button', class: 'ctc-chip-data', onClick: fecharE(() => registrarHoje(e, proxima, ontemIso())) }, 'Ontem'),
+      faltasProx.length ? null : h('button', { type: 'button', class: 'ctc-chip-data', onClick: fecharE(() => abrirRegistroEtapa(e, proxima)) }, '📅 Escolher / valores'),
+      ultimaAcao(e) ? h('button', { type: 'button', class: 'ctc-chip-data', onClick: fecharE(() => desfazerUltima(e)) }, '↶ Desfazer última') : null)) : null;
+  const todas = h('details', { class: 'ctc-todas-etapas', open: !rapido },
+    h('summary', {}, `Todas as etapas (${etapas.length}) — datas e valores`),
+    h('div', { class: 'ctc-stack' }, ...blocos));
+
   const salvarTudo = async () => {
+    const antesTexto = JSON.stringify(e.reg);
     const backup = JSON.parse(JSON.stringify(e.reg));
     const falhar = (et, campo, mensagem) => {
       e.reg = backup;
@@ -13636,14 +13846,15 @@ function abrirFichaCompleta(e) {
       e.reg[et.chave] = novo;
     }
     modal.fechar();
-    toast.sucesso(e.rotulo, 'Etapas salvas.');
+    if (JSON.stringify(e.reg) !== antesTexto) confirmarRegistro(e, 'etapas salvas', antesTexto);
+    else toast.info(e.rotulo, 'Nada foi alterado.');
     registrarAlteracao();
     return true;
   };
 
   const modal = criarModal({
-    titulo: `${e.rotulo} — todas as etapas`, tamanho: 'xl', destruirAoFechar: true,
-    conteudo: [cabecalho, ...blocos],
+    titulo: e.rotulo, tamanho: 'xl', destruirAoFechar: true,
+    conteudo: [rapido, cabecalho, todas],
     acoes: podeEditar
       ? [
         { texto: e.pendencia ? 'Editar pendência' : 'Pendência / obs.', variante: e.pendencia ? 'danger' : 'outline', onClick: () => { abrirPendencia(e); } },
@@ -13652,6 +13863,7 @@ function abrirFichaCompleta(e) {
       : [{ texto: 'Fechar', variante: 'primary' }],
   });
   modal.abrir();
+  chipsDeData(modal.corpo);
 }
 
 
@@ -13665,14 +13877,19 @@ function paginaCampo() {
   const sel = porId.get(estadoCampo.selecionadoId);
   if (sel && sel.seg !== estadoCampo.seg) estadoCampo.selecionadoId = null;
 
-  const painelFicha = criarPainel({ titulo: 'Elemento selecionado', icone: 'documento', conteudo: criarFicha(porId.get(estadoCampo.selecionadoId) || null) });
+  // v6.6: o desenho ocupa a altura que sobra da tela (sem rolar para ver a prancha inteira)
+  const larguraUtil = Math.max(320, (document.querySelector('.ctc-main')?.clientWidth || window.innerWidth) - 40);
+  const alturaUtil = Math.max(300, window.innerHeight - 205);
+  const legendaCores = h('div', { class: 'ctc-vista__legenda', 'aria-hidden': 'true' },
+    ...[['#94a3b8', 'Não iniciado'], [COR_LIBERADO, 'Liberado'], [STATUS.execucao.cor, 'Em execução'], [STATUS.concluida.cor, 'Concluído'], [STATUS.pendencia.cor, 'Pendência']]
+      .map(([cor, txt]) => h('span', {}, h('i', { style: { background: cor } }), txt)));
   const vista = criarVista3D({
     chave: `campo-${estadoCampo.seg}`, titulo: SEGMENTOS[estadoCampo.seg].texto,
-    // tablet em pe: vista mais alta para aproveitar a tela
     obterCena: () => cenaSegmento(estadoCampo.seg), escalaZ: ['01A', '01B'].includes(estadoCampo.seg) ? 0.4 : 1,
-    altura: window.innerHeight > window.innerWidth ? 1150 : 700,
-    // tocar no elemento: abre o quadro com todas as etapas dele
-    aoSelecionar: (id) => { estadoCampo.selecionadoId = id; painelFicha.definirConteudo(criarFicha(porId.get(id))); abrirFichaCompleta(porId.get(id)); },
+    altura: Math.round(Math.min(1600, Math.max(560, (1500 * alturaUtil) / larguraUtil))),
+    compacta: true, legenda: legendaCores,
+    // tocar no elemento: abre o quadro (com o botao de registro de um toque no topo)
+    aoSelecionar: (id) => { estadoCampo.selecionadoId = id; abrirFichaCompleta(porId.get(id)); },
     aoConfirmar: (id) => {
       const e = porId.get(id);
       const p = e && proximaEtapa(e);
@@ -13680,6 +13897,11 @@ function paginaCampo() {
     },
   });
   if (estadoCampo.selecionadoId) vista.marcar(estadoCampo.selecionadoId);
+  if (estadoCampo.piscarId) {   // registro feito agora: destaca o elemento e pisca o desenho
+    vista.marcar(estadoCampo.piscarId);
+    estadoCampo.piscarId = null;
+    setTimeout(() => vista.piscar(), 60);
+  }
   if (estadoCampo.focarAoAbrir) {
     const id = estadoCampo.focarAoAbrir;
     estadoCampo.focarAoAbrir = null;
@@ -13715,7 +13937,7 @@ function paginaCampo() {
             return;
           }
           estadoCampo.selecionadoId = achado.id;
-          painelFicha.definirConteudo(criarFicha(achado));
+          vista.marcar(achado.id);
           vista.focar(achado.id);
         }
       }
@@ -13786,24 +14008,30 @@ function paginaCampo() {
     tituloGrupo('Situação', 'status'),
     ...(statusDoSeg.length ? statusDoSeg : CAMADAS_STATUS).map(([s, txt]) => itemInterruptor('status', s, `${txt} (${contarStatus(s)})`)),
     tituloGrupo('Desenho', 'desenho'),
-    ...CAMADAS_DESENHO.map(([k, txt]) => itemInterruptor('desenho', k, txt)));
+    ...CAMADAS_DESENHO.map(([k, txt]) => itemInterruptor('desenho', k, txt)),
+    (() => {   // v6.6: o antigo botao "3D claro / sólido" virou um interruptor das Camadas
+      const sw = criarInterruptor(vista.translucido());
+      const b = h('button', {
+        type: 'button', class: 'ctc-dropdown__item ctc-allow-readonly', role: 'switch', 'aria-checked': String(vista.translucido()),
+        onClick: () => { const on = vista.alternarTranslucido(); sw.definir(on); b.setAttribute('aria-checked', String(on)); },
+      }, h('span', {}, '3D em tom claro (só o selecionado em cor cheia)'), h('span', { class: 'ctc-spacer' }), sw);
+      return b;
+    })());
   const botaoCamadas = h('button', {
-    type: 'button', class: 'ctc-btn ctc-btn--outline ctc-btn--sm ctc-allow-readonly', 'aria-haspopup': 'true', 'aria-expanded': 'false',
+    type: 'button', class: 'ctc-fbtn ctc-allow-readonly', 'aria-haspopup': 'true', 'aria-expanded': 'false', title: 'Camadas e área', 'aria-label': 'Camadas e área',
     onClick: () => abrirCamadas(!painelCamadas.classList.contains('is-open')),
-  }, criarIcone('filtro', 14), h('span', {}, 'Camadas'), criarIcone('chevron-baixo', 14));
+  }, '🎛️');
   const dropCamadas = h('div', { class: 'ctc-dropdown' }, botaoCamadas, painelCamadas);
   function abrirCamadas(abrir) {
     painelCamadas.classList.toggle('is-open', abrir);
     botaoCamadas.setAttribute('aria-expanded', String(abrir));
   }
   dropCamadasAtual = { elemento: dropCamadas, fechar: () => abrirCamadas(false) };
+  vista.flutua.append(dropCamadas);
+  // v6.6: abas de local e busca numa barra so; o desenho logo abaixo
   return [
-    h('div', { class: 'ctc-stack' }, abas.lista, filtros.elemento),
-    criarPainel({ titulo: `${SEGMENTOS[estadoCampo.seg].texto} — prancha e 3D`, icone: 'painel', tema: 1, tag: 'Toque no elemento: abre todas as etapas', acoes: [dropCamadas], conteudo: vista.elemento }).elemento,
-    h('div', { class: 'ctc-cluster' },
-      criarBadge({ texto: 'Não iniciado', variante: 'neutral' }), criarBadge({ texto: 'Liberado para começar (azul)', variante: 'info' }),
-      criarBadge({ texto: 'Em execução', variante: 'warning' }), criarBadge({ texto: 'Concluído', variante: 'success' }), criarBadge({ texto: 'Pendência', variante: 'danger' })),
-    painelFicha.elemento,
+    h('div', { class: 'ctc-campo-barra' }, abas.lista, filtros.elemento),
+    vista.elemento,
   ];
 }
 
@@ -14103,7 +14331,7 @@ function indicadoresEtapasBI(lista) {
   }).elemento;
 }
 
-function painelBI() {
+function painelBI(depoisDosCartoes = null) {
   const raiz = h('div', { class: 'ctc-stack' });
   const desenhar = () => {
     if (estadoBI.seg && !SEGMENTOS[estadoBI.seg]) estadoBI.seg = '';
@@ -14118,12 +14346,23 @@ function painelBI() {
     const chipsFrente = criarChips({ rotulo: 'Frente', valor: estadoBI.frente, opcoes: [{ valor: '', texto: 'Todas as frentes' }, ...frentesSeg.map((f) => ({ valor: f, texto: FRENTES[f].texto }))], onMudar: (v) => { estadoBI.frente = v; estadoBI.cat = null; desenhar(); } });
     const data = (chave, rotulo) => h('label', { class: 'ctc-cluster' }, h('span', {}, rotulo),
       h('input', { type: 'date', class: 'ctc-input ctc-allow-readonly', value: estadoBI[chave] || '', onChange: (ev) => { estadoBI[chave] = ev.target.value; desenhar(); } }));
-    const filtros = criarPainel({
-      titulo: 'Filtros', icone: 'filtro', tag: `${lista.length} elementos no filtro`,
-      conteudo: h('div', { class: 'ctc-stack' }, chipsSeg.elemento, chipsFrente.elemento,
-        h('div', { class: 'ctc-cluster' }, h('strong', {}, 'Período da produção:'), data('de', 'de'), data('ate', 'até'),
-          h('button', { type: 'button', class: 'ctc-link ctc-allow-readonly', onClick: () => { estadoBI.de = ''; estadoBI.ate = ''; desenhar(); } }, 'Limpar período'))),
-    }).elemento;
+    void chipsSeg; void chipsFrente; void data;
+    // v6.6: filtros em 3 seletores compactos (no lugar das linhas de botoes)
+    const seletor = (rotulo, valor, opcoes, onMudar) => h('label', { class: 'ctc-filtro-compacto' }, h('span', {}, rotulo),
+      h('select', { class: 'ctc-allow-readonly', onChange: (ev) => onMudar(ev.target.value) },
+        opcoes.map((o) => h('option', { value: o.valor, selected: o.valor === valor }, o.texto))));
+    const dataCompacta = (chave, rotulo) => h('label', { class: 'ctc-filtro-compacto' }, h('span', {}, rotulo),
+      h('input', { type: 'date', class: 'ctc-allow-readonly', value: estadoBI[chave] || '', onChange: (ev) => { estadoBI[chave] = ev.target.value; desenhar(); } }));
+    const filtros = h('div', { class: 'ctc-barra-compacta' },
+      seletor('📍 Local', estadoBI.seg, [{ valor: '', texto: 'Toda a obra' }, ...Object.entries(SEGMENTOS).map(([v, s]) => ({ valor: v, texto: s.texto }))], (v) => { estadoBI.seg = v; estadoBI.frente = ''; estadoBI.cat = null; desenhar(); }),
+      seletor('🧱 Frente', estadoBI.frente, [{ valor: '', texto: 'Todas' }, ...frentesSeg.map((f) => ({ valor: f, texto: FRENTES[f].texto }))], (v) => { estadoBI.frente = v; estadoBI.cat = null; desenhar(); }),
+      dataCompacta('de', '📅 De'), dataCompacta('ate', 'até'),
+      (estadoBI.de || estadoBI.ate) ? h('button', { type: 'button', class: 'ctc-link ctc-allow-readonly', onClick: () => { estadoBI.de = ''; estadoBI.ate = ''; desenhar(); } }, 'Limpar período') : null,
+      h('span', { class: 'ctc-barra-compacta__meta' }, `${formatarNumero(lista.length, 0)} elementos`));
+    const cartao = (cor, icone, valor, rotulo) => h('div', { class: `ctc-kpi-cor ctc-kpi-cor--${cor}` }, h('i', { 'aria-hidden': 'true' }, icone), h('b', {}, formatarNumero(valor, 0)), h('span', {}, rotulo));
+    const cartoes = h('div', { class: 'ctc-kpis-cor' },
+      cartao('verde', '✅', m.concluida, 'Concluídos'), cartao('amar', '🛠️', m.execucao, 'Em execução'),
+      cartao('azul', '🔓', m.liberado, 'Liberados p/ começar'), cartao('verm', '⚠️', m.pendencia, 'Pendências'));
 
     // por tipo de servico (com local escolhido) ou por local + frente (obra toda)
     const chaveLinha = (e) => (estadoBI.seg ? categoriaBI(e) : `${SEGMENTOS[e.seg].texto} · ${FRENTES[tipoDe(e).frente].texto}`);
@@ -14152,6 +14391,8 @@ function painelBI() {
 
     raiz.replaceChildren(
       filtros,
+      cartoes,
+      depoisDosCartoes,
       indicadoresEtapasBI(lista),
       h('div', { class: 'ctc-grid ctc-grid--2 ctc-grid--gap-lg' },
         criarPainel({ titulo: 'Situação dos elementos', icone: 'grafico', tag: `${m.total} no filtro`, conteudo: graficoRoscaBI(m) }).elemento,
@@ -14185,12 +14426,11 @@ function paginaPainel() {
     onLinhaClick: (l) => abrirFichaModal(porId.get(l.id)),
     colunas: [{ campo: 'elemento', titulo: 'Elemento' }, { campo: 'seg', titulo: 'Local' }, { campo: 'frente', titulo: 'Frente' }, { campo: 'proxima', titulo: 'Próxima etapa' }],
   });
-  // dashboard BI no topo; depois o operacional do dia
+  // v6.6: filtros, cartoes de situacao e o operacional do dia antes dos graficos
   return [
-    painelBI(),
-    h('div', { class: 'ctc-grid ctc-grid--2 ctc-grid--gap-lg' },
+    painelBI(h('div', { class: 'ctc-grid ctc-grid--2 ctc-grid--gap-lg' },
       criarPainel({ titulo: `Registros de hoje (${hoje.length})`, icone: 'calendario', semEspaco: true, conteudo: tabelaHoje.elemento }).elemento,
-      criarPainel({ titulo: `Liberados para começar (${liberados.length})`, icone: 'check', semEspaco: true, conteudo: tabelaLiberados.elemento }).elemento),
+      criarPainel({ titulo: `Liberados para começar (${liberados.length})`, icone: 'check', semEspaco: true, conteudo: tabelaLiberados.elemento }).elemento)),
   ];
 }
 
@@ -14372,6 +14612,7 @@ function paginaEstoquePM() {
   const tot = resumo.reduce((t, l) => ({ previsto: t.previsto + l.previsto, recebido: t.recebido + l.recebido, montado: t.montado + l.montado, saldo: t.saldo + l.saldo, falta: t.falta + l.faltaReceber }), { previsto: 0, recebido: 0, montado: 0, saldo: 0, falta: 0 });
   const podeEditar = sessao.podeEditar();
 
+  let modalRecebimento = null;
   const opcoesTipo = Object.keys(PM_TIPOS).filter((t) => pecasDoTipoPM(t).length)
     .map((t) => ({ valor: t, texto: `${t} · ${NOME_PECA_PM[PM_TIPOS[t].tipo]} (${pecasDoTipoPM(t).length} no projeto)` }));
   const formulario = criarFormulario({
@@ -14399,6 +14640,7 @@ function paginaEstoquePM() {
         documento: String(v.documento || '').trim(), observacao: String(v.observacao || '').trim(), autor: autorAtual(), registradoEm: new Date().toISOString(),
       });
       toast.sucesso('Recebimento registrado', `${qtd} × ${v.tipoPM} em ${dataTexto(v.data)} · em estoque: ${s.saldo + qtd}`);
+      if (modalRecebimento) modalRecebimento.fechar();
       registrarAlteracao();
     },
   });
@@ -14433,20 +14675,34 @@ function paginaEstoquePM() {
       kpiElemento({ rotulo: 'Montado', valor: tot.montado, formato: 'numero', variante: 'success', sub: 'montagens registradas nas peças' }),
       kpiElemento({ rotulo: 'Em estoque', valor: tot.saldo, formato: 'numero', variante: tot.saldo < 0 ? 'danger' : 'accent', sub: 'recebido − montado' }),
       kpiElemento({ rotulo: 'Falta receber', valor: tot.falta, formato: 'numero', variante: tot.falta ? 'warning' : 'success' })),
-    podeEditar ? criarPainel({
-      titulo: 'Registrar recebimento', icone: 'download', tag: 'ex.: 10 peças PM-216',
-      conteudo: h('div', { class: 'ctc-stack' },
-        formulario.elemento,
-        h('div', { class: 'ctc-cluster' }, criarBotao({ texto: 'Registrar entrada no estoque', icone: 'check', variante: 'success', tamanho: 'lg', apenasEdicao: true, onClick: () => formulario.enviar() }))),
-    }).elemento : null,
+    podeEditar ? h('div', {}, h('button', {
+      type: 'button', class: 'ctc-acao-grande',
+      onClick: () => {
+        modalRecebimento = criarModal({
+          titulo: 'Recebi peças', tamanho: 'md', destruirAoFechar: true,
+          conteudo: [h('p', { class: 'ctc-text-sm ctc-text-muted' }, 'Ex.: 10 peças PM-216 chegaram hoje.'), formulario.elemento],
+          acoes: [{ texto: 'Cancelar', variante: 'outline' }, { texto: 'Registrar entrada', variante: 'success', fechar: false, onClick: () => formulario.enviar() }],
+        });
+        modalRecebimento.abrir();
+        chipsDeData(modalRecebimento.corpo);
+      },
+    }, '＋ Recebi peças')) : null,
     tot.saldo < 0 || resumo.some((l) => l.saldo < 0) ? criarAlerta({ tipo: 'warning', titulo: 'Estoque negativo', mensagem: 'Há tipos com mais montagens registradas do que recebimentos. Registre os recebimentos que faltam.' }) : null,
-    criarPainel({ titulo: 'Saldo por tipo', icone: 'tabela', tag: 'recebido · montado · em estoque', semEspaco: true, conteudo: tabelaSaldo.elemento }).elemento,
+    void tabelaSaldo,
+    criarPainel({
+      titulo: 'Saldo por tipo', icone: 'tabela', tag: 'recebido / previsto',
+      conteudo: h('div', { class: 'ctc-pecas' }, resumo.map((l) => h('div', { class: classes('ctc-peca', l.saldo < 0 && 'is-negativo') },
+        h('b', {}, `${l.tipo} · ${l.peca}`),
+        h('strong', {}, `${l.recebido} / ${l.previsto}`),
+        h('span', { class: 'ctc-peca__barra' }, h('i', { style: { width: `${Math.min(100, percentual(l.recebido, l.previsto))}%` } })),
+        h('span', {}, `montado ${l.montado} · em estoque ${l.saldo} · falta ${l.faltaReceber}`)))),
+    }).elemento,
     criarPainel({ titulo: `Recebimentos registrados (${estoquePM.length})`, icone: 'calendario', tag: 'Toque na linha para detalhes', semEspaco: true, conteudo: tabelaEntradas.elemento }).elemento,
   ];
 }
 
 /* ---- Pagina: Avanco fisico (cronograma) ---- */
-const estadoAvanco = { disc: 'raiz' };
+const estadoAvanco = { disc: '' };   // v6.6: a lista abre fechada
 const pctTexto = (p) => `${formatarNumero(p, 1)}%`;
 const varianteAvanco = (p) => (p >= 99.95 ? 'success' : (p > 0 ? 'warning' : 'neutral'));
 const ROTULO_MODO = { auto: 'Controle', campo: 'Campo' };
@@ -14660,10 +14916,22 @@ function paginaAvanco() {
       barra.elemento,
       tabela.elemento);
   };
-  const abas = criarAbas({
-    abas: Object.entries(DISCIPLINAS_AVANCO).map(([id, texto]) => ({ id, texto: `${texto.replace(/^[^—]*— /, '')} · ${formatarNumero(resumoAvanco(CRONO_ATIVIDADES.filter((a) => a.disc === id)).pct, 0)}%`, conteudo: () => tabelaDisc(id) })),
-    ativa: estadoAvanco.disc,
-    onMudar: (id) => { estadoAvanco.disc = id; },
+  // v6.6: lista de disciplinas com barra de progresso; tocar abre as atividades (uma por vez)
+  const acordeao = h('div', { class: 'ctc-acordeao' });
+  Object.entries(DISCIPLINAS_AVANCO).forEach(([id, texto]) => {
+    const r = resumoAvanco(CRONO_ATIVIDADES.filter((a) => a.disc === id));
+    const item = h('details', { class: 'ctc-acordeao__item', open: estadoAvanco.disc === id },
+      h('summary', {}, h('span', {}, texto), h('span', { class: 'ctc-acordeao__barra' }, h('i', { style: { width: `${Math.max(0, Math.min(100, r.pct))}%` } })), h('b', {}, pctTexto(r.pct))));
+    let carregado = false;
+    const carregar = () => { if (!carregado) { carregado = true; item.append(h('div', { class: 'ctc-acordeao__corpo' }, tabelaDisc(id))); } };
+    if (item.open) carregar();
+    item.addEventListener('toggle', () => {
+      if (!item.open) return;
+      estadoAvanco.disc = id;
+      carregar();
+      acordeao.querySelectorAll('details[open]').forEach((x) => { if (x !== item) x.open = false; });
+    });
+    acordeao.append(item);
   });
   return [
     h('div', { class: 'ctc-grid ctc-grid--4' },
@@ -14671,8 +14939,8 @@ function paginaAvanco() {
       kpiElemento({ rotulo: 'Atividades do cronograma', valor: geral.total, formato: 'numero', sub: 'lista de atividades do cronograma' }),
       kpiElemento({ rotulo: 'Concluídas', valor: geral.concluidas, formato: 'numero', variante: 'success' }),
       kpiElemento({ rotulo: 'Medidas em campo', valor: geral.campo, formato: 'numero', variante: 'warning', sub: 'lançamento manual · prevalece sobre o cálculo' })),
-    criarAlerta({ tipo: 'info', titulo: 'Como funciona', mensagem: 'As atividades marcadas "Controle" avançam sozinhas com os registros das etapas no Campo (estacas, blocos, pré-moldados, concreto, pavimento, canteiro e central), pelo critério de medição da planilha. As marcadas "Campo" não têm elemento no controle: toque na linha e informe quanto foi feito. Quando a quantidade do cronograma difere do controle, vale o controle (ex.: bloco B1 com 10 estacas raiz). O avanço e a medição usam só o que é lançado neste controle: nenhuma planilha externa entra no cálculo. Qualquer atividade pode ser atualizada manualmente: toque na linha, informe o avanço e a data; o lançamento manual prevalece a partir dessa data (para mais ou para menos) até você usar "Voltar ao automático".' }),
-    criarPainel({ titulo: 'Atividades por disciplina', icone: 'tabela', tag: 'Toque na linha para detalhes ou para medir', conteudo: abas.elemento }).elemento,
+    h('details', { class: 'ctc-explica' }, h('summary', {}, 'ℹ️ Como o avanço é calculado'), criarAlerta({ tipo: 'info', titulo: 'Como funciona', mensagem: 'As atividades marcadas "Controle" avançam sozinhas com os registros das etapas no Campo (estacas, blocos, pré-moldados, concreto, pavimento, canteiro e central), pelo critério de medição da planilha. As marcadas "Campo" não têm elemento no controle: toque na linha e informe quanto foi feito. Quando a quantidade do cronograma difere do controle, vale o controle (ex.: bloco B1 com 10 estacas raiz). O avanço e a medição usam só o que é lançado neste controle: nenhuma planilha externa entra no cálculo. Qualquer atividade pode ser atualizada manualmente: toque na linha, informe o avanço e a data; o lançamento manual prevalece a partir dessa data (para mais ou para menos) até você usar "Voltar ao automático".' })),
+    criarPainel({ titulo: 'Atividades por disciplina', icone: 'tabela', tag: 'Toque na disciplina para ver as atividades', conteudo: acordeao }).elemento,
     painelMedicaoPeriodo(),
   ];
 }
@@ -15399,6 +15667,31 @@ async function ofereceRecuperarCopia(base) {
   } catch (erro) { /* sem copia valida */ }
 }
 
+/** v6.6: resumo aberto pelo ponto de sincronizacao do cabecalho. */
+function abrirResumoSincronizacao() {
+  const nuvem = armazenamento.usandoFirebase && armazenamento.usandoFirebase();
+  const titulo = estadoSync.erro ? '🔴 O último envio falhou'
+    : (!navigator.onLine ? '🟡 Sem sinal agora' : (!nuvem ? '⚪ Registros só neste tablet' : (estadoSync.pendenteNuvem ? '🟡 Há registros a enviar' : '🟢 Tudo enviado')));
+  const modal = criarModal({
+    titulo: 'Sincronização', tamanho: 'sm', destruirAoFechar: true,
+    conteudo: h('div', { class: 'ctc-stack' },
+      h('strong', {}, titulo),
+      h('p', { class: 'ctc-text-sm ctc-text-muted' }, nuvem
+        ? 'Cada registro fica guardado neste tablet na hora e vai para a nuvem da obra sozinho quando há sinal.'
+        : 'Cada registro fica guardado neste tablet. Para enviar à nuvem da obra, toque em "Enviar agora" e entre com o login do Portal KZ.'),
+      estadoSync.erro ? criarAlerta({ tipo: 'danger', mensagem: estadoSync.erro }) : null,
+      h('div', { class: 'ctc-sinc-linhas' },
+        h('div', {}, h('span', {}, 'Conexão'), h('b', {}, navigator.onLine ? 'Com sinal' : 'Sem sinal')),
+        h('div', {}, h('span', {}, 'Cópia neste tablet'), h('b', {}, estadoSync.ultimoLocal ? formatarData(estadoSync.ultimoLocal, 'data-hora') : '—')),
+        h('div', {}, h('span', {}, 'Último envio à nuvem'), h('b', {}, estadoSync.ultimoNuvem ? formatarData(estadoSync.ultimoNuvem, 'data-hora') : '—')))),
+    acoes: [
+      { texto: 'Salvar cópia no tablet', variante: 'outline', onClick: async () => { await salvarNoTablet(); toast.sucesso('Cópia salva', 'Registros guardados neste tablet.'); } },
+      { texto: 'Enviar agora', variante: 'primary', onClick: () => { sincronizar(); } },
+    ],
+  });
+  modal.abrir();
+}
+
 function paginaSincronizacao() {
   const nuvem = armazenamento.usandoFirebase && armazenamento.usandoFirebase();
   return [
@@ -15456,6 +15749,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
   const resumo = carregarDados(base);
   const desligarProtecao = protegerSaida(sessao);
   const sair = () => {
+    clearInterval(temporizadorSinc);
     reiniciarAceitePrivacidade();
     desligarProtecao();
     const estado = sessao.obter();
@@ -15464,6 +15758,25 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
     aplicativo = null;
     telaEntrada.mostrar();
   };
+  // v6.6: ponto de sincronizacao no cabecalho (no lugar do botao Sincronizar)
+  const pontoSinc = h('i', { class: 'ctc-sinc-ponto', 'aria-hidden': 'true' });
+  const textoSinc = h('span', {});
+  const pilulaSinc = h('button', { type: 'button', class: 'ctc-btn ctc-btn--outline ctc-btn--sm ctc-sinc-pilula ctc-allow-readonly', onClick: () => abrirResumoSincronizacao() }, pontoSinc, textoSinc);
+  const atualizarPilulaSinc = () => {
+    let classe = ''; let texto = 'Só no tablet';
+    if (estadoSync.erro) { classe = 'is-erro'; texto = 'Falha no envio'; }
+    else if (!navigator.onLine) { classe = 'is-espera'; texto = 'Sem sinal'; }
+    else if (armazenamento.usandoFirebase && armazenamento.usandoFirebase()) {
+      if (estadoSync.pendenteNuvem) { classe = 'is-espera'; texto = 'A enviar'; }
+      else { classe = 'is-ok'; texto = estadoSync.ultimoNuvem ? `Enviado ${formatarData(estadoSync.ultimoNuvem, 'data-hora').slice(-5)}` : 'Enviado'; }
+    }
+    pontoSinc.className = `ctc-sinc-ponto ${classe}`;
+    textoSinc.textContent = texto;
+    pilulaSinc.title = `Sincronização: ${texto}. Toque para ver o resumo.`;
+  };
+  atualizarPilulaSinc();
+  const temporizadorSinc = setInterval(atualizarPilulaSinc, 3000);
+  const apontador = perfil === 'controlador' && !(usuarioKZ && usuarioKZ.papel === 'admin');
   const botaoControlador = criarBotaoSessao({
     sessao, texto: 'Controlador',
     onClick: () => abrirPainelControlador({
@@ -15487,15 +15800,19 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
     cabecalho: {
       titulo: identidade.titulo, subtitulo: identidade.subtitulo || '',
       acoes: [
-        { texto: 'Sincronizar', titulo: 'Sincronizar', classe: 'ctc-btn--icone-tablet', icone: 'download', variante: 'outline', onClick: () => sincronizar() },
+        pilulaSinc,
         { texto: 'Ajuda', titulo: 'Ajuda', classe: 'ctc-btn--icone-tablet', icone: 'info', variante: 'outline', onClick: abrirAjuda },
         botaoControlador,
       ],
     },
     menu: {
       onNavegar: (id) => { if (id === 'privacidade') abrirPrivacidade({ aba: 0 }); },
-      /* v6.3: menu no padrao do Controle de Custos (vidro claro, emojis, cascata e Sair/Trocar) */
-      secoes: [
+      /* v6.3: menu no padrao do Controle de Custos (vidro claro, emojis, cascata e Sair/Trocar)
+         v6.6: modo apontador (Controlador sem papel Admin): so o que se usa em campo */
+      secoes: apontador ? [
+        { titulo: 'Campo', itens: [{ id: 'campo', texto: 'Campo', emoji: '🗺️' }, { id: 'estoque', texto: 'Estoque de pré-moldados', emoji: '📦' }] },
+        { titulo: 'Sistema', itens: [{ id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
+      ] : [
         {
           titulo: 'Campo',
           itens: [
@@ -15520,10 +15837,10 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: 'Controle de Execução em Campo v6.5',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.6' : 'Controle de Execução em Campo v6.6',
     },
     paginas: {
-      campo: { titulo: 'Campo', caminho: ['Execução'], render: paginaCampo },
+      campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
       painel: { titulo: 'Painel do dia', caminho: ['Execução'], acoes: [{ texto: 'Relatórios PDF', icone: 'download', variante: 'primary', onClick: abrirRelatorios }], render: paginaPainel },
       estoque: { titulo: 'Estoque de pré-moldados', caminho: ['Execução'], acoes: [{ texto: 'Relatórios PDF', icone: 'download', variante: 'primary', onClick: abrirRelatorios }], render: paginaEstoquePM },
       avanco: { titulo: 'Avanço físico (cronograma)', caminho: ['Execução'], acoes: [{ texto: 'Exportar avanço (Excel)', icone: 'download', variante: 'primary', onClick: exportarAvancoCsv }], render: paginaAvanco },
@@ -15554,7 +15871,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.5 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.6 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
