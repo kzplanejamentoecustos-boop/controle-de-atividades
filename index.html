@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CTC App Base — Demonstração (dados fictícios)</title>
+<title>Controle de Execução em Campo</title>
 <!-- ARQUIVO GERADO por ferramentas/gerar-arquivo-unico.py. Nao edite: altere os arquivos de origem e gere de novo. -->
 <style>
 /* =============================================================================
@@ -1983,6 +1983,14 @@ img { max-width: 100%; display: block; }
 .ctc-ld-imp:hover::after, .ctc-ld-opc:hover::after { animation: ctc-vidro-brilho .85s cubic-bezier(.4,0,.2,1); }
 .ctc-ld-imp:active, .ctc-ld-opc:active { transform: scale(.97); transition-duration: .08s; }
 @keyframes ctc-vidro-brilho { 0% { left: -70%; opacity: 0; } 15% { opacity: 1; } 100% { left: 130%; opacity: 0; } }
+.ctc-entrada__portal { display: flex; align-items: center; gap: 10px; margin: 0 0 16px; padding: 10px 12px; border-radius: 10px;
+  background: #f8fafc; border: 1px solid #e2e8f0; font-size: 12.5px; color: #334155; }
+.ctc-entrada__portal[hidden] { display: none; }
+.ctc-entrada__portal > span { flex: 1; }
+.ctc-entrada__portal.is-conectado { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+.ctc-entrada__portal-btn { flex: none; padding: 6px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; font: inherit; font-size: 12px;
+  font-weight: 600; color: #1e293b; cursor: pointer; }
+.ctc-entrada__portal-btn:hover { border-color: #1e3a5f; }
 @media (max-width: 420px) { .ctc-ld-acessos { grid-template-columns: 1fr; } .ctc-landing__card.ctc-entrada { padding: 22px; } }
 
 /* Boas-vindas: o app desfocado ao fundo e um cartao de vidro */
@@ -5388,8 +5396,22 @@ function criarTelaEntrada({
   logo, titulo = 'Aplicativo', subtitulo = 'Escolha como deseja acessar', formato,
   prefixoArquivo, administrador = {}, baseInicial = null,
   textoBaseInicial = 'Nenhuma base importada.', rodape, onEntrar, armazenamento, criarBaseNova,
+  onLoginPortal, nomeControle = 'este controle',
 } = {}) {
   let base = baseInicial ? validarBase(JSON.parse(JSON.stringify(baseInicial)), { formato }).base : null;
+  /*
+   * v6.2: login do Portal KZ. acessoPortal = { email, nome, papel: 'leitor'|'editor'|'admin', sigla }
+   * (null = sem login do Portal: valem os controladores e a senha gravados na base, como antes).
+   */
+  let acessoPortal = null;
+  const NOME_PAPEL_PORTAL = { leitor: 'Leitor', editor: 'Editor', admin: 'Administrador' };
+  const NIVEL_PAPEL_PORTAL = { leitor: 1, editor: 2, admin: 3 };
+  const portalPermite = (minimo) => Boolean(acessoPortal) && (NIVEL_PAPEL_PORTAL[acessoPortal.papel] || 0) >= NIVEL_PAPEL_PORTAL[minimo];
+  const usuarioPortal = () => ({ login: acessoPortal.email, nome: acessoPortal.nome });
+  async function loginPortal() {
+    if (typeof onLoginPortal !== 'function') return false;
+    try { return Boolean(await onLoginPortal()); } catch (erro) { toast.aviso('Login KZ', erro.message); return false; }
+  }
   let nomeArquivo = null;
   let importada = false;
   let pendenteExportar = false;
@@ -5534,13 +5556,23 @@ function criarTelaEntrada({
 
   /* ---- Visualizador ---- */
   function entrarVisualizador() {
-    if (exigirBase()) entrar('visualizador');
+    if (exigirBase()) entrar('visualizador', acessoPortal ? usuarioPortal() : null);
   }
 
   /* ---- Controlador ---- */
-  function entrarControlador() {
+  async function entrarControlador() {
     if (!exigirBase()) return;
+    if (acessoPortal) {
+      if (portalPermite('editor')) { entrar('controlador', usuarioPortal()); return; }
+      toast.aviso('Acesso somente para consulta', `Seu acesso ao ${nomeControle} nesta obra é ${NOME_PAPEL_PORTAL[acessoPortal.papel] || 'Leitor'}. Entre como Visualizador ou peça ao gestor da obra para liberar a edição.`);
+      return;
+    }
     if (!base.controladores.length) {
+      // sem controladores na base: o acesso vem do login do Portal KZ
+      if (onLoginPortal) {
+        if (await loginPortal()) entrarControlador();
+        return;
+      }
       criarModal({
         titulo: 'Nenhum controlador cadastrado',
         tamanho: 'sm',
@@ -5775,6 +5807,18 @@ function criarTelaEntrada({
   }
 
   async function entrarAdministrador() {
+    if (acessoPortal) {
+      criarModal({
+        titulo: 'Acessos da equipe',
+        tamanho: 'sm',
+        destruirAoFechar: true,
+        conteudo: h('p', {}, 'Com o login KZ não há controladores nem senhas nesta base: o acesso de cada pessoa (Leitor, Editor ou Administrador) é liberado pelo gestor da obra no Portal KZ.'),
+        acoes: portalPermite('editor')
+          ? [{ texto: 'Fechar', variante: 'outline' }, { texto: 'Entrar como Controlador', variante: 'primary', onClick: () => entrar('controlador', usuarioPortal()) }]
+          : [{ texto: 'Entendi', variante: 'primary' }],
+      }).abrir();
+      return;
+    }
     const senha = await solicitarSenhaAdministrador({ administrador, titulo: 'Acesso do Administrador', textoConfirmar: 'Entrar' });
     if (senha) abrirAdministracao(senha);
   }
@@ -5789,13 +5833,19 @@ function criarTelaEntrada({
       });
       if (!ok) return;
     }
-    const senha = await solicitarSenhaAdministrador({
-      administrador,
-      titulo: 'Iniciar controle',
-      mensagem: 'Informe a senha do administrador para criar uma base em branco.',
-      textoConfirmar: 'Criar base em branco',
-    });
-    if (!senha) return;
+    if (acessoPortal && !portalPermite('editor')) {
+      toast.aviso('Sem permissão', 'Criar um projeto novo exige acesso de Editor nesta obra.');
+      return;
+    }
+    if (!acessoPortal) {
+      const senha = await solicitarSenhaAdministrador({
+        administrador,
+        titulo: 'Iniciar controle',
+        mensagem: 'Informe a senha do administrador para criar uma base em branco.',
+        textoConfirmar: 'Criar base em branco',
+      });
+      if (!senha) return;
+    }
     const nova = typeof criarBaseNova === 'function' ? criarBaseNova() : criarBaseVazia(formato);
     base = validarBase({ ...nova, formato }, { formato }).base;
     nomeArquivo = 'Novo controle (ainda não salvo)';
@@ -5803,7 +5853,8 @@ function criarTelaEntrada({
     pendenteExportar = false;
     atualizarStatus();
     toast.sucesso('Base em branco criada', 'Comece a atualizar e salve em Controlador > Ferramentas.');
-    entrar('administrador', { login: 'administrador', nome: 'Administrador' });
+    if (acessoPortal) entrar('controlador', usuarioPortal());
+    else entrar('administrador', { login: 'administrador', nome: 'Administrador' });
   }
 
   /* ---- Layout no modelo do Controle de Custos (Rev80): Importar em menu, Projeto novo e perfis em cartoes ---- */
@@ -5843,6 +5894,23 @@ function criarTelaEntrada({
     h('span', { class: 'ctc-ld-imp__txt' }, h('b', {}, 'Projeto novo'), h('span', {}, 'Controle em branco')),
     h('span', { class: 'ctc-ld-imp__seta', 'aria-hidden': 'true' }, '➜'));
 
+  const elPortal = h('div', { class: 'ctc-entrada__portal', hidden: !onLoginPortal });
+  function atualizarPortal() {
+    if (acessoPortal) {
+      elPortal.hidden = false;
+      elPortal.classList.add('is-conectado');
+      elPortal.replaceChildren(h('span', {}, '✅ Conectado: ', h('b', {}, acessoPortal.nome),
+        ` · ${NOME_PAPEL_PORTAL[acessoPortal.papel] || acessoPortal.papel} · obra ${acessoPortal.sigla}`));
+    } else {
+      elPortal.hidden = !onLoginPortal;
+      elPortal.classList.remove('is-conectado');
+      elPortal.replaceChildren(h('span', {}, '🔑 Tem login do Portal KZ? Entre com ele e use a senha do painel.'),
+        h('button', { type: 'button', class: 'ctc-entrada__portal-btn', onClick: () => loginPortal() }, 'Entrar com o painel'));
+    }
+    const sub = botaoProjetoNovo.querySelector('.ctc-ld-imp__txt span');
+    if (sub) sub.textContent = acessoPortal ? 'Controle em branco' : 'Controle em branco (senha do administrador)';
+  }
+
   elLogoEntrada.className = 'ctc-landing__logo ctc-entrada__logo';
   elTituloEntrada.className = 'ctc-entrada__titulo';
 
@@ -5851,6 +5919,7 @@ function criarTelaEntrada({
       elLogoEntrada,
       elTituloEntrada,
       h('p', { class: 'ctc-entrada__sub' }, subtitulo),
+      elPortal,
       h('div', { class: 'ctc-entrada__bloco' },
         h('span', { class: 'ctc-entrada__rotulo' }, '1. Importar dados da obra'),
         botaoImportar,
@@ -5866,6 +5935,7 @@ function criarTelaEntrada({
           cartaoLd({ svg: SVG_LD.lapis, fundo: '#dbeafe', cor: '#1e3a8a', titulo: 'Controlador', sub: 'Edita e salva', dica: 'Registra e salva', onClick: entrarControlador }),
           cartaoLd({ svg: SVG_LD.escudo, fundo: '#ede9fe', cor: '#6d28d9', titulo: 'Administrador', sub: 'Acessos', dica: 'Gerenciar acessos', onClick: entrarAdministrador }))),
       rodape ? h('div', { class: 'ctc-entrada__rodape' }, rodape) : null));
+  atualizarPortal();
 
   atualizarStatus();
 
@@ -5874,6 +5944,12 @@ function criarTelaEntrada({
     mostrar: (alvo = document.body) => { atualizarStatus(); alvo.append(elemento); },
     remover: () => elemento.remove(),
     obterBase: () => base,
+    /** Login do Portal KZ detectado: perfis sem senha conforme o papel na obra. */
+    definirAcessoPortal: (acesso) => {
+      acessoPortal = acesso || null;
+      atualizarPortal();
+      atualizarStatus();
+    },
     /** Atualiza a base mantida na tela (ex.: a versao que acabou de ser salva no aplicativo). */
     definirBase: (novaBase, novoNome = nomeArquivo) => {
       const resultado = validarBase(JSON.parse(JSON.stringify(novaBase)), { formato });
@@ -6298,15 +6374,633 @@ function abrirPainelControlador({
   return modal;
 }
 
+/* ===== compartilhado/acesso-kz.js (KZ App Standard v1.7) ===== */
+const KZ = (() => {
+/* =============================================================================
+   KZ App Standard — compartilhado/acesso-kz.js
+   Versao: 1.7.0  (modulo novo da v1.7: login real no Firebase)
+
+   Substitui, nos aplicativos KZ, a senha mestre e os perfis gravados no JSON
+   por LOGIN DO FIREBASE (e-mail e senha) e PERMISSOES POR OBRA E CONTROLE,
+   garantidas pelas regras do Firestore (ver firestore.rules do Portal KZ).
+
+   Estrutura no Firestore:
+     gestores_gerais/{uid}                         gestores gerais (console)
+     usuarios/{uid}          { nome, email }       criado pela propria pessoa
+     usuarios_email/{email}  { uid, nome }         busca por e-mail
+     obras/{obra}            { nome, sigla, situacao, controles: { id: { nome, url, basico } } }
+     obras/{obra}/membros/{uid}  { uid, nome, email, gestor, papeis: { '*'|controle: 'leitor'|'editor'|'admin' } }
+     obras/{obra}/{controle}/... dados de cada controle
+
+   ESTRUTURA
+   01. Firebase (carregado sob demanda do gstatic)
+   02. Login, conta e senha
+   03. Perfil do usuario: gestor geral, obras e papeis
+   04. Gestao: obras, membros e usuarios
+   05. Telas: login, aguardando liberacao, painel da sessao
+   ========================================================================== */
+
+
+
+/* =============================================================================
+   01. FIREBASE
+   ========================================================================== */
+
+let pronto = null;
+
+/**
+ * Inicia o Firebase (app padrao: o login fica compartilhado entre todos os
+ * aplicativos KZ abertos no mesmo endereco). Retorna { auth, db, fa, fs }.
+ */
+function iniciarFirebase(config) {
+  if (!pronto) {
+    pronto = (async () => {
+      const endereco = `https://www.gstatic.com/firebasejs/${VERSAO_SDK_FIREBASE}`;
+      const [moduloApp, fa, fs] = await Promise.all([
+        import(`${endereco}/firebase-app.js`),
+        import(`${endereco}/firebase-auth.js`),
+        import(`${endereco}/firebase-firestore.js`),
+      ]);
+      const app = moduloApp.getApps().length ? moduloApp.getApp() : moduloApp.initializeApp(config);
+      return { auth: fa.getAuth(app), db: fs.getFirestore(app), fa, fs };
+    })().catch((erro) => { pronto = null; throw new Error(traduzirErroAcesso(erro)); });
+  }
+  return pronto;
+}
+
+async function sdk() {
+  if (!pronto) throw new Error('Firebase não iniciado: chame iniciarFirebase(config) antes.');
+  return pronto;
+}
+
+/** Mensagens em portugues para os erros do Firebase. */
+function traduzirErroAcesso(erro) {
+  const codigo = (erro && (erro.code || erro.message)) || String(erro);
+  const mapa = {
+    'auth/invalid-credential': 'E-mail ou senha incorretos.',
+    'auth/wrong-password': 'Senha atual incorreta.',
+    'auth/invalid-email': 'E-mail inválido.',
+    'auth/user-disabled': 'Usuário desativado. Fale com o gestor.',
+    'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos ou redefina a senha.',
+    'auth/network-request-failed': 'Sem conexão com a internet.',
+    'auth/email-already-in-use': 'Já existe uma conta com este e-mail. Use "Entrar" ou "Esqueci a senha".',
+    'auth/weak-password': 'Senha fraca: use pelo menos 8 caracteres.',
+    'auth/admin-restricted-operation': 'O cadastro de novas contas está desativado. Peça ao gestor para criar o seu acesso.',
+    'auth/operation-not-allowed': 'Login por e-mail e senha não está ativado no Firebase.',
+    'auth/requires-recent-login': 'Por segurança, saia e entre de novo antes de trocar a senha.',
+    'permission-denied': 'Você não tem permissão para esta ação.',
+    unavailable: 'O Firebase não respondeu. Verifique a internet.',
+  };
+  if (mapa[codigo]) return mapa[codigo];
+  if (/permission/i.test(codigo)) return mapa['permission-denied'];
+  if (/importing|dynamically imported module|Failed to load module/i.test(codigo)) return 'Não foi possível carregar o Firebase. Verifique a internet ou se o acesso a gstatic.com está liberado.';
+  return codigo;
+}
+
+async function executar(operacao) {
+  try { return await operacao(await sdk()); }
+  catch (erro) { throw new Error(traduzirErroAcesso(erro)); }
+}
+
+
+/* =============================================================================
+   02. LOGIN, CONTA E SENHA
+   ========================================================================== */
+
+/** Chama onMudar(usuario | null) a cada entrada/saida. Ignora sessoes anonimas antigas. */
+async function observarLogin(onMudar) {
+  const { auth, fa } = await sdk();
+  return fa.onAuthStateChanged(auth, (usuario) => {
+    if (usuario && usuario.isAnonymous) { fa.signOut(auth); return; }
+    onMudar(usuario || null);
+  });
+}
+
+const entrar = (email, senha) => executar(({ auth, fa }) =>
+  fa.signInWithEmailAndPassword(auth, String(email).trim(), senha));
+
+const sair = () => executar(({ auth, fa }) => fa.signOut(auth));
+
+/** Envia o e-mail de redefinicao. Nao revela se o e-mail existe. */
+async function redefinirSenha(email) {
+  try { await executar(({ auth, fa }) => fa.sendPasswordResetEmail(auth, String(email).trim())); }
+  catch (erro) { if (/inválido|internet/i.test(erro.message)) throw erro; }
+}
+
+/** Cria a conta e o cadastro (usuarios + usuarios_email). A pessoa fica aguardando liberacao. */
+function criarConta({ nome, email, senha }) {
+  return executar(async ({ auth, db, fa, fs }) => {
+    const cred = await fa.createUserWithEmailAndPassword(auth, String(email).trim(), senha);
+    const u = cred.user;
+    const nomeLimpo = String(nome).trim();
+    await fa.updateProfile(u, { displayName: nomeLimpo });
+    await fs.setDoc(fs.doc(db, 'usuarios', u.uid), { nome: nomeLimpo, email: u.email, criadoEm: new Date().toISOString() });
+    await fs.setDoc(fs.doc(db, 'usuarios_email', u.email), { uid: u.uid, nome: nomeLimpo });
+    return u;
+  });
+}
+
+/** Troca a senha de quem esta logado (confirma a senha atual antes). */
+function trocarSenha(senhaAtual, novaSenha) {
+  return executar(async ({ auth, fa }) => {
+    const u = auth.currentUser;
+    await fa.reauthenticateWithCredential(u, fa.EmailAuthProvider.credential(u.email, senhaAtual));
+    await fa.updatePassword(u, novaSenha);
+  });
+}
+
+
+/** Altera o nome de quem esta logado (cadastro e perfil do Firebase). */
+function alterarMeuNome(nome) {
+  return executar(async ({ auth, db, fa, fs }) => {
+    const u = auth.currentUser;
+    const nomeLimpo = String(nome || '').trim();
+    await fs.updateDoc(fs.doc(db, 'usuarios', u.uid), { nome: nomeLimpo });
+    await fa.updateProfile(u, { displayName: nomeLimpo });
+  });
+}
+
+
+/* =============================================================================
+   03. PERFIL DO USUARIO
+   ========================================================================== */
+
+const PAPEIS = { leitor: 'Leitor', editor: 'Editor', admin: 'Admin' };
+const NIVEL = { '': 0, leitor: 1, editor: 2, admin: 3 };
+
+/**
+ * Papel efetivo de um membro em um controle ('' = sem acesso). Gestor = admin de tudo.
+ * papeis[controle] = 'nenhum' bloqueia um controle mesmo quando '*' libera os demais.
+ */
+function papelNoControle(membro, controle) {
+  if (!membro) return '';
+  if (membro.gestor) return 'admin';
+  const papeis = membro.papeis || {};
+  const papel = papeis[controle] || papeis['*'] || '';
+  return PAPEIS[papel] ? papel : '';
+}
+const podeEditarPapel = (papel) => NIVEL[papel] >= NIVEL.editor;
+
+/**
+ * Carrega quem e o usuario e o que ele acessa:
+ * { uid, email, nome, gestorGeral, obras: [{ id, nome, sigla, situacao, controles, membro }] }
+ * Para o gestor geral, todas as obras aparecem como gestor.
+ */
+function carregarPerfil(usuario) {
+  return executar(async ({ db, fs }) => {
+    const [gg, cadastro, obrasSnap] = await Promise.all([
+      fs.getDoc(fs.doc(db, 'gestores_gerais', usuario.uid)),
+      fs.getDoc(fs.doc(db, 'usuarios', usuario.uid)),
+      fs.getDocs(fs.collection(db, 'obras')),
+    ]);
+    const gestorGeral = gg.exists();
+    const obras = [];
+    await Promise.all(obrasSnap.docs.map(async (d) => {
+      let membro = null;
+      if (gestorGeral) membro = { gestor: true, papeis: { '*': 'admin' } };
+      else {
+        const m = await fs.getDoc(fs.doc(db, 'obras', d.id, 'membros', usuario.uid));
+        if (m.exists()) membro = m.data();
+      }
+      if (membro) obras.push({ id: d.id, ...d.data(), membro });
+    }));
+    obras.sort((a, b) => String(a.nome).localeCompare(String(b.nome), 'pt-BR'));
+    return {
+      uid: usuario.uid,
+      email: usuario.email,
+      nome: (cadastro.exists() && cadastro.data().nome) || usuario.displayName || usuario.email,
+      temCadastro: cadastro.exists(),
+      gestorGeral,
+      obras,
+    };
+  });
+}
+
+/**
+ * Obra dos aplicativos: vem do Portal (?obra=wsf3) ou da ultima obra escolhida no Portal.
+ * Retorna '' quando o aplicativo foi aberto sem obra.
+ */
+function obraDaUrl() {
+  let o = new URLSearchParams(window.location.search).get('obra');
+  if (!o) { try { o = localStorage.getItem('kz-portal-obra'); } catch { o = null; } }
+  return String(o || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+}
+
+/**
+ * Perfil de quem esta logado em um controle de uma obra.
+ * Retorna { papel: ''|'leitor'|'editor'|'admin', obra: { id, nome, sigla, ... } | null, nome }.
+ */
+function papelNaObra(obra, controle) {
+  return executar(async ({ auth, db, fs }) => {
+    const u = auth.currentUser;
+    const [gg, m, o, cadastro] = await Promise.all([
+      fs.getDoc(fs.doc(db, 'gestores_gerais', u.uid)),
+      fs.getDoc(fs.doc(db, 'obras', obra, 'membros', u.uid)),
+      fs.getDoc(fs.doc(db, 'obras', obra)),
+      fs.getDoc(fs.doc(db, 'usuarios', u.uid)),
+    ]);
+    const nome = (cadastro.exists() && cadastro.data().nome) || u.displayName || u.email;
+    if (!o.exists()) return { papel: '', obra: null, nome };
+    const papel = gg.exists() ? 'admin' : (m.exists() ? papelNoControle(m.data(), controle) : '');
+    return { papel, obra: { id: obra, ...o.data() }, nome };
+  });
+}
+
+/**
+ * Versoes salvas de um controle DENTRO da obra, usando o login do Firebase.
+ * Mesmos metodos e formato do armazenamento de versoes do padrao:
+ *   obras/{obra}/{controle}/{id}            -> { nome, salvoEm, autor, tamanho }
+ *   obras/{obra}/{controle}_conteudo/{id}   -> { conteudo: "<base JSON em texto>" }
+ */
+function criarArmazenamentoObra({ obra, controle, limite = 900000 }) {
+  const colecao = ['obras', obra, controle];
+  const colecaoConteudo = ['obras', obra, `${controle}_conteudo`];
+  const serializar = (base) => {
+    const conteudo = JSON.stringify(base);
+    if (conteudo.length > limite) throw new Error(`A base tem ${Math.round(conteudo.length / 1024)} KB e passa do limite de cerca de 900 KB por salvamento. Reduza a logo ou fale com o suporte.`);
+    return conteudo;
+  };
+  return {
+    descricao: `Nuvem KZ — obra ${obra.toUpperCase()}`,
+    usandoFirebase: () => true,
+    obterConfig: () => null,
+    configurar: async () => { throw new Error('A nuvem é configurada pelo gestor.'); },
+    removerConfig: () => {},
+    listar: () => executar(async ({ db, fs }) => {
+      const r = await fs.getDocs(fs.query(fs.collection(db, ...colecao), fs.orderBy('salvoEm', 'desc')));
+      return r.docs.map((d) => ({ id: d.id, ...d.data() }));
+    }),
+    salvar: ({ nome, base, autor }) => executar(async ({ db, fs }) => {
+      const conteudo = serializar(base);
+      const ref = fs.doc(fs.collection(db, ...colecao));
+      const meta = { nome: String(nome).trim(), salvoEm: new Date().toISOString(), autor: autor || '', tamanho: conteudo.length };
+      const lote = fs.writeBatch(db);
+      lote.set(ref, meta);
+      lote.set(fs.doc(db, ...colecaoConteudo, ref.id), { conteudo });
+      await lote.commit();
+      return { id: ref.id, ...meta };
+    }),
+    substituir: (id, { base, autor }) => executar(async ({ db, fs }) => {
+      const conteudo = serializar(base);
+      const refMeta = fs.doc(db, ...colecao, id);
+      const atual = await fs.getDoc(refMeta);
+      if (!atual.exists()) throw new Error('Versão não encontrada na nuvem.');
+      const meta = { ...atual.data(), salvoEm: new Date().toISOString(), autor: autor || atual.data().autor || '', tamanho: conteudo.length };
+      const lote = fs.writeBatch(db);
+      lote.set(refMeta, meta);
+      lote.set(fs.doc(db, ...colecaoConteudo, id), { conteudo });
+      await lote.commit();
+      return { id, ...meta };
+    }),
+    renomear: (id, nome) => executar(async ({ db, fs }) => {
+      const refMeta = fs.doc(db, ...colecao, id);
+      const atual = await fs.getDoc(refMeta);
+      if (!atual.exists()) throw new Error('Versão não encontrada na nuvem.');
+      const meta = { ...atual.data(), nome: String(nome).trim() };
+      await fs.setDoc(refMeta, meta);
+      return { id, ...meta };
+    }),
+    abrir: (id) => executar(async ({ db, fs }) => {
+      const [meta, dados] = await Promise.all([fs.getDoc(fs.doc(db, ...colecao, id)), fs.getDoc(fs.doc(db, ...colecaoConteudo, id))]);
+      if (!meta.exists() || !dados.exists()) throw new Error('Versão não encontrada na nuvem.');
+      return { id, ...meta.data(), base: JSON.parse(dados.data().conteudo) };
+    }),
+    remover: (id) => executar(async ({ db, fs }) => {
+      const lote = fs.writeBatch(db);
+      lote.delete(fs.doc(db, ...colecao, id));
+      lote.delete(fs.doc(db, ...colecaoConteudo, id));
+      await lote.commit();
+    }),
+  };
+}
+
+/** Garante o cadastro de quem foi criado pelo console (sem passar por "Criar conta"). */
+function garantirCadastro(usuario, nome) {
+  return executar(async ({ db, fs }) => {
+    const nomeLimpo = String(nome || usuario.displayName || usuario.email.split('@')[0]).trim();
+    await fs.setDoc(fs.doc(db, 'usuarios', usuario.uid), { nome: nomeLimpo, email: usuario.email, criadoEm: new Date().toISOString() });
+    const ref = fs.doc(db, 'usuarios_email', usuario.email);
+    if (!(await fs.getDoc(ref)).exists()) await fs.setDoc(ref, { uid: usuario.uid, nome: nomeLimpo });
+  });
+}
+
+
+/* =============================================================================
+   04. GESTAO: OBRAS, MEMBROS E USUARIOS
+   ========================================================================== */
+
+/** Codigo da obra a partir da sigla: "WSF3" -> "wsf3", "Obra Nova 1" -> "obra-nova-1". */
+function codigoObra(texto) {
+  return String(texto || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+}
+
+/** Cria uma obra (gestor geral). Falha se o codigo ja existir. */
+function criarObra({ codigo, nome, sigla, controles, autor }) {
+  return executar(async ({ db, fs }) => {
+    const ref = fs.doc(db, 'obras', codigo);
+    if ((await fs.getDoc(ref)).exists()) throw new Error(`Já existe uma obra com o código "${codigo}".`);
+    const agora = new Date().toISOString();
+    await fs.setDoc(ref, { nome, sigla, situacao: 'ativa', controles, criadoEm: agora, criadoPor: autor, atualizadoEm: agora, atualizadoPor: autor });
+  });
+}
+
+/** Atualiza campos da obra (gestor geral: tudo; gestor da obra: so "controles"). */
+const atualizarObra = (codigo, campos, autor) => executar(({ db, fs }) =>
+  fs.updateDoc(fs.doc(db, 'obras', codigo), { ...campos, atualizadoEm: new Date().toISOString(), atualizadoPor: autor }));
+
+const listarMembros = (obra) => executar(async ({ db, fs }) =>
+  (await fs.getDocs(fs.collection(db, 'obras', obra, 'membros'))).docs.map((d) => d.data()));
+
+const salvarMembro = (obra, membro, autor) => executar(({ db, fs }) =>
+  fs.setDoc(fs.doc(db, 'obras', obra, 'membros', membro.uid), {
+    uid: membro.uid, nome: membro.nome || '', email: membro.email || '',
+    gestor: Boolean(membro.gestor), papeis: membro.papeis || {},
+    atualizadoEm: new Date().toISOString(), atualizadoPor: autor,
+  }));
+
+const removerMembro = (obra, uid) => executar(({ db, fs }) =>
+  fs.deleteDoc(fs.doc(db, 'obras', obra, 'membros', uid)));
+
+/** Procura uma conta pelo e-mail exato. Retorna { uid, nome, email } ou null. */
+const buscarUsuarioPorEmail = (email) => executar(async ({ db, fs }) => {
+  const limpo = String(email || '').trim().toLowerCase();
+  const d = await fs.getDoc(fs.doc(db, 'usuarios_email', limpo));
+  return d.exists() ? { ...d.data(), email: limpo } : null;
+});
+
+/** Quantos documentos ha numa colecao (caminho em partes: ['obras', 'wsf3', 'efetivo']). */
+const contarDocumentos = (partes) => executar(async ({ db, fs }) =>
+  (await fs.getCountFromServer(fs.collection(db, ...partes))).data().count);
+
+/**
+ * Copia uma colecao antiga (formato de antes do Portal) para obras/{obra}/{controle}.
+ * - A colecao antiga NAO e alterada (fica como backup).
+ * - Documento que ja existe no destino e foi atualizado DEPOIS da origem nao e sobrescrito.
+ * - comConteudo: versoes do padrao (lista em "origem" + conteudo em "origem_conteudo"):
+ *   o conteudo de cada versao e copiado JUNTO com a lista, com a mesma decisao.
+ * Retorna { total, copiados, ignorados }.
+ */
+function migrarColecao({ origem, obra, controle, comConteudo = false, onProgresso }) {
+  return executar(async ({ db, fs }) => {
+    const snap = await fs.getDocs(fs.collection(db, origem));
+    const dataDe = (d) => String(d.updatedAt || d.atualizadoEm || d.salvoEmISO || d.salvoEm || d.createdAt || '');
+    let copiados = 0;
+    let ignorados = 0;
+    for (const doc of snap.docs) {
+      const destino = fs.doc(db, 'obras', obra, controle, doc.id);
+      const dados = doc.data();
+      const atual = await fs.getDoc(destino);
+      if (atual.exists() && dataDe(atual.data()) > dataDe(dados)) {
+        ignorados += 1;
+      } else {
+        const marca = { _migradoDe: origem, _migradoEm: new Date().toISOString() };
+        if (comConteudo) {
+          const conteudo = await fs.getDoc(fs.doc(db, `${origem}_conteudo`, doc.id));
+          const lote = fs.writeBatch(db);
+          lote.set(destino, { ...dados, ...marca });
+          if (conteudo.exists()) lote.set(fs.doc(db, 'obras', obra, `${controle}_conteudo`, doc.id), conteudo.data());
+          await lote.commit();
+        } else {
+          await fs.setDoc(destino, { ...dados, ...marca });
+        }
+        copiados += 1;
+      }
+      if (typeof onProgresso === 'function') onProgresso(copiados + ignorados, snap.size);
+    }
+    return { total: snap.size, copiados, ignorados };
+  });
+}
+
+/** Todos os cadastros (somente gestor geral). */
+const listarUsuarios = () => executar(async ({ db, fs }) =>
+  (await fs.getDocs(fs.collection(db, 'usuarios'))).docs.map((d) => ({ uid: d.id, ...d.data() })));
+
+
+/* =============================================================================
+   05. TELAS
+   ========================================================================== */
+
+function cartaoEntrada({ logo, titulo, subtitulo, rodape }, ...secoes) {
+  return h('div', { class: 'ctc-landing' },
+    h('div', { class: 'ctc-landing__card' },
+      h('div', { class: 'ctc-landing__brand' },
+        logo ? h('div', { class: 'ctc-landing__logo' }, conteudoLogo(logo)) : null,
+        h('h1', { class: 'ctc-landing__title' }, titulo),
+        subtitulo ? h('p', { class: 'ctc-landing__subtitle' }, subtitulo) : null),
+      ...secoes,
+      rodape ? h('div', { class: 'ctc-landing__footer' }, rodape) : null));
+}
+
+function abrirCriarConta() {
+  const formulario = criarFormulario({
+    colunas: 1,
+    semBotoes: true,
+    campos: [
+      { nome: 'nome', rotulo: 'Nome completo', obrigatorio: true, regras: { minCaracteres: 3, maxCaracteres: 80 } },
+      { nome: 'email', rotulo: 'E-mail', tipo: 'email', obrigatorio: true, atributos: { autocomplete: 'username' } },
+      { nome: 'senha', rotulo: 'Senha (mínimo 8 caracteres)', tipo: 'senha', obrigatorio: true, regras: { minCaracteres: 8 }, atributos: { autocomplete: 'new-password' } },
+      {
+        nome: 'senha2', rotulo: 'Repita a senha', tipo: 'senha', obrigatorio: true, atributos: { autocomplete: 'new-password' },
+        regras: { validar: (v, valores) => (v === valores.senha ? true : 'As senhas não conferem.') },
+      },
+    ],
+    onEnviar: async (v) => {
+      try {
+        await criarConta(v);
+        modal.fechar();
+        toast.sucesso('Conta criada', 'Aguarde um gestor liberar o seu acesso às obras.');
+      } catch (erro) {
+        formulario.definirErro(/e-mail/i.test(erro.message) ? 'email' : 'senha', erro.message);
+      }
+    },
+  });
+  const modal = criarModal({
+    titulo: 'Criar conta',
+    tamanho: 'sm',
+    destruirAoFechar: true,
+    conteudo: [
+      criarAlerta({ tipo: 'info', mensagem: 'Depois de criar a conta, um gestor precisa liberar as obras e os controles que você vai acessar.' }),
+      formulario.elemento,
+    ],
+    acoes: [
+      { texto: 'Cancelar', variante: 'outline' },
+      { texto: 'Criar conta', variante: 'primary', fechar: false, onClick: () => formulario.enviar() },
+    ],
+  });
+  modal.abrir();
+}
+
+async function abrirEsqueciSenha(emailInicial = '') {
+  const email = await solicitarValor({
+    titulo: 'Redefinir senha',
+    rotulo: 'Seu e-mail',
+    tipo: 'email',
+    valor: emailInicial,
+    obrigatorio: true,
+    textoConfirmar: 'Enviar link',
+  });
+  if (!email) return;
+  try {
+    await redefinirSenha(email);
+    toast.sucesso('Verifique seu e-mail', 'Se o e-mail estiver cadastrado, chegará um link para criar nova senha (veja também o spam).');
+  } catch (erro) {
+    toast.erro('Não foi possível enviar', erro.message);
+  }
+}
+
+/**
+ * Tela de login (substitui a tela de entrada com senha mestre da v1.6).
+ *   criarTelaLogin({ logo, titulo, subtitulo, rodape, permitirCriarConta })
+ * O que acontece depois do login e decidido por observarLogin no aplicativo.
+ */
+function criarTelaLogin({ logo, titulo = 'Aplicativo KZ', subtitulo = 'Entre com seu e-mail e senha', rodape, permitirCriarConta = true } = {}) {
+  const formulario = criarFormulario({
+    colunas: 1,
+    textoEnviar: 'Entrar',
+    campos: [
+      { nome: 'email', rotulo: 'E-mail', tipo: 'email', obrigatorio: true, atributos: { autocomplete: 'username' } },
+      { nome: 'senha', rotulo: 'Senha', tipo: 'senha', obrigatorio: true, atributos: { autocomplete: 'current-password' } },
+    ],
+    onEnviar: async ({ email, senha }) => {
+      try { await entrar(email, senha); }
+      catch (erro) { formulario.definirErro('senha', erro.message); }
+    },
+  });
+
+  const elemento = cartaoEntrada({ logo, titulo, subtitulo, rodape },
+    h('section', { class: 'ctc-landing__section' },
+      h('div', { class: 'ctc-landing__section-title' }, 'Acesso'),
+      formulario.elemento,
+      criarBotao({ texto: 'Esqueci a senha', variante: 'ghost', bloco: true, onClick: () => abrirEsqueciSenha(formulario.obterValores().email) })),
+    permitirCriarConta ? h('section', { class: 'ctc-landing__section' },
+      h('div', { class: 'ctc-landing__section-title' }, 'Primeiro acesso'),
+      criarBotao({ texto: 'Criar conta', icone: 'usuario', variante: 'outline', bloco: true, onClick: abrirCriarConta })) : null);
+
+  return {
+    elemento,
+    mostrar: (alvo = document.body) => { formulario.limparErros(); alvo.append(elemento); },
+    remover: () => elemento.remove(),
+  };
+}
+
+/** Tela de quem entrou mas ainda nao tem nenhuma obra liberada. */
+function criarTelaAguardando({ logo, titulo, perfil, rodape, onAtualizar, onSair }) {
+  const botaoAtualizar = criarBotao({ texto: 'Verificar de novo', icone: 'check', variante: 'primary', bloco: true });
+  botaoAtualizar.addEventListener('click', () => comCarregamento(botaoAtualizar, onAtualizar));
+  const elemento = cartaoEntrada({ logo, titulo, subtitulo: `Olá, ${perfil.nome}`, rodape },
+    h('section', { class: 'ctc-landing__section' },
+      criarAlerta({
+        tipo: 'info',
+        titulo: 'Aguardando liberação',
+        mensagem: `Sua conta (${perfil.email}) foi criada, mas ainda não tem nenhuma obra liberada. Peça ao gestor da sua obra para adicionar você.`,
+      }),
+      botaoAtualizar,
+      criarBotao({ texto: 'Sair', icone: 'sair', variante: 'outline', bloco: true, onClick: onSair })));
+  return { elemento, mostrar: (alvo = document.body) => alvo.append(elemento), remover: () => elemento.remove() };
+}
+
+function abrirTrocarSenha() {
+  const formulario = criarFormulario({
+    colunas: 1,
+    semBotoes: true,
+    campos: [
+      { nome: 'atual', rotulo: 'Senha atual', tipo: 'senha', obrigatorio: true, atributos: { autocomplete: 'current-password' } },
+      { nome: 'nova', rotulo: 'Nova senha (mínimo 8 caracteres)', tipo: 'senha', obrigatorio: true, regras: { minCaracteres: 8 }, atributos: { autocomplete: 'new-password' } },
+      {
+        nome: 'nova2', rotulo: 'Repita a nova senha', tipo: 'senha', obrigatorio: true, atributos: { autocomplete: 'new-password' },
+        regras: { validar: (v, valores) => (v === valores.nova ? true : 'As senhas não conferem.') },
+      },
+    ],
+    onEnviar: async ({ atual, nova }) => {
+      try {
+        await trocarSenha(atual, nova);
+        modal.fechar();
+        toast.sucesso('Senha alterada', 'Use a nova senha no próximo acesso.');
+      } catch (erro) {
+        formulario.definirErro(/atual|incorret/i.test(erro.message) ? 'atual' : 'nova', erro.message);
+      }
+    },
+  });
+  const modal = criarModal({
+    titulo: 'Trocar senha',
+    tamanho: 'sm',
+    destruirAoFechar: true,
+    conteudo: formulario.elemento,
+    acoes: [
+      { texto: 'Cancelar', variante: 'outline' },
+      { texto: 'Trocar senha', variante: 'primary', fechar: false, onClick: () => formulario.enviar() },
+    ],
+  });
+  modal.abrir();
+}
+
+/**
+ * Painel da sessao (botao do canto superior direito):
+ *   abrirPainelSessao({ perfil, descricao, abasExtras: [{ id, texto, conteudo }], onSair, onNomeAlterado })
+ */
+function abrirPainelSessao({ perfil, descricao = '', abasExtras = [], onSair, onNomeAlterado }) {
+  let modal = null;
+  async function alterarNome() {
+    modal.fechar();
+    const nome = await solicitarValor({
+      titulo: 'Alterar meu nome', rotulo: 'Nome completo', valor: perfil.nome, obrigatorio: true,
+      regras: { minCaracteres: 3, maxCaracteres: 80 }, textoConfirmar: 'Salvar',
+    });
+    if (!nome || nome.trim() === perfil.nome) return;
+    try {
+      await alterarMeuNome(nome);
+      toast.sucesso('Nome alterado', nome.trim());
+      if (typeof onNomeAlterado === 'function') onNomeAlterado(nome.trim());
+    } catch (erro) {
+      toast.erro('Nome não alterado', erro.message);
+    }
+  }
+  const sessao = h('div', { class: 'ctc-stack' },
+    h('p', { class: 'ctc-text-strong' }, perfil.nome),
+    h('p', { class: 'ctc-text-muted ctc-text-sm' }, perfil.email),
+    descricao ? h('p', { class: 'ctc-text-sm' }, descricao) : null,
+    criarAlerta({ tipo: 'info', mensagem: 'Você continua conectado neste navegador até clicar em "Sair". Em computador compartilhado, sempre saia ao terminar.' }),
+    h('div', { class: 'ctc-cluster' },
+      criarBotao({ texto: 'Alterar meu nome', icone: 'editar', variante: 'outline', onClick: alterarNome }),
+      criarBotao({ texto: 'Trocar senha', icone: 'configuracao', variante: 'outline', onClick: () => { modal.fechar(); abrirTrocarSenha(); } }),
+      criarBotao({ texto: 'Sair', icone: 'sair', variante: 'danger-soft', onClick: () => { modal.fechar(); onSair(); } })));
+  const abas = criarAbas({
+    dentroDeModal: true,
+    abas: [{ id: 'sessao', texto: 'Sessão', conteudo: sessao }, ...abasExtras],
+  });
+  modal = criarModal({
+    titulo: 'Sessão',
+    destruirAoFechar: true,
+    conteudo: abas.elemento,
+    acoes: [{ texto: 'Fechar', variante: 'primary' }],
+  });
+  modal.abrir();
+}
+
+/** Usuario logado (espera o Firebase recuperar a sessao salva no navegador). null = ninguem. */
+async function usuarioAtual() {
+  const { auth, fa } = await sdk();
+  return new Promise((resolver) => {
+    const parar = fa.onAuthStateChanged(auth, (u) => { parar(); resolver(u && !u.isAnonymous ? u : null); });
+  });
+}
+
+return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPerfil, abrirEsqueciSenha, criarTelaLogin, obraDaUrl, papelNaObra, criarArmazenamentoObra, abrirPainelSessao, PAPEIS };
+})();
+
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.1.0
+   Versao: 6.2.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
           (Importar em menu nuvem/JSON, Projeto novo, perfis em cartoes; telas animadas
           ao abrir a base, entrar, salvar na nuvem e sincronizar).
+   6.2.0: login do Portal KZ: o papel na obra (Leitor/Editor/Admin) define o perfil
+          (Visualizador/Controlador); a nuvem passa a ser a da KZ por obra
+          (obras/{obra}/{controle}); titulo da aba corrigido.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -6360,11 +7054,144 @@ const NOME_PERFIL = { controlador: 'Controlador', visualizador: 'Visualizador', 
 const sessao = criarSessao();
 let aplicativo = null;
 
-const armazenamento = criarArmazenamentoNuvem({
-  chave: 'controle-campo-otf3',
-  colecao: 'controle_campo_otf3_versoes',
-  alternativo: criarArmazenamentoNavegador({ banco: 'controle-campo-otf3', descricao: 'neste tablet (nuvem ainda não configurada)' }),
-});
+/*
+ * v6.2: login e nuvem do Portal KZ (o mesmo Firebase do Faturamento Direto e do Efetivo).
+ * O acesso de cada pessoa (Leitor / Editor / Admin) vem do Portal, por obra. As bases ficam
+ * em obras/{obra}/{controle}. O codigo do controle na obra e descoberto pelo link cadastrado
+ * no Portal (o que aponta para "controle-de-atividades").
+ */
+const FIREBASE_KZ = {
+  apiKey: 'AIzaSyCk1hdv3h8A2gDOcaZDRuRtceDiG2bvXOc',
+  authDomain: 'kz-planejamento-e-custos.firebaseapp.com',
+  projectId: 'kz-planejamento-e-custos',
+  storageBucket: 'kz-planejamento-e-custos.firebasestorage.app',
+  messagingSenderId: '755715307647',
+  appId: '1:755715307647:web:6573d0437b23b880bae74a',
+};
+const NOME_CONTROLE_KZ = 'Controle de Execução em Campo';
+const LINK_CONTROLE_KZ = 'controle-de-atividades';   // trecho do link do controle cadastrado no Portal
+let controleKZ = LINK_CONTROLE_KZ;                    // codigo do controle na obra (confirmado no login)
+let obraNuvem = KZ.obraDaUrl();
+let usuarioKZ = null;   // { email, nome, papel, sigla }
+let armazenamentoKZ = null;
+
+function pedirLoginKZ() {
+  return new Promise((resolver) => {
+    let usuario = null;
+    const formulario = criarFormulario({
+      colunas: 1,
+      semBotoes: true,
+      campos: [
+        { nome: 'email', rotulo: 'E-mail', tipo: 'email', obrigatorio: true, atributos: { autocomplete: 'username' } },
+        { nome: 'senha', rotulo: 'Senha', tipo: 'senha', obrigatorio: true, atributos: { autocomplete: 'current-password' } },
+      ],
+      onEnviar: async ({ email, senha }) => {
+        try {
+          const r = await KZ.entrar(email, senha);
+          usuario = r && r.user ? r.user : await KZ.usuarioAtual();
+          modal.fechar();
+        } catch (erro) {
+          formulario.definirErro('senha', erro.message);
+        }
+      },
+    });
+    const modal = criarModal({
+      titulo: 'Entrar — login do Portal KZ',
+      tamanho: 'sm',
+      destruirAoFechar: true,
+      conteudo: [h('p', { class: 'ctc-text-sm ctc-text-muted' }, 'Use o mesmo e-mail e senha do Portal KZ. O seu acesso a este controle (Leitor, Editor ou Administrador) é o liberado pelo gestor da obra.'), formulario.elemento],
+      onFechar: () => resolver(usuario),
+      acoes: [
+        { texto: 'Esqueci a senha', variante: 'ghost', fechar: false, onClick: () => KZ.abrirEsqueciSenha(formulario.obterValores().email) },
+        { texto: 'Cancelar', variante: 'outline' },
+        { texto: 'Entrar', variante: 'primary', fechar: false, onClick: () => formulario.enviar() },
+      ],
+    });
+    modal.abrir();
+  });
+}
+
+async function escolherObraKZ(user) {
+  const perfil = await KZ.carregarPerfil(user);
+  const obras = perfil.obras || [];
+  if (!obras.length) throw new Error('Nenhuma obra liberada para este login. Fale com o gestor da obra.');
+  // prefere as obras que tem este controle cadastrado no Portal
+  const comControle = obras.filter((o) => Object.values(o.controles || {}).some((c) => String(c.url || '').toLowerCase().includes(LINK_CONTROLE_KZ)));
+  const lista = comControle.length ? comControle : obras;
+  if (lista.length === 1) return lista[0].id;
+  const rotulo = (o) => `${o.sigla ? `${o.sigla} — ` : ''}${o.nome || o.id}`;
+  const escolha = await new Promise((resolver) => {
+    let resposta = null;
+    const formulario = criarFormulario({
+      colunas: 1, semBotoes: true,
+      campos: [{ nome: 'obra', rotulo: 'Obra', tipo: 'select', obrigatorio: true, opcoes: lista.map(rotulo) }],
+      onEnviar: ({ obra: o }) => { resposta = o; modal.fechar(); },
+    });
+    const modal = criarModal({
+      titulo: 'Qual obra?', tamanho: 'sm', destruirAoFechar: true, conteudo: formulario.elemento,
+      onFechar: () => resolver(resposta),
+      acoes: [
+        { texto: 'Cancelar', variante: 'outline' },
+        { texto: 'Continuar', variante: 'primary', fechar: false, onClick: () => formulario.enviar() },
+      ],
+    });
+    modal.abrir();
+  });
+  if (escolha == null) return null;
+  const obraEscolhida = lista.find((o) => rotulo(o) === escolha);
+  return obraEscolhida ? obraEscolhida.id : null;
+}
+
+/** Papel de quem esta logado neste controle da obra; descobre o codigo do controle pelo link cadastrado. */
+async function acessoNoControle(obra) {
+  let acesso = await KZ.papelNaObra(obra, LINK_CONTROLE_KZ);
+  if (!acesso.obra) return { ...acesso, controle: LINK_CONTROLE_KZ };
+  const controles = acesso.obra.controles || {};
+  const id = Object.keys(controles).find((k) => String((controles[k] || {}).url || '').toLowerCase().includes(LINK_CONTROLE_KZ)) || LINK_CONTROLE_KZ;
+  if (id !== LINK_CONTROLE_KZ) acesso = await KZ.papelNaObra(obra, id);
+  return { ...acesso, controle: id };
+}
+
+let garantindoNuvem = null;
+/** Garante o login KZ, a obra e o papel neste controle (pede o login se preciso). */
+function garantirNuvemKZ({ pedirLogin = true } = {}) {
+  if (usuarioKZ) return Promise.resolve(usuarioKZ);
+  if (!garantindoNuvem) {
+    garantindoNuvem = (async () => {
+      await KZ.iniciarFirebase(FIREBASE_KZ);
+      let user = await KZ.usuarioAtual();
+      if (!user && pedirLogin) user = await pedirLoginKZ();
+      if (!user) throw new Error('Login cancelado.');
+      if (!obraNuvem) {
+        const escolhida = await escolherObraKZ(user);
+        if (!escolhida) throw new Error('Nenhuma obra escolhida.');
+        obraNuvem = escolhida;
+      }
+      const acesso = await acessoNoControle(obraNuvem);
+      if (!acesso.obra) throw new Error(`A obra "${obraNuvem}" não existe. Confira o link recebido.`);
+      if (!acesso.papel) throw new Error(`Seu usuário não tem acesso ao ${NOME_CONTROLE_KZ} na ${acesso.obra.sigla || obraNuvem}. Fale com o gestor da obra.`);
+      controleKZ = acesso.controle;
+      armazenamentoKZ = KZ.criarArmazenamentoObra({ obra: obraNuvem, controle: controleKZ });
+      usuarioKZ = { email: user.email, nome: acesso.nome, papel: acesso.papel, sigla: acesso.obra.sigla || obraNuvem };
+      try { localStorage.setItem('kz-portal-obra', obraNuvem); } catch (erro) { /* sem armazenamento */ }
+      telaEntrada.definirAcessoPortal({ ...usuarioKZ });
+      return usuarioKZ;
+    })().finally(() => { garantindoNuvem = null; });
+  }
+  return garantindoNuvem;
+}
+
+/** Nuvem KZ da obra, com a mesma interface do armazenamento anterior (pede o login ao usar). */
+const armazenamento = {
+  get descricao() { return usuarioKZ ? `Nuvem KZ — obra ${usuarioKZ.sigla} (${usuarioKZ.email})` : 'Nuvem KZ (pede o login do Portal ao usar)'; },
+  usandoFirebase: () => Boolean(usuarioKZ),
+  obterConfig: () => null,
+  listar: async () => { await garantirNuvemKZ(); return armazenamentoKZ.listar(); },
+  abrir: async (id) => { await garantirNuvemKZ(); return armazenamentoKZ.abrir(id); },
+  salvar: async (dados) => { await garantirNuvemKZ(); return armazenamentoKZ.salvar(dados); },
+  substituir: async (id, dados) => { await garantirNuvemKZ(); return armazenamentoKZ.substituir(id, dados); },
+  remover: async (id) => { await garantirNuvemKZ(); return armazenamentoKZ.remover(id); },
+};
 
 /** Copia automatica no proprio tablet (funciona sem internet). */
 const armazenamentoLocal = criarArmazenamentoNavegador({ banco: 'controle-campo-otf3-rascunho', descricao: 'cópia automática deste tablet' });
@@ -14179,8 +15006,11 @@ async function salvarNoTablet() {
 
 async function sincronizar({ silencioso = false } = {}) {
   if (!(armazenamento.usandoFirebase && armazenamento.usandoFirebase())) {
-    if (!silencioso) toast.aviso('Nuvem não configurada', 'Os registros estão guardados neste tablet. O administrador configura a nuvem em Controlador > Ferramentas.');
-    return false;
+    if (silencioso) return false;
+    try { await garantirNuvemKZ(); } catch (erro) {
+      toast.aviso('Nuvem KZ', `${erro.message} Os registros continuam guardados neste tablet.`);
+      return false;
+    }
   }
   if (!navigator.onLine) {
     if (!silencioso) toast.aviso('Sem sinal', 'Os registros ficam no tablet e serão enviados quando a conexão voltar.');
@@ -14189,14 +15019,15 @@ async function sincronizar({ silencioso = false } = {}) {
   const base = { ...obterBaseParaSalvar(), salvoEm: new Date().toISOString() };
   const car = silencioso ? null : mostrarCarregamento('salvar', 'Sincronização', { logo: (base.identidade || {}).logo || identidade.logo || MARCA.logo, rodape: identidade.subtitulo || '' });
   try {
-    const id = lerChave(CHAVE_NUVEM);
+    const chaveNuvem = `${CHAVE_NUVEM}:${obraNuvem}:${controleKZ}`;
+    const id = lerChave(chaveNuvem);
     let ok = false;
     if (id) {
       try { await armazenamento.substituir(id, { base, autor: autorAtual() }); ok = true; } catch (erro) { ok = false; }
     }
     if (!ok) {
       const novo = await armazenamento.salvar({ nome: 'Controle de campo (sincronização)', base, autor: autorAtual() });
-      gravarChave(CHAVE_NUVEM, novo.id);
+      gravarChave(chaveNuvem, novo.id);
     }
     estadoSync.ultimoNuvem = base.salvoEm;
     estadoSync.pendenteNuvem = false;
@@ -14239,9 +15070,9 @@ function paginaSincronizacao() {
     h('div', { class: 'ctc-grid ctc-grid--3' },
       kpiElemento({ rotulo: 'Conexão', valor: navigator.onLine ? 'Com sinal' : 'Sem sinal', variante: navigator.onLine ? 'success' : 'warning' }),
       kpiElemento({ rotulo: 'Cópia neste tablet', valor: estadoSync.ultimoLocal ? formatarData(estadoSync.ultimoLocal, 'data-hora') : '—', sub: 'grava sozinha a cada registro', variante: estadoSync.ultimoLocal ? 'success' : undefined }),
-      kpiElemento({ rotulo: 'Nuvem', valor: nuvem ? (estadoSync.ultimoNuvem ? formatarData(estadoSync.ultimoNuvem, 'data-hora') : 'Aguardando envio') : 'Não configurada', variante: nuvem ? (estadoSync.pendenteNuvem ? 'warning' : 'success') : undefined, sub: estadoSync.pendenteNuvem ? 'há registros a enviar' : '' })),
+      kpiElemento({ rotulo: 'Nuvem', valor: nuvem ? (estadoSync.ultimoNuvem ? formatarData(estadoSync.ultimoNuvem, 'data-hora') : 'Aguardando envio') : 'Sem login KZ', variante: nuvem ? (estadoSync.pendenteNuvem ? 'warning' : 'success') : undefined, sub: estadoSync.pendenteNuvem ? 'há registros a enviar' : '' })),
     estadoSync.erro ? criarAlerta({ tipo: 'danger', mensagem: estadoSync.erro }) : null,
-    criarAlerta({ tipo: 'info', titulo: 'Como funciona', mensagem: 'Cada registro fica guardado neste tablet na hora, mesmo sem internet. Com a nuvem configurada, o envio é automático quando há sinal e alimenta o relatório global. Em Controlador > Ferramentas também é possível exportar a base em JSON.' }),
+    criarAlerta({ tipo: 'info', titulo: 'Como funciona', mensagem: 'Cada registro fica guardado neste tablet na hora, mesmo sem internet. Com o login do Portal KZ, o envio para a nuvem da obra é automático quando há sinal. Em Controlador > Ferramentas também é possível exportar a base em JSON.' }),
     h('div', { class: 'ctc-cluster' },
       criarBotao({ texto: 'Sincronizar agora', icone: 'download', variante: 'primary', tamanho: 'lg', onClick: async (ev) => { await comCarregamento(ev.currentTarget, () => sincronizar()); aplicativo.navegar('sincronizacao'); } }),
       criarBotao({ texto: 'Salvar cópia no tablet', icone: 'check', variante: 'outline', tamanho: 'lg', onClick: async () => { await salvarNoTablet(); toast.sucesso('Cópia salva', 'Registros guardados neste tablet.'); aplicativo.navegar('sincronizacao'); } })),
@@ -14320,7 +15151,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         { titulo: 'Consulta', itens: [{ id: 'elementos', texto: 'Elementos', icone: 'tabela' }, { id: 'banco', texto: 'Banco de dados', icone: 'tabela' }, { id: 'pendencias', texto: 'Pendências', icone: 'info' }] },
         { titulo: 'Sistema', itens: [{ id: 'sincronizacao', texto: 'Sincronização', icone: 'download' }] },
       ],
-      rodape: 'Controle de Execução em Campo v6.0',
+      rodape: 'Controle de Execução em Campo v6.2',
     },
     paginas: {
       campo: { titulo: 'Campo', caminho: ['Execução'], render: paginaCampo },
@@ -14353,10 +15184,23 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'CTC App Standard v1.6 — sem servidor: os perfis controlam o uso, não substituem segurança de rede.',
+  rodape: 'Controle de Execução em Campo v6.2 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  nomeControle: NOME_CONTROLE_KZ,
+  onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
 });
 telaEntrada.mostrar();
+
+/* Aberto pelo Portal KZ (mesmo site e mesmo Firebase): quem ja esta logado entra sem senha.
+   Aberto pelo link da obra e ainda sem login, o login KZ e pedido logo na entrada. */
+(async () => {
+  if (!obraNuvem) return;
+  try {
+    await garantirNuvemKZ();
+  } catch (erro) {
+    if (!/cancelado/i.test(erro.message)) toast.aviso('Login do Portal KZ', erro.message);
+  }
+})();
 
 })();
 </script>
