@@ -7424,7 +7424,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.6.0
+   Versao: 6.6.1
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7447,6 +7447,8 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           confirmacao com Desfazer; Painel do dia com 3 seletores e cartoes coloridos; Avanco
           em lista com barras; Estoque com "Recebi peças" e cartoes; modo apontador no menu;
           sincronizacao como ponto no cabecalho.
+   6.6.1: Desfazer (faixa e "Desfazer última") so com papel Editor/Admin no Portal KZ,
+          conferido na hora; senao avisa para falar com o administrador.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -13495,7 +13497,8 @@ function confirmarRegistro(e, mensagem, antes) {
     h('span', {}, h('strong', {}, 'Registrado: '), `${mensagem} · ${e.rotulo}`),
     antes != null && sessao.podeEditar() ? h('button', {
       type: 'button', class: 'ctc-desfazer__btn',
-      onClick: () => {
+      onClick: async () => {
+        if (!(await podeDesfazer())) return;
         e.reg = JSON.parse(antes);
         faixa.remove();
         clearTimeout(_temporizadorDesfazer);
@@ -13533,9 +13536,34 @@ function registrarHoje(e, etapa, data = hojeIso()) {
   registrarAlteracao();
 }
 
+/**
+ * v6.6.1: desfazer um registro so com papel Editor (ou Admin) no Portal KZ, conferido na hora.
+ * Sem login do Portal, pede o login; Leitor ou sem acesso recebe o aviso para falar com o administrador.
+ */
+async function podeDesfazer() {
+  const negar = (mensagem) => {
+    criarModal({
+      titulo: 'Desfazer não liberado', tamanho: 'sm', destruirAoFechar: true,
+      conteudo: h('p', {}, mensagem),
+      acoes: [{ texto: 'Entendi', variante: 'primary' }],
+    }).abrir();
+    return false;
+  };
+  try {
+    await garantirNuvemKZ();
+    const acesso = await acessoNoControle(obraNuvem);
+    if (['editor', 'admin'].includes(acesso.papel)) return true;
+    const papel = { leitor: 'Leitor', '': 'sem acesso' }[acesso.papel ?? ''] || acesso.papel || 'sem acesso';
+    return negar(`Seu acesso neste controle no Portal KZ é ${papel}. Só Editor ou Administrador pode desfazer um registro. Fale com o administrador da obra.`);
+  } catch (erro) {
+    return negar(`Para desfazer, o controle confere no Portal KZ se você é Editor (${erro.message}). Entre com o seu login do Portal, com internet, ou fale com o administrador da obra.`);
+  }
+}
+
 async function desfazerUltima(e) {
   const ultima = ultimaAcao(e);
   if (!ultima) return;
+  if (!(await podeDesfazer())) return;
   const { etapa, oque } = ultima;
   const reg = e.reg[etapa.chave];
   const descricao = oque === 'inicio' ? `o início de "${etapa.texto}" (${dataTexto(reg.inicio)})`
