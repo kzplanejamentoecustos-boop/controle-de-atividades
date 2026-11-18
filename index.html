@@ -7424,7 +7424,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.7.1
+   Versao: 6.8.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7452,6 +7452,8 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
    6.7.0: lajes pre-moldadas do 01A na posicao real do DWG-00017 rev. A (105 pecas, contorno de
           cada uma), no lugar da distribuicao esquematica entre as linhas.
    6.7.1: vigas U da linha A do 01A conforme o DWG-00016 rev. A (PM-103, PM-104, PM-104).
+   6.8.0: prancha e 3D mais visuais: tom proprio por tipo de peca no que nao comecou e codigo
+          de cada peca escrito dentro dela na prancha quando ha espaco (ao aproximar).
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -12727,6 +12729,28 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     return [[{ x: T.x - rx, y: T.y - ry }, { x: T.x + rx, y: T.y - ry }, { x: B.x + rx, y: B.y + ry }, { x: B.x - rx, y: B.y + ry }]];
   }
 
+  /** v6.8: escreve o codigo da peca dentro dela quando ha espaco (ao aproximar com a pinca). */
+  function escreverCodigo(o, pts, alfa) {
+    if (!o.curto || alfa < 0.5) return;
+    const xs = pts.map((p) => p.x); const ys = pts.map((p) => p.y);
+    const w = Math.max(...xs) - Math.min(...xs); const hh = Math.max(...ys) - Math.min(...ys);
+    const vertical = hh > w * 1.6;
+    const larg = vertical ? hh : w; const alt = vertical ? w : hh;
+    if (alt < 13) return;
+    const tam = Math.max(10, Math.min(15, alt * 0.42));
+    ctx.font = fonte(tam, true);
+    const tw = ctx.measureText(o.curto).width;
+    if (tw + 8 > larg) return;
+    const cx = xs.reduce((s, v) => s + v, 0) / xs.length; const cy = ys.reduce((s, v) => s + v, 0) / ys.length;
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (vertical) ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.strokeText(o.curto, 0, 0);
+    ctx.fillStyle = '#0f172a'; ctx.fillText(o.curto, 0, 0);
+    ctx.restore();
+  }
+
   /** Elemento no estilo da prancha (planta): contorno preto e preenchimento claro na cor do status. */
   function desenharPrancha(o, alfa) {
     // selecionado: preenchimento cheio na cor do status (sem contorno de selecao)
@@ -12742,6 +12766,7 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
       pts.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
       ctx.closePath();
       ctx.stroke();
+      escreverCodigo(o, pts, alfa);
       ctx.globalAlpha = 1;
       return [pts];
     }
@@ -12752,6 +12777,11 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     ctx.fillStyle = tom3d(o.cor, sel ? 0 : 0.25);
     ctx.fill();
     ctx.stroke();
+    if (o.curto && r >= 14 && alfa >= 0.5) {
+      ctx.save(); ctx.font = fonte(Math.min(14, Math.max(10, r * 0.55)), true); ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.strokeText(o.curto, c.x, c.y + r * 1.35);
+      ctx.fillStyle = '#0f172a'; ctx.fillText(o.curto, c.x, c.y + r * 1.35); ctx.restore();
+    }
     if (r > 6) {
       ctx.setLineDash([2, 2]);
       ctx.beginPath(); ctx.arc(c.x, c.y, r * 0.78, 0, Math.PI * 2); ctx.stroke();
@@ -13354,7 +13384,14 @@ function definirCamada(grupo, chave, visivel) {
   try { localStorage.setItem(CHAVE_CAMADAS, JSON.stringify(estadoCampo.ocultas)); } catch (erro) { /* sem armazenamento */ }
 }
 
-const corElemento = (e) => (liberado(e) ? COR_LIBERADO : STATUS[statusDe(e)].cor);
+/** v6.8: peca nao iniciada ganha um tom neutro proprio do tipo (as cores de situacao continuam vivas por cima). */
+const TOM_TIPO = {
+  'estaca-metalica': '#8b8f98', 'estaca-raiz': '#8b8f98', bloco: '#a1958a', 'viga-eixo': '#a1958a',
+  capitel: '#bba98c', 'viga-transversal': '#ad9f86', 'viga-u': '#9fb2a7', laje: '#cdd4de',
+  cip: '#b9b0cb', pavimento: '#d9d6cf',
+};
+const corElemento = (e) => (liberado(e) ? COR_LIBERADO
+  : (statusDe(e) === 'nao-iniciada' && TOM_TIPO[e.tipo] ? TOM_TIPO[e.tipo] : STATUS[statusDe(e)].cor));
 const chaveStatusCamada = (e) => (liberado(e) ? 'liberado' : statusDe(e));
 const passaFrente = (e) => camadaVisivel('frentes', tipoDe(e).frente) && camadaVisivel('status', chaveStatusCamada(e));
 
@@ -13365,6 +13402,12 @@ const GRADES = {
   PROV: { eixos: [], titulo: 'OBRAS PROVISÓRIAS', desenho: 'DWG-00236 a 00258 (posições esquemáticas)' },
   CANTEIRO: { eixos: [], titulo: 'CANTEIRO DE OBRAS — IMPLANTAÇÃO', desenho: 'DWG-GCO-ARQ-00001/00002 · alturas esquemáticas' },
 };
+
+/** Codigo curto escrito dentro da peca na prancha: estaca "1-A", peca "PM-201 #05", bloco "B3"... */
+function codigoCurto(e) {
+  const t = String(e.id || '').replace(/^(01B|1A|Canteiro) · /, '');
+  return t.length > 18 ? `${t.slice(0, 17)}…` : t;
+}
 
 function cenaSegmento(seg) {
   const objetos = [];
@@ -13380,8 +13423,10 @@ function cenaSegmento(seg) {
       ? ({ pavimento: 0.12, concreto: 0.18 }[frente] ?? 1) : 1;
     const rotulo = `${e.rotulo} · ${liberado(e) ? 'Liberado' : textoStatus(e)}`;
     // camada desligada: alfa 0 (nao desenha nem recebe toque, mas mantem o enquadramento da folha)
-    e.geo.forEach((g) => objetos.push({
+    const curto = camadaVisivel('desenho', 'nomes') ? codigoCurto(e) : '';
+    e.geo.forEach((g, i) => objetos.push({
       id: e.id, ...g, cor: g.clarear ? misturar(cor, g.clarear) : cor, alfa: visivel ? cobertura : 0, rotulo,
+      curto: i === 0 ? curto : '',
     }));
   });
   // nomes na prancha quando ha poucos elementos visiveis (leitura em campo)
@@ -14001,7 +14046,7 @@ function paginaCampo() {
   const larguraUtil = Math.max(320, (document.querySelector('.ctc-main')?.clientWidth || window.innerWidth) - 40);
   const alturaUtil = Math.max(300, window.innerHeight - 205);
   const legendaCores = h('div', { class: 'ctc-vista__legenda', 'aria-hidden': 'true' },
-    ...[['#94a3b8', 'Não iniciado'], [COR_LIBERADO, 'Liberado'], [STATUS.execucao.cor, 'Em execução'], [STATUS.concluida.cor, 'Concluído'], [STATUS.pendencia.cor, 'Pendência']]
+    ...[['linear-gradient(90deg, #8b8f98, #bba98c, #9fb2a7, #cdd4de)', 'Não iniciado (tom do tipo)'], [COR_LIBERADO, 'Liberado'], [STATUS.execucao.cor, 'Em execução'], [STATUS.concluida.cor, 'Concluído'], [STATUS.pendencia.cor, 'Pendência']]
       .map(([cor, txt]) => h('span', {}, h('i', { style: { background: cor } }), txt)));
   const vista = criarVista3D({
     chave: `campo-${estadoCampo.seg}`, titulo: SEGMENTOS[estadoCampo.seg].texto,
