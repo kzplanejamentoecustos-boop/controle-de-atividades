@@ -7424,7 +7424,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.7.0
+   Versao: 6.7.1
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7451,6 +7451,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           conferido na hora; senao avisa para falar com o administrador.
    6.7.0: lajes pre-moldadas do 01A na posicao real do DWG-00017 rev. A (105 pecas, contorno de
           cada uma), no lugar da distribuicao esquematica entre as linhas.
+   6.7.1: vigas U da linha A do 01A conforme o DWG-00016 rev. A (PM-103, PM-104, PM-104).
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -8091,9 +8092,10 @@ const subPM = (tipo) => {
   return [t.volume != null ? `${formatarNumero(t.volume, 2)} m³` : null, t.peso != null ? `${formatarNumero(t.peso, 2)} t` : null, t.aco ? `aço ${formatarNumero(t.aco, 0)} kg` : null].filter(Boolean).join(' · ') || 'quantitativos não constam nos desenhos';
 };
 
-/** Vigas U do 01A por linha, da borda (eixo −1) ate o eixo 3 (DWG-00016). */
+/** Vigas U do 01A por linha, da borda (eixo −1) ate o eixo 3 (DWG-00016 rev. A, conferido peca a peca em 18/11/2026;
+ *  a linha A passou de PM-101/102/102 para PM-103/104/104 nesta revisao). */
 const FASE2_01A = {
-  A: ['PM-101', 'PM-102', 'PM-102'], B: ['PM-103', 'PM-104', 'PM-104'],
+  A: ['PM-103', 'PM-104', 'PM-104'], B: ['PM-103', 'PM-104', 'PM-104'],
   C: ['PM-105', 'PM-107', 'PM-108', 'PM-104'], D: ['PM-105', 'PM-109', 'PM-104'],
   E: ['PM-105', 'PM-110', 'PM-104'], F: ['PM-105', 'PM-107', 'PM-108'],
   G: ['PM-106', 'PM-107', 'PM-108'], H: ['PM-111', 'PM-108', 'PM-108'],
