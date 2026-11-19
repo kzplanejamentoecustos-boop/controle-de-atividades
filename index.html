@@ -2298,6 +2298,116 @@ img { max-width: 100%; display: block; }
 .ctc-chip-data:focus-visible { outline: 2px solid #1e3a5f; outline-offset: 2px; }
 .ctc-chips-data { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
 .ctc-chips-data .ctc-chip-data { font-size: 12.5px; padding: 6px 12px; }
+
+/* v6.15.0: quadro do apontador (cabecalho, trilha das etapas e "quando foi?") */
+.ctc-ap-cab { display: grid; gap: 4px; }
+.ctc-ap-cab__id { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ctc-ap-cab__id b { font-size: 30px; line-height: 1.1; color: #0f172a; letter-spacing: -.01em; }
+.ctc-ap-pill { color: #fff; font-weight: 700; font-size: 15px; padding: 6px 14px; border-radius: 999px; text-shadow: 0 1px 1px rgba(0,0,0,.25); }
+.ctc-ap-cab__sub { color: #475569; font-size: 14px; }
+.ctc-ap-trilha { list-style: none; margin: 4px 0 0; padding: 0; display: flex; gap: 0; overflow-x: auto; }
+.ctc-ap-passo { position: relative; flex: 1 1 0; min-width: 92px; display: grid; justify-items: center; text-align: center; gap: 4px; padding: 0 4px; }
+.ctc-ap-passo::before { content: ''; position: absolute; top: 21px; left: -50%; right: 50%; height: 4px; background: #e2e8f0; z-index: 0; }
+.ctc-ap-passo:first-child::before { display: none; }
+.ctc-ap-passo.is-feita::before, .ctc-ap-passo.is-andamento::before { background: #16a34a; }
+.ctc-ap-passo__bola { position: relative; z-index: 1; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 18px;
+  background: #fff; color: #94a3b8; border: 3px solid #cbd5e1; }
+.ctc-ap-passo.is-feita .ctc-ap-passo__bola { background: #16a34a; border-color: #16a34a; color: #fff; }
+.ctc-ap-passo.is-andamento .ctc-ap-passo__bola { background: #facc15; border-color: #eab308; color: #0f172a; box-shadow: 0 0 0 6px rgba(250,204,21,.25); }
+.ctc-ap-passo.is-proxima .ctc-ap-passo__bola { background: #0ea5e9; border-color: #0284c7; color: #fff; box-shadow: 0 0 0 6px rgba(14,165,233,.22); }
+.ctc-ap-passo.is-bloqueada .ctc-ap-passo__bola { background: #f1f5f9; border-color: #94a3b8; }
+.ctc-ap-passo.is-opcional .ctc-ap-passo__bola { border-style: dashed; }
+.ctc-ap-passo__nome { font-size: 12.5px; font-weight: 600; color: #1e293b; line-height: 1.2; }
+.ctc-ap-passo.is-futura .ctc-ap-passo__nome { color: #64748b; font-weight: 500; }
+.ctc-ap-passo__data { font-size: 12px; color: #64748b; font-variant-numeric: tabular-nums; min-height: 1em; }
+.ctc-ap-passo.is-feita .ctc-ap-passo__data { color: #15803d; font-weight: 700; }
+.ctc-ap-passo.is-andamento .ctc-ap-passo__data { color: #a16207; font-weight: 700; }
+.ctc-ap-acao { border-radius: 18px; padding: 16px; background: linear-gradient(180deg, #f0f9ff, #e0f2fe); border: 2px solid #7dd3fc; display: grid; gap: 12px; }
+.ctc-ap-acao.is-bloqueada { background: linear-gradient(180deg, #fff7ed, #ffedd5); border-color: #fdba74; }
+.ctc-ap-acao.is-pronta { background: #f0fdf4; border-color: #86efac; text-align: center; font-size: 18px; color: #15803d; }
+.ctc-ap-acao__topo { display: grid; gap: 2px; }
+.ctc-ap-acao__etapa { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #0369a1; }
+.ctc-ap-acao.is-bloqueada .ctc-ap-acao__etapa { color: #c2410c; }
+.ctc-ap-acao__nome { font-size: 24px; color: #0f172a; line-height: 1.2; }
+.ctc-ap-acao__infos { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13.5px; color: #334155; }
+.ctc-ap-acao__infos .is-atraso { color: #b91c1c; font-weight: 700; }
+.ctc-ap-acao__pergunta { margin: 0 0 8px; font-size: 18px; font-weight: 800; color: #0c4a6e; }
+.ctc-ap-dias { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ctc-ap-dia { all: unset; box-sizing: border-box; position: relative; cursor: pointer; display: grid; justify-items: center; gap: 2px; padding: 14px 8px; border-radius: 16px; text-align: center;
+  background: #fff; border: 2px solid #bae6fd; box-shadow: 0 4px 12px rgba(2,132,199,.12); }
+.ctc-ap-dia b { font-size: 15px; letter-spacing: .06em; color: #0369a1; }
+.ctc-ap-dia span { font-size: 28px; font-weight: 800; color: #0f172a; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.ctc-ap-dia small { font-size: 12.5px; color: #64748b; text-transform: capitalize; }
+.ctc-ap-dia.is-hoje { background: linear-gradient(180deg, #22c55e, #15803d); border-color: #15803d; box-shadow: 0 8px 20px rgba(21,128,61,.35); }
+.ctc-ap-dia.is-hoje b, .ctc-ap-dia.is-hoje span, .ctc-ap-dia.is-hoje small { color: #fff; }
+.ctc-ap-dia:active { transform: scale(.97); }
+.ctc-ap-dia:focus-visible { outline: 3px solid #1e3a5f; outline-offset: 2px; }
+.ctc-ap-dia__input { position: absolute; inset: auto 0 0 0; width: 100%; height: 1px; opacity: 0; pointer-events: none; border: 0; padding: 0; }
+.ctc-ap-acao__dica { margin: 8px 0 0; font-size: 13.5px; color: #0c4a6e; }
+.ctc-ap-acao__trava b { color: #9a3412; font-size: 16px; }
+.ctc-ap-acao__trava ul { margin: 6px 0 0; padding-left: 20px; color: #7c2d12; font-size: 14px; display: grid; gap: 4px; }
+.ctc-ap-acao__rodape { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; }
+@media (max-width: 520px) { .ctc-ap-dia span { font-size: 22px; } .ctc-ap-acao__nome { font-size: 20px; } .ctc-ap-cab__id b { font-size: 24px; } }
+
+
+
+/* v6.18.0: pagina Cronograma */
+.ctc-crono__cartoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.ctc-crono__cartao { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background: #fff; border: 1px solid #e2e8f0; border-left-width: 5px; }
+.ctc-crono__cartao small { font-size: 12px; color: #64748b; }
+.ctc-crono__cartao b { font-size: 24px; color: #0f172a; font-variant-numeric: tabular-nums; }
+/* v6.17.0: video da obra (aba Memorias) */
+.ctc-video__campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+.ctc-video__campo { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: #334155; }
+.ctc-video__status { margin: 0; font-size: 14px; color: #1e3a5f; font-weight: 600; }
+.ctc-video__tela canvas, .ctc-video__previa { width: 100%; height: auto; border-radius: 12px; border: 1px solid #e2e8f0; display: block; }
+.ctc-video__player { width: 100%; border-radius: 12px; background: #0f172a; }
+/* v6.16.0: composicao do elemento */
+.ctc-comp__botao { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; padding: 12px 16px; border-radius: 14px;
+  background: linear-gradient(180deg, #eef2ff, #e0e7ff); border: 2px solid #a5b4fc; font-size: 17px; font-weight: 800; color: #312e81; }
+.ctc-comp__botao small { font-size: 13px; font-weight: 500; color: #4338ca; }
+.ctc-comp__botao:hover { border-color: #6366f1; }
+.ctc-comp__botao:focus-visible { outline: 3px solid #1e3a5f; outline-offset: 2px; }
+.ctc-comp { display: grid; gap: 16px; }
+.ctc-comp__cab { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; color: #475569; font-size: 14px; }
+.ctc-comp__cab b { font-size: 26px; color: #0f172a; }
+.ctc-comp__fonte { font-weight: 600; color: #1e3a5f; }
+.ctc-comp__aviso { background: #fef3c7; color: #92400e; border-radius: 999px; padding: 2px 10px; font-size: 12.5px; font-weight: 600; }
+.ctc-comp__secao h4 { margin: 0 0 8px; font-size: 15px; color: #1e293b; }
+.ctc-comp__tabela { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ctc-comp__tabela th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #64748b; padding: 6px 10px; border-bottom: 2px solid #e2e8f0; }
+.ctc-comp__tabela td { padding: 7px 10px; border-bottom: 1px solid #f1f5f9; }
+.ctc-comp__tabela .is-num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; color: #0f172a; white-space: nowrap; }
+.ctc-comp__grupo td { background: #f8fafc; font-weight: 800; color: #1e3a5f; font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; }
+.ctc-comp__obs { color: #b45309; font-size: 12.5px; }
+.ctc-comp__lig { display: grid; gap: 6px; margin-bottom: 8px; }
+.ctc-comp__lig small { color: #64748b; font-size: 12.5px; }
+.ctc-comp__chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 180px; overflow: auto; }
+.ctc-comp__chip { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; font-size: 13.5px; font-weight: 600; color: #1e293b; }
+.ctc-comp__chip i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.ctc-comp__chip:hover { border-color: #1e3a5f; }
+.ctc-comp__chip:focus-visible { outline: 2px solid #1e3a5f; outline-offset: 2px; }
+.ctc-comp__lista { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
+.ctc-comp__etapas { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 6px; }
+.ctc-comp__etapas li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding: 8px 12px; border-radius: 10px; background: #f8fafc; border-left: 5px solid #cbd5e1; font-size: 14px; }
+.ctc-comp__etapas li.is-feita { border-left-color: #16a34a; } .ctc-comp__etapas li.is-andamento { border-left-color: #eab308; }
+.ctc-comp__etapas li span { color: #64748b; }
+/* v6.15.0: ficha completa — barra de tempo por etapa */
+.ctc-gantt { display: grid; gap: 3px; margin-top: 2px; }
+.ctc-gantt__linha { display: grid; grid-template-columns: 128px 1fr; align-items: center; gap: 8px; font-size: 11.5px; color: #64748b; }
+.ctc-gantt__trilho { position: relative; height: 10px; border-radius: 999px; background: #f1f5f9; overflow: hidden; }
+.ctc-gantt__trilho i { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: #94a3b8; }
+.ctc-gantt__trilho em { position: absolute; top: -2px; bottom: -2px; width: 2px; background: #dc2626; }
+.ctc-gantt__linha.is-tend .ctc-gantt__trilho i { background: #38bdf8; }
+.ctc-gantt__linha.is-real .ctc-gantt__trilho i { background: #16a34a; }
+.ctc-gantt__linha.is-real.andamento .ctc-gantt__trilho i { background: repeating-linear-gradient(45deg, #facc15 0 6px, #eab308 6px 12px); }
+.ctc-gantt__legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; color: #475569; margin: 4px 0 8px; align-items: center; }
+.ctc-gantt__legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.ctc-gantt__legenda i { width: 22px; height: 8px; border-radius: 999px; display: inline-block; background: #94a3b8; }
+.ctc-gantt__legenda i.is-tend { background: #38bdf8; } .ctc-gantt__legenda i.is-real { background: #16a34a; }
+.ctc-gantt__legenda i.is-hoje { width: 3px; height: 14px; border-radius: 0; background: #dc2626; }
+.ctc-gantt__escala { margin-left: auto; font-variant-numeric: tabular-nums; }
+@media (max-width: 600px) { .ctc-gantt__linha { grid-template-columns: 92px 1fr; } }
 .ctc-todas-etapas { border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
 .ctc-todas-etapas > summary { cursor: pointer; padding: 12px 16px; font-weight: 600; color: #1e293b; list-style: none; display: flex; align-items: center; gap: 8px; }
 .ctc-todas-etapas > summary::-webkit-details-marker { display: none; }
@@ -7633,7 +7743,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.12.0
+   Versao: 6.18.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7695,6 +7805,28 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
    6.12.0: segmentos 01A e 01B unidos num so local "Laje estaqueada", em sequencia como no projeto
           (eixo −1 ao 24, uma prancha so). O trecho (01A / 01B) aparece no local de cada elemento e as
           regras de projeto de cada trecho continuam valendo. Registros salvos nao mudam.
+   6.13.0: segmento 04 (alem da linha H: linhas I, J e K, eixos 2 a 11) na laje estaqueada, pelo
+          executivo rev. B: 30 estacas metalicas Ø1219 com as cotas da tabela do DWG-00198, blocos B7 a
+          B9 com 18 estacas raiz, 30 capiteis PM-01, 30 vigas U (PM-104, PM-103 e as novas PM-113/114/115)
+          e 158 lajes (DWG-00203), com as predecessoras. Volumes das pecas novas e concreto no local
+          aguardam os desenhos pendentes.
+   6.14.0: PRELIMINAR - segmentos 02 (eixos 25 a 48) e 03 (eixos 49 a 54) pelo projeto basico
+          (BSC-CIV-DWG-00007/00008): 229 estacas Ø1219 na locacao do basico (cotas do 01B como
+          referencia), capiteis, vigas U e lajes no padrao do 01B, todos marcados como esquematicos.
+          Prancha e 3D centralizados pela area que o desenho ocupa na tela.
+   6.15.0: quadro do elemento para o apontador: cabecalho grande, trilha das etapas (feita, em
+          andamento, a vez, travada) e cartao "Quando foi?" com ONTEM / HOJE / OUTRO DIA em botoes
+          grandes; dados de projeto e correcoes recolhidos. Ficha completa com barra de tempo por etapa
+          (linha de base, tendencia, real e hoje). Versao certa na tela de entrada.
+   6.16.0: botao "Composicao" nos dados de projeto (quadro e ficha completa): materiais, medidas e
+          cotas da peca, onde ela apoia e o que vem em cima (com toque para abrir), atividades do
+          cronograma e situacao das etapas.
+   6.17.0: aba "Memorias" no painel do Controlador com "Gerar video": video do campo (prancha ou
+          3D) dia a dia, do comeco da obra ate hoje, do previsto (linha de base ou tendencia), do real
+          ou dos dois lado a lado, com data e % concluido; baixa em MP4 (ou WebM).
+   6.18.0: pagina "Cronograma" no menu: importa o extrato do P6 (.xlsx, lido no proprio navegador),
+          mostra o que mudou e, ao aplicar, atualiza o previsto (linha de base e tendencia) de todos os
+          elementos; o cronograma importado vai na base (tablet e nuvem).
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -7906,7 +8038,7 @@ const MARCA = { logo: 'CTC', titulo: 'Controle de Execução em Campo' };
 const SEGMENTOS = {
   // v6.12.0: segmentos 01A e 01B unidos num so local, em sequencia como no projeto (eixo −1 ao 24).
   // Cada elemento guarda o trecho de origem em e.trecho ('01A' | '01B'): as regras de projeto dependem dele.
-  '01': { texto: 'Laje estaqueada', sub: 'Segmentos 01A e 01B · DWG-00002 a 00004, 00008, 00024, 00025, 00046 a 00050, 00057 a 00059' },
+  '01': { texto: 'Laje estaqueada', sub: 'Segmentos 01A, 01B, 02, 03 (preliminares, projeto básico) e 04 · DWG-00002 a 00004, 00008, 00024, 00025, 00046 a 00050, 00057 a 00059, 00198, 00202, 00203' },
   CENTRAL: { texto: 'Central de concreto', sub: 'Canteiro · DWG-GCO-00012 a 00015' },
   PROV: { texto: 'Obras provisórias', sub: 'Plataforma e sistema de cravação · DWG-00236 a 00258' },
   CANTEIRO: { texto: 'Canteiro de obras', sub: 'Edificações e áreas · DWG-GCO-ARQ-00001 a 00012' },
@@ -8098,7 +8230,18 @@ const ENROCAMENTO_TOTAL = 3500;   // nota 13 do DWG-00236 (m3, todos os trechos)
 
 const GEO_LINHA_Y = { A: 0, B: 6.625, C: 13.25, D: 19.875, E: 26.5, F: 33.125, G: 39.75, H: 44.5 };
 const LINHAS = Object.keys(GEO_LINHA_Y);
-const geoX = (eixo, sub = 0) => (eixo === -1 ? -11.82 : eixo * 8.2) + (sub ? (sub === 1 ? -1.8 : 1.8) : 0);
+/** v6.13.0: linhas do segmento 04 (DWG-00198), alem da linha H: I a 5,00 m da H, J e K a 6,625 m. */
+const GEO_LINHA_Y_04 = { I: 49.5, J: 56.125, K: 62.75 };
+const LINHAS_04 = Object.keys(GEO_LINHA_Y_04);
+/** Todas as linhas da laje estaqueada (desenho da prancha, areas de zoom). */
+const GEO_Y_TODAS = { ...GEO_LINHA_Y, ...GEO_LINHA_Y_04 };
+const LINHAS_TODAS = Object.keys(GEO_Y_TODAS);
+/** v6.14.0: eixos 25 a 48 (segmento 02, vaos de 8,20 m) apos a junta de 4,07 m do eixo 24; eixos 49 a 54
+ *  (segmento 03, vaos de 7,20 m) apos a junta de 4,47 m do eixo 48 — projeto basico DWG-00007/00008. */
+const X_EIXO_25 = 24 * 8.2 + 4.07;
+const X_EIXO_49 = X_EIXO_25 + 23 * 8.2 + 4.47;
+const xDoEixo = (eixo) => (eixo === -1 ? -11.82 : (eixo <= 24 ? eixo * 8.2 : (eixo <= 48 ? X_EIXO_25 + (eixo - 25) * 8.2 : X_EIXO_49 + (eixo - 49) * 7.2)));
+const geoX = (eixo, sub = 0) => xDoEixo(eixo) + (sub ? (sub === 1 ? -1.8 : 1.8) : 0);
 /** Eixo −1 (DWG-00008, camada EIXOS): reta de (−16,96; −5,88) a (7,57; 53,50); passa a 11,82 m do eixo 0 na linha B. */
 const xEixoMenos1 = (y) => -14.53 + 0.4131 * y;
 const COS_EIXO_M1 = 1 / Math.hypot(1, 0.4131);
@@ -8124,7 +8267,7 @@ const LOCACAO_01A = {
 function geoEstaca(codigo) {
   if (LOCACAO_01A[codigo]) return { x: LOCACAO_01A[codigo][0], y: LOCACAO_01A[codigo][1] };
   const [eixo, resto] = codigo.split('-');
-  return { x: geoX(Number(eixo), Number(resto.slice(1)) || 0), y: GEO_LINHA_Y[resto[0]] };
+  return { x: geoX(Number(eixo), Number(resto.slice(1)) || 0), y: GEO_LINHA_Y[resto[0]] ?? GEO_LINHA_Y_04[resto[0]] };
 }
 const caixa = (x0, x1, y0, y1, z0, z1, extra = {}) => ({ forma: 'caixa', x0, x1, y0, y1, z0, z1, ...extra });
 const cilindro = (x, y, r, z0, z1, extra = {}) => ({ forma: 'cilindro', x, y, r, z0, z1, ...extra });
@@ -8310,6 +8453,11 @@ const PM_TIPOS = {
   'PM-109': { tipo: 'viga-u', comp: 7.83, volume: 6.44, peso: 17.21, forma: 43.91, aco: 1719 },
   'PM-110': { tipo: 'viga-u', comp: 5.12, volume: 4.10, peso: 11.00, forma: 29.25, aco: 1030 },
   'PM-111': { tipo: 'viga-u', comp: 8.03, volume: 6.26, peso: 16.77, forma: 42.80, aco: 1685 },
+  // v6.13.0: segmento 04 — medidas do arranjo (DWG-00202/00203 rev. B); volume, peso e aco aguardam as formas (DWG-00208 a 00219)
+  'PM-113': { tipo: 'viga-u', comp: 9.15, volume: null, peso: null, forma: null, aco: null, incerto: true },
+  'PM-114': { tipo: 'viga-u', comp: 6.41, volume: null, peso: null, forma: null, aco: null, incerto: true },
+  'PM-115': { tipo: 'viga-u', comp: 3.67, volume: null, peso: null, forma: null, aco: null, incerto: true },
+  'VU-720': { tipo: 'viga-u', comp: 5.0, volume: null, peso: null, forma: null, aco: null, incerto: true },   // v6.14.0: vao de 7,20 m do segmento 03 (projeto basico)
   'PM-112': { tipo: 'viga-u', comp: 10.19, volume: 8.16, peso: 19.59, forma: 56.62, aco: null },
   // lajes (DWG-00039 a 00045, 00058, 00059; aco 00077 a 00083)
   'PM-201': { tipo: 'laje', a: 2.05, b: 5.12, volume: 2.54, peso: 6.85, forma: 15.40, aco: 487, incerto: true },
@@ -8331,6 +8479,13 @@ const PM_TIPOS = {
   'PM-217': { tipo: 'laje', a: 3.05, b: 1.55, volume: 5.87, peso: 14.09, forma: 29.14, aco: null },
   'PM-218': { tipo: 'laje', a: 3.05, b: 5.12, volume: 6.10, peso: 14.63, forma: 27.69, aco: null, incerto: true },
   'PM-219': { tipo: 'laje', a: 3.05, b: 3.25, volume: 3.85, peso: 9.25, forma: 18.44, aco: null, incerto: true },
+  'PM-221': { tipo: 'laje', a: 2.68, b: 2.20, volume: null, peso: null, forma: null, aco: null, incerto: true },
+  'PM-222': { tipo: 'laje', a: 2.03, b: 2.20, volume: null, peso: null, forma: null, aco: null, incerto: true },
+  'PM-223': { tipo: 'laje', a: 3.20, b: 5.12, volume: null, peso: null, forma: null, aco: null, incerto: true },
+  'PM-224': { tipo: 'laje', a: 2.52, b: 5.12, volume: null, peso: null, forma: null, aco: null, incerto: true },
+  'PM-225': { tipo: 'laje', a: 2.03, b: 2.20, volume: null, peso: null, forma: null, aco: null, incerto: true },
+  'PM-226': { tipo: 'laje', a: 2.03, b: 5.12, volume: null, peso: null, forma: null, aco: null, incerto: true },
+  'PM-227': { tipo: 'laje', a: 1.84, b: 1.55, volume: null, peso: null, forma: null, aco: null, incerto: true },
   'PM-220': { tipo: 'laje', a: 3.05, b: 5.12, volume: 5.88, peso: 14.12, forma: 28.81, aco: null, incerto: true },
 };
 const infoPM = (tipo) => {
@@ -8937,6 +9092,270 @@ function canteiroDeObras() {
   return lista;
 }
 
+/* =============================================================================
+   v6.13.0: SEGMENTO 04 — alem da linha H (linhas I, J e K), eixos 2 a 11
+   Executivo rev. B (para aprovacao, 06/11/2026): DWG-00198 estaqueamento (tabelas de cotas),
+   DWG-00202 pre-moldados 1a fase (capiteis e vigas), DWG-00203 2a fase (lajes).
+   Pendentes: 3a fase, concreto moldado no local (DWG-00206/00207), formas e armaduras dos pre-moldados.
+   ========================================================================== */
+/** Estacas metalicas Ø1219 (tabela do DWG-00198): pe do pino e carga por eixo [I, J, K]; arrasamento +1,70. */
+const MET_04 = {
+  2: { pino: [-34, -30, -28], carga: [8200, 6800, 6000] },
+  3: { pino: [-31, -30, -32], carga: [7100, 6800, 7300] },
+  4: { pino: [-31, -30, -32], carga: [7100, 6800, 7300] },
+  5: { pino: [-31, -30, -32], carga: [7100, 6800, 7300] },
+  6: { pino: [-29, -29, -30], carga: [7100, 6800, 7300] },
+  7: { pino: [-29, -29, -30], carga: [7100, 6800, 7300] },
+  8: { pino: [-29, -29, -30], carga: [7100, 6800, 7300] },
+  9: { pino: [-29, -29, -30], carga: [7100, 6800, 7300] },
+  10: { pino: [-29, -29, -30], carga: [7500, 7200, 7500] },
+  11: { pino: [-25, -25, -25], carga: [5100, 4900, 5100] },
+};
+/** Estacas raiz dos blocos B7 (linha I), B8 (J) e B9 (K): locacao do DWG-00198, em m (x, y do app). */
+const RAIZ_04 = {
+  B7: { linha: 'I', carga: 1300, pts: [[5.349, 48.1], [6.684, 48.1], [5.921, 49.5], [7.257, 49.5], [6.494, 50.9], [7.829, 50.9]] },
+  B8: { linha: 'J', carga: 1100, pts: [[8.086, 54.725], [9.422, 54.725], [8.659, 56.125], [9.995, 56.125], [9.231, 57.525], [10.567, 57.525]] },
+  B9: { linha: 'K', carga: 1000, pts: [[10.824, 61.35], [12.16, 61.35], [11.396, 62.75], [12.732, 62.75], [11.969, 64.15], [13.305, 64.15]] },
+};
+/** Primeira viga de cada linha (do bloco do eixo −1 ate o eixo 2): DWG-00202. */
+const VIGA_INICIO_04 = { I: ['PM-113', 7.24], J: ['PM-114', 9.98], K: ['PM-115', 12.72] };
+/** Lajes da 2a fase (DWG-00203): [tipo, x0, x1, y0, y1] em m. Faixas H-I (PM-221/222/225), I-J e J-K (PM-201/223/224/226),
+ *  borda da linha K (PM-216/227). As pecas de inicio ficam cortadas pela inclinacao do eixo −1. */
+const LAJES_04_DWG = [
+  ['PM-221',6.505,9.185,46.55,48.75],['PM-222',9.205,11.235,46.55,48.75],['PM-222',11.255,13.285,46.55,48.75],['PM-222',13.305,15.335,46.55,48.75],['PM-222',15.355,17.385,46.55,48.75],
+  ['PM-222',17.405,19.435,46.55,48.75],['PM-222',19.455,21.485,46.55,48.75],['PM-222',21.505,23.535,46.55,48.75],['PM-222',23.555,25.585,46.55,48.75],['PM-222',25.605,27.635,46.55,48.75],
+  ['PM-222',27.655,29.685,46.55,48.75],['PM-222',29.705,31.735,46.55,48.75],['PM-222',31.755,33.785,46.55,48.75],['PM-222',33.805,35.835,46.55,48.75],['PM-222',35.855,37.885,46.55,48.75],
+  ['PM-222',37.905,39.935,46.55,48.75],['PM-222',39.955,41.985,46.55,48.75],['PM-222',42.005,44.035,46.55,48.75],['PM-222',44.055,46.085,46.55,48.75],['PM-222',46.105,48.135,46.55,48.75],
+  ['PM-222',48.155,50.185,46.55,48.75],['PM-222',50.205,52.235,46.55,48.75],['PM-222',52.255,54.285,46.55,48.75],['PM-222',54.305,56.335,46.55,48.75],['PM-222',56.355,58.385,46.55,48.75],
+  ['PM-222',58.405,60.435,46.55,48.75],['PM-222',60.455,62.485,46.55,48.75],['PM-222',62.505,64.535,46.55,48.75],['PM-222',64.555,66.585,46.55,48.75],['PM-222',66.605,68.635,46.55,48.75],
+  ['PM-222',68.655,70.685,46.55,48.75],['PM-222',70.705,72.735,46.55,48.75],['PM-222',72.755,74.785,46.55,48.75],['PM-222',74.805,76.835,46.55,48.75],['PM-222',76.855,78.885,46.55,48.75],
+  ['PM-222',78.905,80.935,46.55,48.75],['PM-222',80.955,82.985,46.55,48.75],['PM-222',83.005,85.035,46.55,48.75],['PM-222',85.055,87.085,46.55,48.75],['PM-222',87.105,89.135,46.55,48.75],
+  ['PM-225',89.16,91.19,46.55,48.75],['PM-223',8.035,11.235,50.25,55.37],['PM-201',11.255,13.285,50.25,55.37],['PM-201',13.305,15.335,50.25,55.37],['PM-201',15.355,17.385,50.25,55.37],
+  ['PM-201',17.405,19.435,50.25,55.37],['PM-201',19.455,21.485,50.25,55.37],['PM-201',21.505,23.535,50.25,55.37],['PM-201',23.555,25.585,50.25,55.37],['PM-201',25.605,27.635,50.25,55.37],
+  ['PM-201',27.655,29.685,50.25,55.37],['PM-201',29.705,31.735,50.25,55.37],['PM-201',31.755,33.785,50.25,55.37],['PM-201',33.805,35.835,50.25,55.37],['PM-201',35.855,37.885,50.25,55.37],
+  ['PM-201',37.905,39.935,50.25,55.37],['PM-201',39.955,41.985,50.25,55.37],['PM-201',42.005,44.035,50.25,55.37],['PM-201',44.055,46.085,50.25,55.37],['PM-201',46.105,48.135,50.25,55.37],
+  ['PM-201',48.155,50.185,50.25,55.37],['PM-201',50.205,52.235,50.25,55.37],['PM-201',52.255,54.285,50.25,55.37],['PM-201',54.305,56.335,50.25,55.37],['PM-201',56.355,58.385,50.25,55.37],
+  ['PM-201',58.405,60.435,50.25,55.37],['PM-201',60.455,62.485,50.25,55.37],['PM-201',62.505,64.535,50.25,55.37],['PM-201',64.555,66.585,50.25,55.37],['PM-201',66.605,68.635,50.25,55.37],
+  ['PM-201',68.655,70.685,50.25,55.37],['PM-201',70.705,72.735,50.25,55.37],['PM-201',72.755,74.785,50.25,55.37],['PM-201',74.805,76.835,50.25,55.37],['PM-201',76.855,78.885,50.25,55.37],
+  ['PM-201',78.905,80.935,50.25,55.37],['PM-201',80.955,82.985,50.25,55.37],['PM-201',83.005,85.035,50.25,55.37],['PM-201',85.055,87.085,50.25,55.37],['PM-201',87.105,89.135,50.25,55.37],
+  ['PM-226',89.16,91.19,50.25,55.37],['PM-224',10.765,13.285,56.875,61.995],['PM-201',13.305,15.335,56.875,61.995],['PM-201',15.355,17.385,56.875,61.995],
+  ['PM-201',17.405,19.435,56.875,61.995],['PM-201',19.455,21.485,56.875,61.995],['PM-201',21.505,23.535,56.875,61.995],['PM-201',23.555,25.585,56.875,61.995],
+  ['PM-201',25.605,27.635,56.875,61.995],['PM-201',27.655,29.685,56.875,61.995],['PM-201',29.705,31.735,56.875,61.995],['PM-201',31.755,33.785,56.875,61.995],
+  ['PM-201',33.805,35.835,56.875,61.995],['PM-201',35.855,37.885,56.875,61.995],['PM-201',37.905,39.935,56.875,61.995],['PM-201',39.955,41.985,56.875,61.995],
+  ['PM-201',42.005,44.035,56.875,61.995],['PM-201',44.055,46.085,56.875,61.995],['PM-201',46.105,48.135,56.875,61.995],['PM-201',48.155,50.185,56.875,61.995],
+  ['PM-201',50.205,52.235,56.875,61.995],['PM-201',52.255,54.285,56.875,61.995],['PM-201',54.305,56.335,56.875,61.995],['PM-201',56.355,58.385,56.875,61.995],
+  ['PM-201',58.405,60.435,56.875,61.995],['PM-201',60.455,62.485,56.875,61.995],['PM-201',62.505,64.535,56.875,61.995],['PM-201',64.555,66.585,56.875,61.995],
+  ['PM-201',66.605,68.635,56.875,61.995],['PM-201',68.655,70.685,56.875,61.995],['PM-201',70.705,72.735,56.875,61.995],['PM-201',72.755,74.785,56.875,61.995],
+  ['PM-201',74.805,76.835,56.875,61.995],['PM-201',76.855,78.885,56.875,61.995],['PM-201',78.905,80.935,56.875,61.995],['PM-201',80.955,82.985,56.875,61.995],
+  ['PM-201',83.005,85.035,56.875,61.995],['PM-201',85.055,87.085,56.875,61.995],['PM-201',87.105,89.135,56.875,61.995],['PM-226',89.16,91.19,56.875,61.995],['PM-227',13.5,15.34,63.5,65.05],
+  ['PM-216',15.355,17.385,63.5,65.05],['PM-216',17.405,19.435,63.5,65.05],['PM-216',19.455,21.485,63.5,65.05],['PM-216',21.505,23.535,63.5,65.05],['PM-216',23.555,25.585,63.5,65.05],
+  ['PM-216',25.605,27.635,63.5,65.05],['PM-216',27.655,29.685,63.5,65.05],['PM-216',29.705,31.735,63.5,65.05],['PM-216',31.755,33.785,63.5,65.05],['PM-216',33.805,35.835,63.5,65.05],
+  ['PM-216',35.855,37.885,63.5,65.05],['PM-216',37.905,39.935,63.5,65.05],['PM-216',39.955,41.985,63.5,65.05],['PM-216',42.005,44.035,63.5,65.05],['PM-216',44.055,46.085,63.5,65.05],
+  ['PM-216',46.105,48.135,63.5,65.05],['PM-216',48.155,50.185,63.5,65.05],['PM-216',50.205,52.235,63.5,65.05],['PM-216',52.255,54.285,63.5,65.05],['PM-216',54.305,56.335,63.5,65.05],
+  ['PM-216',56.355,58.385,63.5,65.05],['PM-216',58.405,60.435,63.5,65.05],['PM-216',60.455,62.485,63.5,65.05],['PM-216',62.505,64.535,63.5,65.05],['PM-216',64.555,66.585,63.5,65.05],
+  ['PM-216',66.605,68.635,63.5,65.05],['PM-216',68.655,70.685,63.5,65.05],['PM-216',70.705,72.735,63.5,65.05],['PM-216',72.755,74.785,63.5,65.05],['PM-216',74.805,76.835,63.5,65.05],
+  ['PM-216',76.855,78.885,63.5,65.05],['PM-216',78.905,80.935,63.5,65.05],['PM-216',80.955,82.985,63.5,65.05],['PM-216',83.005,85.035,63.5,65.05],['PM-216',85.055,87.085,63.5,65.05],
+  ['PM-216',87.105,89.135,63.5,65.05],['PM-216',89.16,91.19,63.5,65.05],
+];
+
+function segmento04(todos) {
+  const lista = [];
+  const seg = '04';
+  // estacas metalicas
+  Object.entries(MET_04).forEach(([eixoTxt, d]) => {
+    const eixo = Number(eixoTxt);
+    LINHAS_04.forEach((linha, i) => {
+      const id = `${eixo}-${linha}`;
+      const x = geoX(eixo); const y = GEO_LINHA_Y_04[linha];
+      const peCamisa = eixo <= 5 ? -22.0 : -19.4;
+      const pePino = d.pino[i];
+      const info = {
+        diametro: 1219, arrasamento: 1.70, peCamisa, pePino, carga: d.carga[i],
+        volEstaca: eixo <= 5 ? 26.8 : 23.86, volPino: Math.round((peCamisa - pePino) * PINO_M3_POR_M * 100) / 100,
+      };
+      info.volume = Math.round((info.volEstaca + info.volPino) * 100) / 100;
+      lista.push(novoElemento({
+        id, seg, tipo: 'estaca-metalica', rotulo: id, grupo: `Eixo ${eixo} · seg. 04`,
+        sub: `Estaca metálica · Ø1219 #9,5 · camisa ${formatarNumero(1.70 - peCamisa, 2)} m · pino ${formatarNumero(peCamisa - pePino, 2)} m · DWG-00198`,
+        info,
+        geo: [cilindro(x, y, 0.6095, peCamisa, 1.70, { parte: 'camisa' }), cilindro(x, y, 0.55, pePino, peCamisa, { parte: 'pino', clarear: 0.45 })],
+      }));
+    });
+  });
+  // blocos B7 a B9 com as estacas raiz (Ø410 16,40 m encamisada + Ø350 9,00 m; arrasamento +1,40)
+  Object.entries(RAIZ_04).forEach(([bloco, b]) => {
+    const idsRaiz = b.pts.map(([x, y], i) => {
+      const id = `${bloco}-${i + 1}`;
+      lista.push(novoElemento({
+        id, seg, tipo: 'estaca-raiz', rotulo: id, grupo: `Bloco ${bloco}`,
+        sub: 'Estaca raiz · Ø410 16,40 m (camisa perdida) + Ø350 9,00 m · DWG-00198',
+        info: { l410: 16.4, l350: 9, bloco, carga: b.carga, arrasamento: 1.4 },
+        geo: [cilindro(x, y, 0.205, 1.4 - 16.4, 1.4, { parte: 'camisa' }), cilindro(x, y, 0.175, 1.4 - 16.4 - 9, 1.4 - 16.4, { clarear: 0.45 })],
+      }));
+      return id;
+    });
+    const yc = GEO_LINHA_Y_04[b.linha];
+    lista.push(novoElemento({
+      id: `Bloco ${bloco}`, seg, tipo: 'bloco', rotulo: bloco, grupo: 'Blocos do eixo −1 · seg. 04',
+      sub: 'Bloco sobre 6 estacas raiz · forma e volumes aguardam o DWG-00206 (posição esquemática, como os blocos B2 a B5)',
+      info: { bloco, raiz: 6, esquematico: true, fundo: 1.4, topo1: 2.15 },
+      geo: [
+        ...faixaEixoMenos1(yc - 2, yc + 2, dxPerp(-0.585), dxPerp(1.915), 1.4, 2.15),
+        ...faixaEixoMenos1(yc - 2, yc + 2, FAIXA_222[0], FAIXA_222[1], 2.15, BLOCO_TOPO, { clarear: 0.2 }),
+      ],
+      deps: [{ etapa: 'concretagem1', ids: idsRaiz, texto: 'estacas raiz do bloco concretadas' }],
+    }));
+  });
+  // capiteis PM-01 sobre cada estaca (eixos 2 a 11)
+  Object.keys(MET_04).map(Number).forEach((eixo) => LINHAS_04.forEach((linha) => {
+    const estaca = `${eixo}-${linha}`;
+    const x = geoX(eixo); const y = GEO_LINHA_Y_04[linha];
+    lista.push(novoElemento({
+      id: `PM-01 (${estaca})`, seg, tipo: 'capitel', rotulo: 'PM-01', grupo: `Capitéis eixo ${eixo} · seg. 04`,
+      sub: `Capitel sobre a estaca ${estaca} · ${subPM('PM-01')}`, info: { ...infoPM('PM-01'), estaca },
+      geo: [caixa(x - 1.07, x + 1.07, y - 1.0, y + 1.0, 1.70, 2.15)],
+      deps: [{ etapa: 'montagem', ids: [estaca], texto: `estaca ${estaca} concretada` }],
+    }));
+  }));
+  // vigas U: PM-113/114/115 do bloco ate o eixo 2; PM-104 do eixo 2 ao 10; PM-103 do 10 ao 11
+  LINHAS_04.forEach((linha) => {
+    const y = GEO_LINHA_Y_04[linha];
+    const [tipoIni, x0Ini] = VIGA_INICIO_04[linha];
+    const bloco = { I: 'B7', J: 'B8', K: 'B9' }[linha];
+    const viga = (tipo, x0, x1, texto, deps) => lista.push(novoElemento({
+      id: `${tipo} (${linha} ${texto})`, seg, tipo: 'viga-u', rotulo: tipo, grupo: `Vigas linha ${linha}`,
+      sub: `Viga U · linha ${linha}, ${texto.includes('−1') ? 'do bloco ' + bloco + ' ao eixo 2' : 'eixos ' + texto.replace('-', '–')} · ${subPM(tipo) || 'volume a confirmar (formas pendentes)'}`,
+      info: { ...infoPM(tipo), linha },
+      geo: [caixa(x0, x1, y - 1.15, y + 1.15, 2.15, 3.05)],
+      deps,
+    }));
+    viga(tipoIni, x0Ini, geoX(2) - 0.01, '−1-2', [
+      { etapa: 'montagem', ids: [`PM-01 (2-${linha})`], texto: 'capitel do eixo 2 montado' },
+      { etapa: 'montagem', ids: [`Bloco ${bloco}`], regra: 'fase1-7dias', texto: `bloco ${bloco}: 1ª fase com 7 dias e 20 MPa` },
+    ]);
+    for (let eixo = 2; eixo <= 10; eixo += 1) {
+      const tipo = eixo === 10 ? 'PM-103' : 'PM-104';
+      viga(tipo, geoX(eixo) + 0.01, eixo === 10 ? geoX(11) + 0.99 : geoX(eixo + 1) - 0.01, `${eixo}-${eixo + 1}`,
+        [{ etapa: 'montagem', ids: [`PM-01 (${eixo}-${linha})`, `PM-01 (${eixo + 1}-${linha})`], texto: 'capitéis das duas pontas montados' }]);
+    }
+  });
+  // lajes: apoiadas nas vigas U das linhas da faixa (faixa H-I usa as vigas da linha H do 01A/01B)
+  const vigas = [...todos, ...lista].filter((e) => e.tipo === 'viga-u').map((v) => ({ v, x: extensaoGeo(v.geo[0]) }));
+  const totais = {}; LAJES_04_DWG.forEach(([t]) => { totais[t] = (totais[t] || 0) + 1; });
+  const contagem = {};
+  LAJES_04_DWG.forEach(([tipo, x0, x1, y0, y1]) => {
+    contagem[tipo] = (contagem[tipo] || 0) + 1;
+    const cy = (y0 + y1) / 2;
+    const linhas = cy < GEO_LINHA_Y_04.I ? ['H', 'I'] : (cy < GEO_LINHA_Y_04.J ? ['I', 'J'] : (cy < GEO_LINHA_Y_04.K ? ['J', 'K'] : ['K']));
+    const faixa = linhas.length > 1 ? `faixa ${linhas.join('-')}` : 'borda da linha K';
+    const borda = linhas.length === 1;
+    // pecas de inicio: lado esquerdo paralelo ao eixo −1
+    const inclinada = ['PM-221', 'PM-223', 'PM-224', 'PM-227'].includes(tipo);
+    const pts = inclinada
+      ? [[x0, y0], [x1, y0], [x1, y1], [Math.min(x1 - 0.3, x0 + 0.4131 * (y1 - y0)), y1]]
+      : [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+    const apoios = vigas.filter(({ v, x }) => linhas.includes(v.info.linha) && x.x1 > x0 + 0.05 && x.x0 < x1 - 0.05
+      && (v.info.linha !== 'H' || ['01A', '01B'].includes(v.trecho || v.seg))).map(({ v }) => v.id);
+    lista.push(novoElemento({
+      id: `04 · ${tipo} #${String(contagem[tipo]).padStart(3, '0')}`, seg, tipo: 'laje', rotulo: tipo, grupo: `Lajes ${tipo}`,
+      sub: `Pré-laje ${contagem[tipo]} de ${totais[tipo]} · ${faixa} · ${subPM(tipo) || 'volume a confirmar (formas pendentes)'} · DWG-00203`,
+      info: { ...infoPM(tipo), faixa },
+      geo: [prisma(pts, 3.05, borda ? 3.82 : 3.40)],
+      deps: apoios.length ? [{ etapa: 'montagem', ids: apoios, texto: `vigas U de apoio (${faixa}) montadas` }] : [],
+    }));
+  });
+  return lista;
+}
+
+/* =============================================================================
+   v6.14.0: SEGMENTOS 02 (eixos 25 a 48) e 03 (eixos 49 a 54) — PRELIMINAR, pelo projeto basico
+   Estacas: locacao do BSC-CIV-DWG-00007 (187 Ø1219) e 00008 (42 Ø1219). Linha A so ate o eixo 43
+   (43-A 0,80 m antes do eixo); do 44 ao 54 a laje comeca na linha B. Cotas: as do 01B (eixos 15 a 23)
+   como referencia — o basico traz "EL. VAR". Capiteis, vigas U e lajes no padrao do 01B (DWG-00018/00019);
+   o executivo destes segmentos (DWG-00009 a 00011, 00020 a 00023, 00028 a 00031, 00051 a 00056) esta pendente.
+   ========================================================================== */
+const SEGMENTOS_BASICO = {
+  '02': { eixos: Array.from({ length: 24 }, (_, i) => i + 25), desenho: 'BSC-CIV-DWG-00007', viga: 'PM-104', semA: (eixo) => eixo >= 44 },
+  '03': { eixos: [49, 50, 51, 52, 53, 54], desenho: 'BSC-CIV-DWG-00008', viga: 'VU-720', semA: () => true },
+};
+
+function segmentosBasico(todos) {
+  const lista = [];
+  const xs = (e) => extensaoGeo(e.geo[0]);
+  Object.entries(SEGMENTOS_BASICO).forEach(([seg, cfg]) => {
+    const preliminar = `projeto básico ${cfg.desenho} · preliminar`;
+    const estacasLinha = {};
+    // estacas, com as cotas do 01B como referencia
+    cfg.eixos.forEach((eixo) => LINHAS.forEach((linha) => {
+      if (linha === 'A' && cfg.semA(eixo)) return;
+      const id = `${eixo}-${linha}`;
+      const x = geoX(eixo) - (id === '43-A' ? 0.8 : 0); const y = GEO_LINHA_Y[linha];
+      const peCamisa = -20.7;
+      const pePino = linha === 'A' ? -27 : (linha === 'G' ? -28 : -31);
+      const info = { diametro: 1219, arrasamento: 1.7, peCamisa, pePino, volEstaca: 25.33, volPino: Math.round((peCamisa - pePino) * PINO_M3_POR_M * 100) / 100, esquematico: true };
+      info.volume = Math.round((info.volEstaca + info.volPino) * 100) / 100;
+      lista.push(novoElemento({
+        id, seg, tipo: 'estaca-metalica', rotulo: id, grupo: `Eixo ${eixo}`,
+        sub: `Estaca metálica · Ø1219 #9,5 · cotas de referência do 01B (a confirmar) · ${preliminar}`,
+        info,
+        geo: [cilindro(x, y, 0.6095, peCamisa, 1.7, { parte: 'camisa' }), cilindro(x, y, 0.55, pePino, peCamisa, { parte: 'pino', clarear: 0.45 })],
+      }));
+      lista.push(novoElemento({
+        id: `PM-01 (${id})`, seg, tipo: 'capitel', rotulo: 'PM-01', grupo: `Capitéis eixo ${eixo}`,
+        sub: `Capitel sobre a estaca ${id} · ${subPM('PM-01')} · ${preliminar}`, info: { ...infoPM('PM-01'), estaca: id, esquematico: true },
+        geo: [caixa(x - 1.07, x + 1.07, y - 1.0, y + 1.0, 1.7, 2.15)],
+        deps: [{ etapa: 'montagem', ids: [id], texto: `estaca ${id} concretada` }],
+      }));
+      (estacasLinha[linha] = estacasLinha[linha] || []).push({ id, eixo, x });
+    }));
+    // vigas U entre estacas vizinhas da mesma linha
+    const vigasSeg = [];
+    Object.entries(estacasLinha).forEach(([linha, ests]) => {
+      const y = GEO_LINHA_Y[linha];
+      for (let i = 0; i < ests.length - 1; i += 1) {
+        const a = ests[i]; const b = ests[i + 1];
+        const v = novoElemento({
+          id: `${cfg.viga} (${linha} ${a.eixo}-${b.eixo})`, seg, tipo: 'viga-u', rotulo: cfg.viga, grupo: `Vigas linha ${linha}`,
+          sub: `Viga U · linha ${linha}, eixos ${a.eixo}–${b.eixo} · ${subPM(cfg.viga) || 'volume a confirmar'} · ${preliminar}`,
+          info: { ...infoPM(cfg.viga), linha, esquematico: true },
+          geo: [caixa(a.x + 1.1, b.x - 1.1, y - 1.15, y + 1.15, 2.15, 3.05)],
+          deps: [{ etapa: 'montagem', ids: [`PM-01 (${a.id})`, `PM-01 (${b.id})`], texto: 'capitéis das duas pontas montados' }],
+        });
+        lista.push(v); vigasSeg.push(v);
+      }
+    });
+    // lajes no padrao do 01B: bordas A e H, faixas com PM-201 e faixa G-H com PM-210 (pecas de 2,05 m)
+    const fileiras = [
+      { linhas: ['A'], tipo: 'PM-214', yc: -1.08, z1: 3.82, texto: 'borda da linha A' },
+      ...['A', 'B', 'C', 'D', 'E', 'F', 'G'].map((l, i) => ({ linhas: [l, LINHAS[i + 1]], tipo: l === 'G' ? 'PM-210' : 'PM-201', y0: GEO_LINHA_Y[l] + 1.15, y1: GEO_LINHA_Y[LINHAS[i + 1]] - 1.15, z1: 3.40, texto: `faixa ${l}-${LINHAS[i + 1]}` })),
+      { linhas: ['H'], tipo: 'PM-216', yc: 46.11, z1: 3.82, texto: 'borda da linha H' },
+    ];
+    const contagem = {};
+    fileiras.forEach((f) => {
+      const ext = f.linhas.map((l) => estacasLinha[l] || []);
+      if (ext.some((e) => !e.length)) return;
+      const xIni = Math.max(...ext.map((e) => e[0].x));
+      const xFim = Math.min(...ext.map((e) => e[e.length - 1].x));
+      const t = PM_TIPOS[f.tipo];
+      const y0 = f.yc != null ? f.yc - t.b / 2 : f.y0;
+      const y1 = f.yc != null ? f.yc + t.b / 2 : f.y1;
+      for (let x = xIni; x + 2.0 <= xFim + 0.01; x += 2.05) {
+        const n = (contagem[f.tipo] = (contagem[f.tipo] || 0) + 1);
+        // peca sobre o capitel (entre duas vigas): depende das vigas vizinhas (folga de 1,2 m)
+        const apoios = vigasSeg.filter((v) => f.linhas.includes(v.info.linha) && xs(v).x1 + 1.2 > x && xs(v).x0 - 1.2 < x + 2.0).map((v) => v.id);
+        lista.push(novoElemento({
+          id: `${seg} · ${f.tipo} #${String(n).padStart(3, '0')}`, seg, tipo: 'laje', rotulo: f.tipo, grupo: `Lajes ${f.tipo}`,
+          sub: `Pré-laje · ${f.texto} · ${subPM(f.tipo)} · posição pelo padrão do 01B · ${preliminar}`,
+          info: { ...infoPM(f.tipo), faixa: f.texto, esquematico: true },
+          geo: [caixa(x, x + 2.0, y0, y1, 3.05, f.z1)],
+          deps: apoios.length ? [{ etapa: 'montagem', ids: apoios, texto: `vigas U de apoio (${f.texto}) montadas` }] : [],
+        }));
+      }
+    });
+  });
+  return lista;
+}
+
 /** Todos os elementos do projeto, sem nenhum registro de execucao. */
 function criarElementosDoProjeto() {
   const todos = [...estacasMetalicas(), ...blocosERaiz(), ...preMoldadosEstrutura(), ...lajes()];
@@ -8969,9 +9388,11 @@ function criarElementosDoProjeto() {
       l.deps.push({ etapa: 'montagem', ids: [...vigaEixo, ...blocos], regra: 'fase1', texto: `apoio no eixo −1: 1ª fase concretada (${[...vigaEixo, ...blocos].join(', ')})` });
     }
   });
+  todos.push(...segmento04(todos));   // v6.13.0
+  todos.push(...segmentosBasico(todos));   // v6.14.0: 02 e 03 preliminares
   todos.push(...centralDeConcreto(), ...obrasProvisorias(), ...canteiroDeObras());
-  // v6.12.0: 01A e 01B no mesmo local; o trecho de origem fica em e.trecho
-  todos.forEach((e) => { if (e.seg === '01A' || e.seg === '01B') { e.trecho = e.seg; e.seg = '01'; } });
+  // v6.12.0: 01A, 01B (e 04, v6.13.0) no mesmo local; o trecho de origem fica em e.trecho
+  todos.forEach((e) => { if (['01A', '01B', '02', '03', '04'].includes(e.seg)) { e.trecho = e.seg; e.seg = '01'; } });
   return todos;
 }
 
@@ -9099,6 +9520,8 @@ function carregarDados(base) {
     estoquePM.push({ id: `conv-${data}-${tipoPM}`, data, tipoPM, quantidade, documento: '', observacao: 'Convertido do registro de chegada por peça', autor: 'conversão', registradoEm: null });
   });
   avancoCampo = dados.avancoCampo && typeof dados.avancoCampo === 'object' && !Array.isArray(dados.avancoCampo) ? { ...dados.avancoCampo } : {};
+  cronogramaImportado = dados.cronograma && dados.cronograma.datas && typeof dados.cronograma.datas === 'object' ? dados.cronograma : null;   // v6.18.0
+  reiniciarPrevisto();
   funcionarios = Array.isArray(dados.funcionarios) ? dados.funcionarios : [];
   apropriacoes = Array.isArray(dados.apropriacoes) ? dados.apropriacoes : [];
   return { convertida: convertida && registros.length > 0, aplicados };
@@ -9703,6 +10126,9 @@ const CRONO_ATIVIDADES = [
 
 /** Registros de campo: { [id da atividade]: { valor, data, autor, obs } } (valor = quantidade ou %). */
 let avancoCampo = {};
+/** v6.18.0: cronograma importado do P6 na pagina Cronograma (substitui o CRONO_DATAS gravado no arquivo).
+ *  { extrato: 'dd/mm/aaaa', importadoEm: ISO, arquivo, autor, datas: { [id]: [bi, bf, ai, af, marcas] } } */
+let cronogramaImportado = null;
 
 /** Data de corte da medicao (null = hoje): os registros depois dela nao contam. */
 let CORTE_AVANCO = null;
@@ -12603,6 +13029,7 @@ function obterBaseParaSalvar() {
       estoquePM,
       avancoCampo,
       funcionarios, apropriacoes,
+      ...(cronogramaImportado ? { cronograma: cronogramaImportado } : {}),   // v6.18.0
     },
   };
 }
@@ -12683,7 +13110,7 @@ function bloqueadoAgora(e) {
 }
 
 /* ---- Regra especifica: cota de escavacao do pino — nota 19 do DWG-00008 (01A) e nota 18 do DWG-00048 (01B) ---- */
-const notaPino = (e) => (e.trecho === '01A' ? 'nota 19 do DWG-00008' : 'nota 18 do DWG-00048');
+const notaPino = (e) => ({ '01A': 'nota 19 do DWG-00008', '04': 'nota 19 do DWG-00198', '02': 'projeto básico DWG-00007 (cotas a confirmar)', '03': 'projeto básico DWG-00008 (cotas a confirmar)' }[e.trecho] || 'nota 18 do DWG-00048');
 function cotaExigidaPino(e, cotaCamisa = e.reg.cravacao?.valores?.cota) {
   const { peCamisa, pePino } = e.info;
   if (!temValor(cotaCamisa)) return pePino;
@@ -12867,7 +13294,8 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
       sx0 = Math.min(sx0, X); sx1 = Math.max(sx1, X); sy0 = Math.min(sy0, sy); sy1 = Math.max(sy1, sy);
     })));
     const escala = Math.min((W - 120) / Math.max(sx1 - sx0, 0.1), (H - 110) / Math.max(sy1 - sy0, 0.1)) * fator;
-    return { yaw, pitch, cx, cy, cz, escala, ox: 0, oy: 0 };
+    // v6.14.0: centraliza pela area projetada na tela (antes: pelo centro 3D, que descia o desenho em obras compridas)
+    return { yaw, pitch, cx, cy, cz, escala, ox: -((sx0 + sx1) / 2) * escala, oy: -((sy0 + sy1) / 2) * escala };
   }
 
   const cena = () => obterCena();
@@ -13710,7 +14138,7 @@ const chaveStatusCamada = (e) => (liberado(e) ? 'liberado' : statusDe(e));
 const passaFrente = (e) => camadaVisivel('frentes', tipoDe(e).frente) && camadaVisivel('status', chaveStatusCamada(e));
 
 const GRADES = {
-  '01': { eixos: Array.from({ length: 25 }, (_, i) => i), titulo: 'LAJE ESTAQUEADA — SEGMENTOS 01A E 01B', desenho: '01A: DWG-00002 a 04, 08, 17, 24, 25, 46, 47 · 01B: DWG-00019, 00048' },
+  '01': { eixos: Array.from({ length: 55 }, (_, i) => i), titulo: 'LAJE ESTAQUEADA — SEGMENTOS 01A, 01B, 02, 03 E 04', desenho: '01A: DWG-00002 a 04, 08, 17, 24, 25, 46, 47 · 01B: DWG-00019, 00048 · 04: DWG-00198, 00202, 00203 (rev. B)' },
   CENTRAL: { eixos: [], titulo: 'CENTRAL DE CONCRETO — FUNDAÇÕES', desenho: 'Bases: DWG-GCO-00014/00015 · canteiro: DWG-GCO-00012' },
   PROV: { eixos: [], titulo: 'OBRAS PROVISÓRIAS', desenho: 'DWG-00236 a 00258 (posições esquemáticas)' },
   CANTEIRO: { eixos: [], titulo: 'CANTEIRO DE OBRAS — IMPLANTAÇÃO', desenho: 'DWG-GCO-ARQ-00001/00002 · alturas esquemáticas' },
@@ -13782,7 +14210,7 @@ function cenaSegmento(seg) {
   const g = GRADES[seg];
   const grade = g.eixos.length ? {
     eixos: g.eixos.map((n) => ({ x: geoX(n), texto: String(n) })),
-    linhas: LINHAS.map((l) => ({ y: GEO_LINHA_Y[l], texto: l })),
+    linhas: (seg === '01' ? LINHAS_TODAS : LINHAS).map((l) => ({ y: GEO_Y_TODAS[l], texto: l })),
   } : { eixos: [], linhas: [] };
   const folha = { eixos: camadaVisivel('desenho', 'eixos'), cotas: camadaVisivel('desenho', 'cotas'), carimbo: camadaVisivel('desenho', 'carimbo') };
   return { objetos, rotulos, grade, folha, carimbo: { titulo: g.titulo, desenho: g.desenho } };
@@ -14415,6 +14843,14 @@ const CRONO_DATAS = {
 /** Datas previstas por elemento e etapa: preenchidas quando o cronograma for carregado. { [id]: { [etapa]: { inicio, fim, atividade } } } */
 const PREVISTO_ELEMENTOS = {};
 let previstoMontado = false;
+/** v6.18.0: datas da atividade — do cronograma importado (pagina Cronograma) ou as gravadas no arquivo. */
+const datasCronograma = (id) => (cronogramaImportado ? cronogramaImportado.datas[id] : CRONO_DATAS[id]) || null;
+const extratoCronograma = () => (cronogramaImportado ? cronogramaImportado.extrato : CRONO_EXTRATO);
+/** Recalcula o previsto por elemento na proxima consulta (depois de importar ou carregar outra base). */
+function reiniciarPrevisto() {
+  previstoMontado = false;
+  Object.keys(PREVISTO_ELEMENTOS).forEach((k) => delete PREVISTO_ELEMENTOS[k]);
+}
 /**
  * v6.10.0: liga cada atividade do cronograma (com datas) aos elementos e a etapa que ela mede.
  * { [id]: { [etapa | 'cura' | '*']: { inicio, fim, atualInicio, atualFim, p6Inicio, p6Fim, atividades[] } } }
@@ -14427,7 +14863,7 @@ function montarPrevisto() {
   const menor = (a, b) => (!a ? b : (!b ? a : (a < b ? a : b)));
   const maior = (a, b) => (!a ? b : (!b ? a : (a > b ? a : b)));
   CRONO_ATIVIDADES.forEach((a) => {
-    const d = CRONO_DATAS[a.id];
+    const d = datasCronograma(a.id);
     if (!d) return;
     const m = medirAtividade(a);
     if (!m.elementos || !m.elementos.length) return;
@@ -14459,6 +14895,133 @@ function desvioEtapa(prev, realFim) {
   return prev.fim < hojeIso() ? diasEntre(prev.fim, hojeIso()) : null;
 }
 
+/* =============================================================================
+   v6.16.0: COMPOSICAO DO ELEMENTO — tudo o que compoe a peca (materiais, cotas, medidas),
+   onde ela apoia, o que vem em cima, cronograma e etapas
+   ========================================================================== */
+/** Itens da composicao: { grupo, item, qtd, un, obs }. Valores de projeto do proprio elemento. */
+function composicaoDe(e) {
+  const i = e.info;
+  const itens = [];
+  const add = (grupo, item, qtd, un, obs = '') => {
+    if (qtd == null || qtd === '' || (typeof qtd === 'number' && !Number.isFinite(qtd))) return;
+    itens.push({ grupo, item, qtd, un, obs });
+  };
+  const fonte = (e.sub.match(/(BSC-CIV-)?DWG-\d{5}/g) || []).join(', ');
+  if (e.tipo === 'estaca-metalica') {
+    const lc = i.arrasamento - i.peCamisa; const lp = i.peCamisa - i.pePino;
+    add('Camisa metálica', `Camisa perdida Ø${i.diametro} mm, chapa #9,5 mm (ASTM A572 Gr50)`, lc, 'm');
+    add('Camisa metálica', 'Peso da camisa (π × D × 9,5 mm × L × 7,85 t/m³)', Math.PI * (i.diametro / 1000) * 0.0095 * lc * 7.85, 't', 'estimado');
+    if (e.trecho === '04') add('Camisa metálica', 'Reforço do pé: chapa #9,5 mm 1200 × 500 mm', 139.4, 'kg', 'DWG-00198');
+    add('Armadura', 'Gaiola de aço CA-50', i.aco, 'kg');
+    add('Concreto', 'Concreto do trecho encamisado', i.volEstaca, 'm³');
+    add('Concreto', `Pino em rocha Ø${i.diametro === 1219 ? 1100 : 900} mm — comprimento`, lp, 'm');
+    add('Concreto', 'Concreto do pino', i.volPino, 'm³');
+    add('Concreto', 'Concreto total da estaca', i.volume, 'm³');
+    add('Cotas', 'Arrasamento (topo da estaca)', i.arrasamento, 'EL. m');
+    add('Cotas', 'Pé da camisa', i.peCamisa, 'EL. m');
+    add('Cotas', 'Pé do pino', i.pePino, 'EL. m');
+    add('Projeto', 'Carga de trabalho (compressão)', i.carga, 'kN');
+  } else if (e.tipo === 'estaca-raiz') {
+    add('Camisa', 'Camisa perdida Ø410 mm #10 mm', i.l410, 'm');
+    add('Perfuração', 'Trecho no folhelho Ø350 mm', i.l350, 'm');
+    add('Perfuração', 'Comprimento total', (i.l410 || 0) + (i.l350 || 0), 'm');
+    if (e.trecho === '04') add('Argamassa', 'Volume de argamassa (fck ≥ 40 MPa)', 2.83, 'm³', 'DWG-00198');
+    if (temValor(i.arrasamento)) add('Cotas', 'Arrasamento', i.arrasamento, 'EL. m');
+    add('Projeto', 'Bloco', i.bloco, '');
+    add('Projeto', 'Carga de trabalho', i.carga, 'kN');
+  } else if (e.tipo === 'bloco') {
+    add('Concreto', 'Concreto magro', i.magro, 'm³');
+    add('Concreto', 'Concreto 1ª fase', i.vol1, 'm³');
+    add('Concreto', 'Concreto 2ª fase', i.vol2, 'm³');
+    add('Concreto', 'Concreto total', i.volume, 'm³');
+    add('Armadura', 'Aço do bloco', i.aco, 'kg');
+    add('Fundação', 'Estacas raiz sob o bloco', i.raiz, 'un');
+    add('Fundação', 'Comprimento da camisa Ø410 das raiz', i.l410, 'm');
+    add('Cotas', 'Fundo do bloco', i.fundo, 'EL. m');
+    add('Cotas', 'Topo da 1ª fase', i.topo1, 'EL. m');
+    add('Cotas', 'Topo da 2ª fase', 3.05, 'EL. m');
+    add('Medidas', 'Comprimento ao longo do eixo −1', i.comp, 'm');
+  } else if (i.tipoPM) {
+    const t = PM_TIPOS[i.tipoPM] || {};
+    add('Peça', 'Tipo de pré-moldado', i.tipoPM, '');
+    if (t.comp) add('Medidas', 'Comprimento', t.comp, 'm');
+    if (t.a && t.b) add('Medidas', 'Dimensões em planta', `${formatarNumero(t.a, 2)} × ${formatarNumero(t.b, 2)}`, 'm');
+    add('Concreto', 'Volume de concreto (C40)', i.volume, 'm³');
+    add('Armadura', 'Aço', i.aco, 'kg');
+    add('Forma', 'Área de forma', i.forma, 'm²');
+    add('Içamento', 'Peso da peça', i.peso, 't');
+    if (i.estaca) add('Apoio', 'Sobre a estaca', i.estaca, '');
+    if (i.linha) add('Apoio', 'Linha', i.linha, '');
+    if (i.faixa || i.vao) add('Posição', i.faixa ? 'Faixa' : 'Vão', i.faixa || i.vao, '');
+  } else {
+    add('Concreto', 'Volume de concreto', i.volume, 'm³');
+    add('Concreto', 'Concreto 1ª fase', i.vol1, 'm³');
+    add('Concreto', 'Concreto 2ª fase', i.vol2, 'm³');
+    add('Armadura', 'Aço', i.aco, 'kg');
+    add('Forma', 'Área de forma', i.forma, 'm²');
+    add('Cotas', 'Cota de topo', i.cotaTopo, 'EL. m');
+    add('Medidas', 'Comprimento', i.comprimento ?? i.comp, 'm');
+  }
+  if (i.incerto || PM_TIPOS[i.tipoPM]?.incerto) itens.forEach((x) => { if (!x.obs && x.un !== '') x.obs = 'a confirmar'; });
+  return { itens, fonte };
+}
+
+function abrirComposicao(e) {
+  if (!e) return;
+  const { itens, fonte } = composicaoDe(e);
+  const abrirOutro = (id) => { const o = porId.get(id); if (!o) return; modal.fechar(); abrirFichaCompleta(o); };
+  const chip = (id) => {
+    const o = porId.get(id);
+    const cor = o ? (liberado(o) ? COR_LIBERADO : STATUS[statusDe(o)].cor) : '#cbd5e1';
+    return h('button', { type: 'button', class: 'ctc-comp__chip', onClick: () => abrirOutro(id), title: o ? `${tipoDe(o).nome} · ${liberado(o) ? 'Liberado' : textoStatus(o)}` : id },
+      h('i', { style: { background: cor } }), id.replace(/^(01B|02|03|04) · /, ''));
+  };
+  const fmt = (x) => (typeof x.qtd === 'number' ? formatarNumero(x.qtd, Number.isInteger(x.qtd) ? 0 : 2) : String(x.qtd));
+  // materiais e medidas, agrupados
+  const grupos = [...new Set(itens.map((x) => x.grupo))];
+  const tabela = h('table', { class: 'ctc-comp__tabela' },
+    h('thead', {}, h('tr', {}, h('th', {}, 'Componente'), h('th', { class: 'is-num' }, 'Quantidade'), h('th', {}, 'Unid.'), h('th', {}, 'Obs.'))),
+    h('tbody', {}, grupos.flatMap((g) => [
+      h('tr', { class: 'ctc-comp__grupo' }, h('td', { colspan: '4' }, g)),
+      ...itens.filter((x) => x.grupo === g).map((x) => h('tr', {},
+        h('td', {}, x.item), h('td', { class: 'is-num' }, x.un === 'EL. m' ? cotaTexto(x.qtd) : fmt(x)), h('td', {}, x.un === 'EL. m' ? 'm' : x.un), h('td', { class: 'ctc-comp__obs' }, x.obs))),
+    ])));
+  // ligacoes: onde apoia (predecessoras) e o que vem em cima (sucessoras)
+  const apoia = e.deps.map((d) => h('div', { class: 'ctc-comp__lig' }, h('small', {}, d.texto), h('div', { class: 'ctc-comp__chips' }, d.ids.map(chip))));
+  const sucessoras = elementos.filter((x) => x.deps.some((d) => d.ids.includes(e.id)));
+  const porTipo = [...new Set(sucessoras.map((x) => tipoDe(x).nome))];
+  const sustenta = porTipo.map((t) => h('div', { class: 'ctc-comp__lig' }, h('small', {}, t), h('div', { class: 'ctc-comp__chips' }, sucessoras.filter((x) => tipoDe(x).nome === t).map((x) => chip(x.id)))));
+  // cronograma e etapas
+  const codigos = codigosCronogramaPorElemento().get(e.id) || [];
+  const nomeAtiv = (id) => CRONO_ATIVIDADES.find((a) => a.id === id)?.nome || '';
+  const etapas = etapasDe(e).map((et, k) => {
+    const r = e.reg[et.chave] || {};
+    const est = feita(e, et.chave) ? 'feita' : (emAndamento(e, et.chave) ? 'andamento' : 'aguardando');
+    return h('li', { class: `is-${est}` }, h('b', {}, `${k + 1}. ${et.texto}${et.opcional ? ' (opcional)' : ''}`),
+      h('span', {}, est === 'feita' ? `concluída em ${dataTexto(r.data)}` : (est === 'andamento' ? `em andamento desde ${dataTexto(r.inicio)}` : 'a executar')));
+  });
+  const secao = (titulo, ...filhos) => h('section', { class: 'ctc-comp__secao' }, h('h4', {}, titulo), ...filhos);
+  const corpo = h('div', { class: 'ctc-comp' },
+    h('div', { class: 'ctc-comp__cab' },
+      h('b', {}, e.rotulo),
+      h('span', {}, `${tipoDe(e).nome} · ${textoLocal(e)}${e.grupo ? ` · ${e.grupo}` : ''}`),
+      fonte ? h('span', { class: 'ctc-comp__fonte' }, `📄 ${fonte}`) : null,
+      e.info.esquematico ? h('span', { class: 'ctc-comp__aviso' }, 'Posição esquemática / preliminar') : null),
+    secao('🧱 Materiais, medidas e cotas', itens.length ? tabela : h('p', { class: 'ctc-ficha__nota' }, 'Sem quantidades de projeto para este elemento.')),
+    secao('⬇️ Apoia em (precisa estar pronto antes)', apoia.length ? apoia : h('p', { class: 'ctc-ficha__nota' }, 'Nada: é o primeiro serviço da corrente.')),
+    secao('⬆️ Sustenta (vem depois, em cima dele)', sustenta.length ? sustenta : h('p', { class: 'ctc-ficha__nota' }, 'Nenhum elemento depende deste.')),
+    secao('🗓 Cronograma', codigos.length
+      ? h('ul', { class: 'ctc-comp__lista' }, codigos.map((c) => h('li', {}, h('b', {}, c), ` ${nomeAtiv(c)}`)))
+      : h('p', { class: 'ctc-ficha__nota' }, 'Sem atividade do cronograma ligada.')),
+    secao('✅ Etapas de execução', h('ol', { class: 'ctc-comp__etapas' }, etapas)));
+  const modal = criarModal({
+    titulo: `🧩 Composição — ${e.rotulo}`, tamanho: 'xl', destruirAoFechar: true, conteudo: corpo,
+    acoes: [{ texto: 'Fechar', variante: 'primary' }],
+  });
+  modal.abrir();
+}
+
 function abrirFichaElemento(e) {
   if (!e) return;
   const etapas = etapasDe(e);
@@ -14481,6 +15044,21 @@ function abrirFichaElemento(e) {
 
   const projeto = dadosProjeto(e).filter(([r]) => !/^(Volume|Aço|Forma|Peso|Volume da estaca|Volume do pino|Volume 1ª fase|Volume 2ª fase)/.test(r));
 
+  // v6.15.0: escala de tempo comum a todas as etapas (linha de base, tendencia, real e hoje)
+  const datasFicha = [hojeIso()];
+  etapas.forEach((et) => {
+    const p = previstoEtapa(e, et); const r = e.reg[et.chave] || {};
+    [p?.inicio, p?.fim, p?.atualInicio, p?.atualFim, r.inicio, r.data].forEach((d) => { if (d) datasFicha.push(d); });
+  });
+  datasFicha.sort();
+  const d0 = datasFicha[0]; const d1 = datasFicha[datasFicha.length - 1];
+  const vao = Math.max(1, diasEntre(d0, d1) + 1);
+  const pos = (d) => `${(diasEntre(d0, d) / vao) * 100}%`;
+  const larg = (a, b) => `${Math.max(0.8, ((diasEntre(a, b) + 1) / vao) * 100)}%`;
+  const barra = (classe, a, b, texto) => (a ? h('div', { class: `ctc-gantt__linha is-${classe}` },
+    h('span', { class: 'ctc-gantt__rot' }, texto),
+    h('span', { class: 'ctc-gantt__trilho' }, h('i', { style: { left: pos(a), width: larg(a, b || a) } }), h('em', { style: { left: pos(hojeIso()) } })))
+    : null);
   // linha do tempo das etapas: previsto x real
   const linhas = etapas.map((et, i) => {
     const r = e.reg[et.chave] || {};
@@ -14500,6 +15078,10 @@ function abrirFichaElemento(e) {
           h('div', {}, h('small', {}, 'Linha de base'), h('span', {}, prev ? `${dataTexto(prev.inicio)} → ${dataTexto(prev.fim)}` : 'sem atividade no cronograma')),
           prev ? h('div', {}, h('small', {}, 'Tendência'), h('span', {}, `${dataTexto(prev.atualInicio)} → ${dataTexto(prev.atualFim)}`)) : null,
           h('div', {}, h('small', {}, 'Real'), h('span', {}, realIni ? (et.pontual ? dataTexto(realIni) : `${dataTexto(realIni)} → ${realFim ? dataTexto(realFim) : 'em andamento'}`) : '—'))),
+        h('div', { class: 'ctc-gantt' },
+          barra('base', prev?.inicio, prev?.fim, 'Linha de base'),
+          barra('tend', prev?.atualInicio, prev?.atualFim, 'Tendência'),
+          barra(`real ${estado}`, realIni, realFim || (realIni ? hojeIso() : null), estado === 'andamento' ? 'Real (em andamento)' : 'Real')),
         valores ? h('div', { class: 'ctc-ficha__valores' }, valores) : null));
   });
   const c = etapas.some((et) => et.chave.startsWith('concretagem')) ? curaDe(e) : null;
@@ -14514,12 +15096,18 @@ function abrirFichaElemento(e) {
     qtd.length ? h('section', {}, h('h4', {}, 'Quantidades'), h('div', { class: 'ctc-ficha__qtds' }, qtd)) : null,
     h('section', {}, h('h4', {}, 'Etapas — previsto × real'),
       codigos.length ? h('p', { class: 'ctc-ficha__nota' }, `Atividades do cronograma ligadas: ${codigos.join(', ')}.`) : null,
-      h('p', { class: 'ctc-ficha__nota' }, `Previsto: linha de base e tendência do cronograma (extrato do P6 de ${CRONO_EXTRATO}). Real: registros deste controle. Desvio: término real contra o término da linha de base.`),
+      h('p', { class: 'ctc-ficha__nota' }, `Previsto: linha de base e tendência do cronograma (extrato do P6 de ${extratoCronograma()}). Real: registros deste controle. Desvio: término real contra o término da linha de base.`),
+      h('div', { class: 'ctc-gantt__legenda' },
+        h('span', {}, h('i', { class: 'is-base' }), 'Linha de base'), h('span', {}, h('i', { class: 'is-tend' }), 'Tendência'),
+        h('span', {}, h('i', { class: 'is-real' }), 'Real'), h('span', {}, h('i', { class: 'is-hoje' }), `Hoje (${dataTexto(hojeIso())})`),
+        h('span', { class: 'ctc-gantt__escala' }, `${dataTexto(d0)} → ${dataTexto(d1)}`)),
       h('div', { class: 'ctc-ficha__etapas' }, linhas),
       c ? h('p', { class: 'ctc-ficha__nota' }, `Cura: ${textoCura(c)}`) : null,
       chegada ? h('p', { class: 'ctc-ficha__nota' }, `Chegada ao canteiro: ${dataTexto(chegada)}.`) : null),
-    projeto.length ? h('section', {}, h('h4', {}, 'Dados de projeto'),
-      h('div', { class: 'ctc-ficha__dados' }, projeto.map(([r, v]) => h('div', {}, h('small', {}, r), h('b', {}, v))))) : null,
+    h('section', {}, h('h4', {}, 'Dados de projeto'),
+      h('div', { class: 'ctc-stack' },
+        h('button', { type: 'button', class: 'ctc-comp__botao', onClick: () => abrirComposicao(e) }, '🧩 Composição', h('small', {}, 'tudo o que compõe esta peça: materiais, cotas, onde apoia e o que vem em cima')),
+        projeto.length ? h('div', { class: 'ctc-ficha__dados' }, projeto.map(([r, v]) => h('div', {}, h('small', {}, r), h('b', {}, v)))) : null)),
     e.observacao ? h('section', {}, h('h4', {}, 'Observação'), h('p', {}, e.observacao)) : null);
 
   criarModal({
@@ -14578,34 +15166,89 @@ function abrirFichaCompleta(e) {
     }
     return depois;
   }).flat();
+  // v6.15.0: quadro do apontador — cabecalho, trilha das etapas e "quando foi?" com datas grandes
   const st = statusDe(e);
   const projeto = dadosProjeto(e);
-  const cabecalho = h('div', { class: 'ctc-stack' },
-    h('div', { class: 'ctc-grid ctc-grid--3' },
-      kpiElemento({ rotulo: e.rotulo, valor: liberado(e) ? 'Liberado para começar' : STATUS[st].texto, variante: STATUS[st].kpi, sub: e.pendencia ? e.descricaoPendencia : etapaAtualTexto(e) }),
-      kpiElemento({ rotulo: tipoDe(e).nome, valor: e.sub || '—', sub: `${textoLocal(e)} · ${e.grupo || ''}` }),
-      kpiElemento({ rotulo: 'Etapas registradas', valor: `${etapas.filter((et) => feita(e, et.chave)).length} de ${etapas.length}`, sub: 'preencha todas neste quadro e salve' })),
-    h('button', { type: 'button', class: 'ctc-ficha__abrir', onClick: () => abrirFichaElemento(e) }, '📋 Ver ficha completa: todas as etapas, datas previstas e reais, quantidades e dados'),
-    projeto.length ? criarAlerta({ tipo: 'info', titulo: 'Dados de projeto', mensagem: projeto.map(([r, v]) => `${r}: ${v}`).join(' · ') }) : null,
-    e.observacao ? criarAlerta({ tipo: 'info', titulo: 'Observação', mensagem: e.observacao }) : null);
-
-  // v6.6: registro de um toque no topo do quadro; as etapas ficam recolhidas logo abaixo
   const proxima = proximaEtapa(e);
+  const iProx = proxima ? etapas.findIndex((x) => x.chave === proxima.chave) : etapas.length;
   const faltasProx = proxima && !emAndamento(e, proxima.chave) ? bloqueiosDe(e, proxima.chave) : [];
   if (proxima?.chave === 'montagem' && e.info.tipoPM && saldoTipoPM(e.info.tipoPM).saldo <= 0) faltasProx.push(`sem ${e.info.tipoPM} em estoque — registre o recebimento em Estoque de pré-moldados`);
   const fecharE = (fn) => () => { modal.fechar(); fn(); };
-  const rapido = podeEditar && proxima ? h('div', { class: 'ctc-rapido' },
-    faltasProx.length
-      ? criarAlerta({ tipo: 'warning', titulo: `${proxima.texto} — ainda não liberado`, mensagem: faltasProx.join(' · ') })
-      : h('button', { type: 'button', class: 'ctc-rapido__grande', onClick: fecharE(() => registrarHoje(e, proxima)) },
-        `✅ ${textoAcaoHoje(e, proxima)}`, h('small', {}, `Etapa ${etapas.findIndex((x) => x.chave === proxima.chave) + 1} de ${etapas.length} · toque uma vez`)),
-    h('div', { class: 'ctc-rapido__datas' },
-      faltasProx.length ? null : h('span', {}, 'Outra data:'),
-      faltasProx.length ? null : h('button', { type: 'button', class: 'ctc-chip-data', onClick: fecharE(() => registrarHoje(e, proxima, ontemIso())) }, 'Ontem'),
-      faltasProx.length ? null : h('button', { type: 'button', class: 'ctc-chip-data', onClick: fecharE(() => abrirRegistroEtapa(e, proxima)) }, '📅 Escolher / valores'),
-      ultimaAcao(e) ? h('button', { type: 'button', class: 'ctc-chip-data', onClick: fecharE(() => desfazerUltima(e)) }, '↶ Desfazer última') : null)) : null;
-  const todas = h('details', { class: 'ctc-todas-etapas', open: !rapido },
-    h('summary', {}, `Todas as etapas (${etapas.length}) — datas e valores`),
+  const curta = (iso) => (iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}` : '');
+  const diaSemana = (iso) => new Date(`${iso}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'long' }).replace('-feira', '');
+  const corSt = liberado(e) ? COR_LIBERADO : STATUS[st].cor;
+
+  const cabecalho = h('div', { class: 'ctc-ap-cab' },
+    h('div', { class: 'ctc-ap-cab__id' },
+      h('b', {}, e.rotulo),
+      h('span', { class: 'ctc-ap-pill', style: { background: corSt } }, liberado(e) ? 'Liberado para começar' : STATUS[st].texto)),
+    h('div', { class: 'ctc-ap-cab__sub' }, `${tipoDe(e).nome} · ${textoLocal(e)}${e.grupo ? ` · ${e.grupo}` : ''}`),
+    e.pendencia ? criarAlerta({ tipo: 'danger', titulo: 'Pendência', mensagem: e.descricaoPendencia || 'sim' }) : null);
+
+  // trilha: uma bolinha por etapa (verde = feita, amarela = em andamento, azul = a vez, cadeado = travada)
+  const trilha = h('ol', { class: 'ctc-ap-trilha', 'aria-label': 'Etapas do elemento' }, etapas.map((et, i) => {
+    const r = e.reg[et.chave] || {};
+    let estado = 'futura';
+    if (feita(e, et.chave)) estado = 'feita';
+    else if (emAndamento(e, et.chave)) estado = 'andamento';
+    else if (i === iProx) estado = faltasProx.length ? 'bloqueada' : 'proxima';
+    const prev = previstoEtapa(e, et);
+    const data = estado === 'feita' ? curta(r.data) : (estado === 'andamento' ? `desde ${curta(r.inicio)}` : (prev?.fim ? `prev. ${curta(prev.fim)}` : ''));
+    const icone = { feita: '✓', andamento: '⏳', bloqueada: '🔒' }[estado] || String(i + 1);
+    return h('li', { class: `ctc-ap-passo is-${estado}${et.opcional ? ' is-opcional' : ''}`, title: `${i + 1}. ${et.texto}` },
+      h('span', { class: 'ctc-ap-passo__bola' }, icone),
+      h('span', { class: 'ctc-ap-passo__nome' }, `${et.texto}${et.opcional ? ' (opcional)' : ''}`),
+      h('span', { class: 'ctc-ap-passo__data' }, data));
+  }));
+
+  // cartao "quando foi?": HOJE / ONTEM / OUTRO DIA, em botoes grandes com a data e o dia da semana
+  let acao = null;
+  if (podeEditar && proxima) {
+    const andando = emAndamento(e, proxima.chave);
+    const pergunta = proxima.pontual ? 'Quando foi feito?' : (andando ? 'Quando TERMINOU?' : 'Quando COMEÇOU?');
+    const prev = previstoEtapa(e, proxima);
+    const atraso = desvioEtapa(prev, null);
+    const pedeValores = (proxima.campos || []).some((c) => c.obrigatorio) || proxima.chave === 'escavacao';
+    const dia = (rotulo, iso, classe) => h('button', { type: 'button', class: `ctc-ap-dia ${classe}`, onClick: fecharE(() => registrarHoje(e, proxima, iso)) },
+      h('b', {}, rotulo), h('span', {}, curta(iso)), h('small', {}, diaSemana(iso)));
+    const seletor = h('input', {
+      type: 'date', class: 'ctc-ap-dia__input', max: hojeIso(), tabindex: '-1', 'aria-hidden': 'true', dataset: { chips: '1' },   // sem os atalhos Hoje/Ontem embaixo
+      onChange: (ev) => { const v = ev.target.value; if (v) { modal.fechar(); registrarHoje(e, proxima, v); } },
+    });
+    const outroDia = h('button', {
+      type: 'button', class: 'ctc-ap-dia is-outro',
+      onClick: () => { try { seletor.showPicker(); } catch { fecharE(() => abrirRegistroEtapa(e, proxima))(); } },
+    }, h('b', {}, 'OUTRO DIA'), h('span', {}, '📅'), h('small', {}, 'abrir calendário'), seletor);
+    acao = h('section', { class: `ctc-ap-acao${faltasProx.length ? ' is-bloqueada' : ''}` },
+      h('div', { class: 'ctc-ap-acao__topo' },
+        h('span', { class: 'ctc-ap-acao__etapa' }, `Etapa ${iProx + 1} de ${etapas.length}`),
+        h('b', { class: 'ctc-ap-acao__nome' }, proxima.texto),
+        h('span', { class: 'ctc-ap-acao__infos' },
+          andando ? h('span', {}, `▶ começou em ${dataTexto(e.reg[proxima.chave].inicio)}`) : null,
+          prev ? h('span', {}, `🗓 previsto até ${curta(prev.fim)}`) : null,
+          atraso > 0 ? h('span', { class: 'is-atraso' }, `${atraso} dia(s) de atraso`) : null)),
+      faltasProx.length
+        ? h('div', { class: 'ctc-ap-acao__trava' }, h('b', {}, '🔒 Ainda não pode registrar — falta:'), h('ul', {}, faltasProx.map((t) => h('li', {}, t))))
+        : h('div', { class: 'ctc-ap-acao__corpo' },
+          h('p', { class: 'ctc-ap-acao__pergunta' }, pergunta),
+          h('div', { class: 'ctc-ap-dias' }, dia('ONTEM', ontemIso(), 'is-ontem'), dia('HOJE', hojeIso(), 'is-hoje'), outroDia),
+          pedeValores ? h('p', { class: 'ctc-ap-acao__dica' }, '📏 Depois de escolher a data, informe as medidas pedidas.') : null),
+      h('div', { class: 'ctc-ap-acao__rodape' },
+        faltasProx.length ? null : h('button', { type: 'button', class: 'ctc-link', onClick: fecharE(() => abrirRegistroEtapa(e, proxima)) }, 'Registrar com valores / horário'),
+        ultimaAcao(e) ? h('button', { type: 'button', class: 'ctc-link', onClick: fecharE(() => desfazerUltima(e)) }, '↶ Desfazer o último registro') : null));
+  } else if (!proxima) {
+    acao = h('section', { class: 'ctc-ap-acao is-pronta' }, h('b', {}, '✅ Todas as etapas deste elemento estão registradas'));
+  }
+
+  const extrasQuadro = h('div', { class: 'ctc-stack' },
+    h('button', { type: 'button', class: 'ctc-ficha__abrir', onClick: () => abrirFichaElemento(e) }, '📋 Ficha completa: previsto × real de todas as etapas, quantidades e dados'),
+    h('details', { class: 'ctc-todas-etapas' }, h('summary', {}, '📐 Dados de projeto'),
+      h('div', { class: 'ctc-stack' },
+        h('button', { type: 'button', class: 'ctc-comp__botao', onClick: () => abrirComposicao(e) }, '🧩 Composição', h('small', {}, 'tudo o que compõe esta peça: materiais, cotas, onde apoia e o que vem em cima')),
+        projeto.length ? h('div', { class: 'ctc-ficha__dados' }, projeto.map(([r, v]) => h('div', {}, h('small', {}, r), h('b', {}, v)))) : null)),
+    e.observacao ? criarAlerta({ tipo: 'info', titulo: 'Observação', mensagem: e.observacao }) : null);
+  const todas = h('details', { class: 'ctc-todas-etapas', open: !podeEditar ? false : !proxima },
+    h('summary', {}, `✏️ Corrigir ou preencher várias etapas de uma vez (${etapas.length})`),
     h('div', { class: 'ctc-stack' }, ...blocos));
 
   const salvarTudo = async () => {
@@ -14681,7 +15324,7 @@ function abrirFichaCompleta(e) {
 
   const modal = criarModal({
     titulo: e.rotulo, tamanho: 'xl', destruirAoFechar: true,
-    conteudo: [rapido, cabecalho, todas],
+    conteudo: [cabecalho, trilha, acao, extrasQuadro, todas],
     acoes: podeEditar
       ? [
         { texto: e.pendencia ? 'Editar pendência' : 'Pendência / obs.', variante: e.pendencia ? 'danger' : 'outline', onClick: () => { abrirPendencia(e); } },
@@ -14988,7 +15631,7 @@ function areasDoSegmento(seg) {
   }
   return {
     eixos: eixos.map((n) => [String(n), `Eixo ${textoEixo(n)}`]),
-    linhas: comGrade ? LINHAS.map((l) => [l, `Linha ${l}`]) : [],
+    linhas: comGrade ? (seg === '01' ? LINHAS_TODAS : LINHAS).map((l) => [l, `Linha ${l}`]) : [],
     quadrantes,
   };
 }
@@ -14998,7 +15641,7 @@ function objetosDaArea(seg, tipo, valor) {
   const objs = cenaSegmento(seg).objetos.filter((o) => (o.alfa ?? 1) > 0.001 && o.selecionavel !== false);
   const centro = (o) => { const x = extensaoGeo(o); return { x: (x.x0 + x.x1) / 2, y: (x.y0 + x.y1) / 2 }; };
   const xs = eixosDoSegmento(seg).map((n) => geoX(n));
-  const ys = LINHAS.map((l) => GEO_LINHA_Y[l]);
+  const ys = LINHAS_TODAS.map((l) => GEO_Y_TODAS[l]);
   // faixa de um eixo / linha: ate a metade da distancia aos vizinhos
   const faixa = (lista, i) => [i > 0 ? (lista[i - 1] + lista[i]) / 2 : lista[i] - 3, i < lista.length - 1 ? (lista[i] + lista[i + 1]) / 2 : lista[i] + 3];
   if (tipo === 'eixo') {
@@ -15006,7 +15649,7 @@ function objetosDaArea(seg, tipo, valor) {
     return objs.filter((o) => { const c = centro(o); return c.x >= a && c.x < b; });
   }
   if (tipo === 'linha') {
-    const [a, b] = faixa(ys, LINHAS.indexOf(valor));
+    const [a, b] = faixa(ys, LINHAS_TODAS.indexOf(valor));
     return objs.filter((o) => { const c = centro(o); return c.y >= a && c.y < b; });
   }
   if (tipo === 'faixa') {   // v6.9.1: do eixo a ate o eixo b (inclui as pecas sobre os dois eixos)
@@ -15021,8 +15664,8 @@ function objetosDaArea(seg, tipo, valor) {
     const a = Number(ea); const b = Number(eb);
     const xIni = (y) => (a === -1 ? xEixoMenos1(y) - 2.5 : geoX(a) - 1.3);
     const xFim = (y) => (b === -1 ? xEixoMenos1(y) + 1.3 : geoX(b) + 1.3);
-    const y0 = usaY ? Math.min(GEO_LINHA_Y[l0], GEO_LINHA_Y[l1]) - 1.3 : 0;
-    const y1 = usaY ? Math.max(GEO_LINHA_Y[l0], GEO_LINHA_Y[l1]) + 1.3 : 0;
+    const y0 = usaY ? Math.min(GEO_Y_TODAS[l0], GEO_Y_TODAS[l1]) - 1.3 : 0;
+    const y1 = usaY ? Math.max(GEO_Y_TODAS[l0], GEO_Y_TODAS[l1]) + 1.3 : 0;
     return objs.filter((o) => { const c = centro(o); return (!usaX || (c.x >= xIni(c.y) && c.x <= xFim(c.y))) && (!usaY || (c.y >= y0 && c.y <= y1)); });
   }
   if (tipo === 'quadrante') {
@@ -16226,6 +16869,496 @@ function criarRelatorioPdf({ nomeRelatorio, subtitulo, selecao, fonte = 'Projeto
 
 
 /* =============================================================================
+   v6.17.0: MEMORIAS — VIDEO DA OBRA DIA A DIA
+   Previsto (linha de base ou tendencia do cronograma), real (registros) ou os dois lado a lado,
+   na prancha ou no 3D, do comeco da obra ate hoje. Gravado com o MediaRecorder do navegador.
+   ========================================================================== */
+/** Registros que o elemento teria na data: real (o que foi registrado ate ela) ou previsto (datas do cronograma). */
+function regNaData(e, data, modo) {
+  const reg = {};
+  const ets = etapasDe(e);
+  if (modo === 'real') {
+    ets.forEach((et) => {
+      const r = e.reg[et.chave];
+      if (!r) return;
+      if (r.data && r.data <= data) reg[et.chave] = { ...(et.pontual ? {} : { inicio: r.inicio || r.data }), data: r.data };
+      else if (!et.pontual && r.inicio && r.inicio <= data) reg[et.chave] = { inicio: r.inicio };
+    });
+    return reg;
+  }
+  const datas = ets.map((et) => {
+    const pv = previstoEtapa(e, et);
+    if (!pv) return null;
+    return modo === 'tend' ? [pv.atualInicio, pv.atualFim] : [pv.inicio, pv.fim];
+  });
+  if (!datas.some(Boolean)) return reg;
+  ets.forEach((et, i) => {
+    let d = datas[i];
+    if (!d) {   // etapa sem atividade propria: acompanha a etapa seguinte com datas (ou a anterior)
+      if (et.opcional) return;
+      d = datas.slice(i + 1).find(Boolean) || datas.slice(0, i).reverse().find(Boolean);
+    }
+    const [a, b] = d;
+    if (b && b <= data) reg[et.chave] = { ...(et.pontual ? {} : { inicio: a || b }), data: b };
+    else if (!et.pontual && a && a <= data) reg[et.chave] = { inicio: a };
+  });
+  return reg;
+}
+/** Executa fn com todos os elementos no estado da data (e devolve tudo como estava, mesmo com erro). */
+function comEstadoNaData(data, modo, fn) {
+  const guardado = elementos.map((e) => [e, e.reg, e.pendencia]);
+  try {
+    elementos.forEach((e) => { e.reg = regNaData(e, data, modo); e.pendencia = false; });
+    return fn();
+  } finally {
+    guardado.forEach(([e, reg, pend]) => { e.reg = reg; e.pendencia = pend; });
+  }
+}
+/** Primeira data com algo previsto ou registrado no local. */
+function inicioDaObra(seg, modos) {
+  let menor = null;
+  const ver = (d) => { if (d && (!menor || d < menor)) menor = d; };
+  elementos.filter((e) => e.seg === seg).forEach((e) => etapasDe(e).forEach((et) => {
+    if (modos.includes('real')) { const r = e.reg[et.chave]; if (r) { ver(r.inicio); ver(r.data); } }
+    const pv = (modos.includes('base') || modos.includes('tend')) ? previstoEtapa(e, et) : null;
+    if (pv) { if (modos.includes('base')) ver(pv.inicio); if (modos.includes('tend')) ver(pv.atualInicio); }
+  }));
+  return menor;
+}
+const ROTULO_MODO_VIDEO = { real: 'REAL', base: 'PREVISTO · linha de base', tend: 'PREVISTO · tendência' };
+
+/**
+ * Gera o video. opcoes: { seg, tipo: 'previsto'|'real'|'lado', base: 'base'|'tend', vista: 'prancha'|'3d', duracao: 30|60|'dia' }.
+ * aoQuadro(info) a cada dia; deve() devolve false para cancelar. Devolve { blob, ext } ou null (cancelado).
+ */
+async function gerarVideoObra(opcoes, { aoQuadro, deve, previa }) {
+  const { seg, tipo, base, vista, duracao } = opcoes;
+  const modos = tipo === 'lado' ? [base, 'real'] : [tipo === 'real' ? 'real' : base];
+  const inicio = inicioDaObra(seg, modos);
+  if (!inicio) throw new Error(tipo === 'real' ? 'Ainda não há registros neste local.' : 'Este local não tem datas de cronograma.');
+  const fim = hojeIso();
+  const dias = [];
+  for (let d = inicio; d <= fim; d = dataMaisDias(d, 1)) dias.push(d);
+  const lista = elementos.filter((e) => e.seg === seg);
+
+  // vistas fora da tela, com todas as camadas ligadas e o modelo solido
+  const ocultas = estadoCampo.ocultas;
+  estadoCampo.ocultas = { frentes: [], status: [], desenho: [] };
+  const cenas = {};
+  const vistas = modos.map((m, k) => {
+    const chave = `video-${k}`;
+    ESTADO_VISTAS_3D[chave] = { cam: null, focoId: null, selecionadoId: null, fade: 0, translucido: false, prancha: vista === 'prancha' ? 1 : 0 };
+    cenas[k] = cenaSegmento(seg);
+    return criarVista3D({ chave, titulo: SEGMENTOS[seg].texto, obterCena: () => cenas[k], escalaZ: seg === '01' ? 0.4 : 1, altura: vista === 'prancha' ? 600 : 760, semRodape: true });
+  });
+  const telas = vistas.map((v) => v.elemento.querySelector('canvas'));
+
+  // quadro do video: faixa com a data e os paineis abaixo
+  const comp = h('canvas', { width: modos.length > 1 ? 2400 : 1600, height: 1000, class: 'ctc-video__previa' });
+  const cx = comp.getContext('2d');
+  if (previa) { previa.innerHTML = ''; previa.append(comp); }
+  const CAB = 110;
+  const desenharQuadro = (dia, info) => {
+    cx.fillStyle = '#ffffff'; cx.fillRect(0, 0, comp.width, comp.height);
+    cx.fillStyle = '#1e3a5f'; cx.fillRect(0, 0, comp.width, CAB);
+    cx.fillStyle = '#ffffff'; cx.font = 'bold 44px "Segoe UI", Arial, sans-serif'; cx.textBaseline = 'middle';
+    cx.fillText(dataTexto(dia), 32, CAB / 2);
+    cx.font = '24px "Segoe UI", Arial, sans-serif'; cx.fillStyle = '#cbd5e1';
+    cx.fillText(`${SEGMENTOS[seg].texto} · ${vista === 'prancha' ? 'prancha' : '3D'} · dia ${info.n} de ${dias.length}`, 300, CAB / 2);
+    const larg = comp.width / modos.length;
+    modos.forEach((m, k) => {
+      const x0 = k * larg;
+      const t = telas[k];
+      const esc = Math.min((larg - 24) / t.width, (comp.height - CAB - 70) / t.height);
+      const w = t.width * esc; const hh = t.height * esc;
+      cx.drawImage(t, x0 + (larg - w) / 2, CAB + 58 + (comp.height - CAB - 70 - hh) / 2, w, hh);
+      cx.fillStyle = m === 'real' ? '#15803d' : '#0369a1';
+      cx.font = 'bold 28px "Segoe UI", Arial, sans-serif'; cx.textBaseline = 'middle';
+      cx.fillText(ROTULO_MODO_VIDEO[m], x0 + 24, CAB + 30);
+      const pct = info.pct[k];
+      const txt = `${formatarNumero(pct, 1)}% concluído`;
+      cx.font = 'bold 28px "Segoe UI", Arial, sans-serif'; cx.fillStyle = '#0f172a';
+      cx.fillText(txt, x0 + larg - 24 - cx.measureText(txt).width, CAB + 30);
+      if (k > 0) { cx.fillStyle = '#e2e8f0'; cx.fillRect(x0 - 1, CAB, 2, comp.height - CAB); }
+    });
+    // legenda
+    const leg = [['Não iniciado (transparente)', '#cbd5e1'], ['Em execução', STATUS.execucao.cor], ['Concluído', STATUS.concluida.cor]];
+    let lx = comp.width - 24;
+    cx.font = '20px "Segoe UI", Arial, sans-serif';
+    [...leg].reverse().forEach(([t, c]) => {
+      const w = cx.measureText(t).width; lx -= w; cx.fillStyle = '#e2e8f0'; cx.fillText(t, lx, CAB / 2);
+      lx -= 28; cx.fillStyle = c; cx.fillRect(lx, CAB / 2 - 9, 18, 18); lx -= 22;
+    });
+  };
+
+  const tipos = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
+  const mime = tipos.find((t) => window.MediaRecorder && MediaRecorder.isTypeSupported(t));
+  if (!mime) throw new Error('Este navegador não grava vídeo (MediaRecorder). Use o Chrome ou o Edge atualizados.');
+  const fluxo = comp.captureStream(30);
+  const gravador = new MediaRecorder(fluxo, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
+  const pedacos = [];
+  gravador.ondataavailable = (ev) => { if (ev.data && ev.data.size) pedacos.push(ev.data); };
+  const parou = new Promise((ok) => { gravador.onstop = ok; });
+  const msPorDia = duracao === 'dia' ? 1000 : Math.max(40, (duracao * 1000) / dias.length);
+  const espera = (ms) => new Promise((ok) => setTimeout(ok, ms));
+  let cancelado = false;
+  try {
+    gravador.start(500);
+    for (let n = 0; n < dias.length; n += 1) {
+      if (deve && !deve()) { cancelado = true; break; }
+      const t0 = performance.now();
+      const dia = dias[n];
+      const pct = modos.map((m, k) => comEstadoNaData(dia, m, () => {
+        // o que ainda nao comecou fica "fantasma": aparece o que esta em execucao (amarelo) e pronto (verde) por baixo das lajes
+        const naoIniciados = new Set(lista.filter((e) => statusDe(e) === 'nao-iniciada').map((e) => e.id));
+        const cena = cenaSegmento(seg);
+        cena.objetos = cena.objetos.map((o) => (naoIniciados.has(o.id) && (o.alfa ?? 1) > 0.001 ? { ...o, alfa: Math.min(o.alfa ?? 1, 0.07), cor: '#94a3b8' } : o));
+        cenas[k] = cena;
+        vistas[k].redesenhar();
+        return lista.length ? (lista.filter((e) => concluido(e)).length / lista.length) * 100 : 0;
+      }));
+      desenharQuadro(dia, { n: n + 1, pct });
+      if (aoQuadro) aoQuadro({ n: n + 1, total: dias.length, dia, pct });
+      const resto = msPorDia - (performance.now() - t0);
+      if (resto > 0) await espera(resto); else await espera(0);
+    }
+    if (!cancelado) await espera(2000);   // segura o ultimo dia
+  } finally {
+    estadoCampo.ocultas = ocultas;
+    modos.forEach((m, k) => { delete ESTADO_VISTAS_3D[`video-${k}`]; });
+    if (gravador.state !== 'inactive') gravador.stop();
+    await parou;
+    fluxo.getTracks().forEach((t) => t.stop());
+  }
+  if (cancelado) return null;
+  return { blob: new Blob(pedacos, { type: mime.split(';')[0] }), ext: mime.startsWith('video/mp4') ? 'mp4' : 'webm', dias: dias.length };
+}
+
+function abrirGeradorVideo() {
+  const sel = (rotulo, opcoes, valor) => {
+    const s = h('select', { class: 'ctc-select ctc-allow-readonly', 'aria-label': rotulo }, opcoes.map(([v, t]) => h('option', { value: v, selected: v === valor }, t)));
+    return { s, linha: h('label', { class: 'ctc-video__campo' }, h('span', {}, rotulo), s) };
+  };
+  const local = sel('Local', Object.entries(SEGMENTOS).map(([v, x]) => [v, x.texto]), SEGMENTOS[estadoCampo.seg] ? estadoCampo.seg : '01');
+  const tipo = sel('O que mostrar', [['previsto', 'Previsto'], ['real', 'Real'], ['lado', 'Previsto e real lado a lado']], 'lado');
+  const base = sel('Previsto por', [['base', 'Linha de base'], ['tend', 'Tendência (datas atuais do P6)']], 'base');
+  const vista = sel('Vista', [['prancha', 'Prancha (planta)'], ['3d', '3D']], 'prancha');
+  const dur = sel('Velocidade', [['30', 'Rápido (≈ 30 s)'], ['60', 'Médio (≈ 1 min)'], ['dia', '1 dia por segundo']], '30');
+  const ajustar = () => { base.linha.style.display = tipo.s.value === 'real' ? 'none' : ''; };
+  tipo.s.addEventListener('change', ajustar); ajustar();
+  const previa = h('div', { class: 'ctc-video__tela' });
+  const status = h('p', { class: 'ctc-video__status' }, 'Escolha as opções e toque em "Gerar vídeo". O vídeo vai do começo da obra até hoje.');
+  const resultado = h('div', { class: 'ctc-stack' });
+  let gerando = false; let continuar = true;
+  const botao = criarBotao({ texto: '🎬 Gerar vídeo', variante: 'primary', tamanho: 'lg' });
+  const cancelar = criarBotao({ texto: 'Cancelar', variante: 'outline', tamanho: 'lg' });
+  cancelar.style.display = 'none';
+  cancelar.addEventListener('click', () => { continuar = false; });
+  botao.addEventListener('click', async () => {
+    if (gerando) return;
+    gerando = true; continuar = true;
+    botao.disabled = true; cancelar.style.display = '';
+    resultado.innerHTML = '';
+    const op = { seg: local.s.value, tipo: tipo.s.value, base: base.s.value, vista: vista.s.value, duracao: dur.s.value === 'dia' ? 'dia' : Number(dur.s.value) };
+    try {
+      const r = await gerarVideoObra(op, {
+        previa, deve: () => continuar,
+        aoQuadro: ({ n, total, dia }) => { status.textContent = `Gravando… dia ${n} de ${total} (${dataTexto(dia)}). Mantenha esta tela aberta.`; },
+      });
+      if (!r) { status.textContent = 'Geração cancelada.'; return; }
+      const url = URL.createObjectURL(r.blob);
+      const nome = `video-obra-${op.tipo}-${op.vista}-${hojeIso()}.${r.ext}`;
+      status.textContent = `Pronto: ${r.dias} dias em ${formatarNumero(r.blob.size / 1048576, 1)} MB.`;
+      resultado.append(
+        h('video', { class: 'ctc-video__player', src: url, controls: true, playsinline: true }),
+        h('a', { class: 'ctc-btn ctc-btn--success ctc-btn--lg', href: url, download: nome }, `⬇️ Baixar vídeo (.${r.ext})`));
+      previa.innerHTML = '';
+    } catch (erro) {
+      status.textContent = `Não foi possível gerar: ${erro.message || erro}`;
+    } finally {
+      gerando = false; botao.disabled = false; cancelar.style.display = 'none';
+    }
+  });
+  const corpo = h('div', { class: 'ctc-stack' },
+    h('div', { class: 'ctc-video__campos' }, local.linha, tipo.linha, base.linha, vista.linha, dur.linha),
+    h('div', { class: 'ctc-cluster' }, botao, cancelar),
+    status, previa, resultado);
+  const modal = criarModal({
+    titulo: '🎬 Vídeo da obra', tamanho: 'xl', destruirAoFechar: true, conteudo: corpo,
+    acoes: [{ texto: 'Fechar', variante: 'outline', onClick: () => { continuar = false; } }],
+  });
+  modal.abrir();
+}
+
+/** Aba "Memorias" do painel do Controlador. */
+function abaMemorias() {
+  return h('div', { class: 'ctc-stack' },
+    criarPainel({
+      titulo: 'Vídeo da obra', icone: 'calendario',
+      conteudo: h('div', { class: 'ctc-stack' },
+        h('p', { class: 'ctc-text-sm ctc-text-muted' }, 'Monta um vídeo do campo (prancha ou 3D), dia a dia, do começo da obra até hoje: o previsto pelo cronograma, o real pelos registros ou os dois lado a lado.'),
+        h('div', { class: 'ctc-cluster' }, criarBotao({ texto: '🎬 Gerar vídeo', variante: 'primary', onClick: abrirGeradorVideo }))),
+    }).elemento);
+}
+
+
+/* =============================================================================
+   v6.18.0: CRONOGRAMA — importar o extrato do P6 (.xlsx) e atualizar o previsto
+   Colunas lidas: Activity ID, Activity Name, BL Project Start, BL Project Finish, Start, Finish
+   (datas com "A" = real no P6). Ficam na base so as atividades ligadas a elementos do controle.
+   ========================================================================== */
+/** Le os arquivos de um .xlsx (zip) — devolve { [nome]: texto } dos que interessam. */
+async function lerZipTextos(buf, filtro) {
+  const dv = new DataView(buf);
+  let eocd = -1;
+  for (let i = buf.byteLength - 22; i >= Math.max(0, buf.byteLength - 66000); i -= 1) { if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; } }
+  if (eocd < 0) throw new Error('O arquivo não é um Excel .xlsx válido.');
+  const total = dv.getUint16(eocd + 10, true);
+  let pos = dv.getUint32(eocd + 16, true);
+  const dec = new TextDecoder('utf-8');
+  const saida = {};
+  for (let n = 0; n < total; n += 1) {
+    if (dv.getUint32(pos, true) !== 0x02014b50) break;
+    const metodo = dv.getUint16(pos + 10, true);
+    const tamComp = dv.getUint32(pos + 20, true);
+    const lenNome = dv.getUint16(pos + 28, true); const lenExtra = dv.getUint16(pos + 30, true); const lenCom = dv.getUint16(pos + 32, true);
+    const local = dv.getUint32(pos + 42, true);
+    const nome = dec.decode(new Uint8Array(buf, pos + 46, lenNome));
+    pos += 46 + lenNome + lenExtra + lenCom;
+    if (!filtro(nome)) continue;
+    const ini = local + 30 + dv.getUint16(local + 26, true) + dv.getUint16(local + 28, true);
+    const bruto = new Uint8Array(buf, ini, tamComp);
+    let dados;
+    if (metodo === 0) dados = bruto;
+    else if (metodo === 8) {
+      if (typeof DecompressionStream === 'undefined') throw new Error('Este navegador não abre .xlsx. Use o Chrome ou o Edge atualizados.');
+      dados = new Uint8Array(await new Response(new Blob([bruto]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    } else continue;
+    saida[nome] = dec.decode(dados);
+  }
+  return saida;
+}
+
+/** Le a 1a planilha do .xlsx do P6: { linhas: [[...]], extrato } — datas do Excel viram 'aaaa-mm-dd'. */
+async function lerExcelP6(arquivo) {
+  const buf = await arquivo.arrayBuffer();
+  const arq = await lerZipTextos(buf, (n) => /^xl\/(sharedStrings\.xml|worksheets\/sheet\d+\.xml|workbook\.xml|_rels\/workbook\.xml\.rels)$/.test(n));
+  const xml = (t) => new DOMParser().parseFromString(t, 'application/xml');
+  const compartilhadas = arq['xl/sharedStrings.xml']
+    ? [...xml(arq['xl/sharedStrings.xml']).getElementsByTagName('si')].map((si) => [...si.getElementsByTagName('t')].map((t) => t.textContent).join(''))
+    : [];
+  // primeira planilha pelo workbook (ou sheet1)
+  let caminho = 'xl/worksheets/sheet1.xml';
+  try {
+    const wb = xml(arq['xl/workbook.xml']); const rels = xml(arq['xl/_rels/workbook.xml.rels']);
+    const rid = wb.getElementsByTagName('sheet')[0]?.getAttribute('r:id');
+    const alvo = [...rels.getElementsByTagName('Relationship')].find((r) => r.getAttribute('Id') === rid)?.getAttribute('Target');
+    if (alvo) caminho = `xl/${alvo.replace(/^\/?xl\//, '')}`;
+  } catch { /* usa sheet1 */ }
+  if (!arq[caminho]) caminho = Object.keys(arq).find((k) => k.startsWith('xl/worksheets/')) || caminho;
+  if (!arq[caminho]) throw new Error('Não achei a planilha dentro do arquivo.');
+  const coluna = (ref) => { let n = 0; for (const ch of ref.replace(/\d+/g, '')) n = n * 26 + (ch.charCodeAt(0) - 64); return n - 1; };
+  const linhas = [...xml(arq[caminho]).getElementsByTagName('row')].map((row) => {
+    const l = [];
+    [...row.getElementsByTagName('c')].forEach((c) => {
+      const t = c.getAttribute('t'); const v = c.getElementsByTagName('v')[0]?.textContent;
+      let val = null;
+      if (t === 's') val = compartilhadas[Number(v)] ?? '';
+      else if (t === 'inlineStr') val = [...c.getElementsByTagName('t')].map((x) => x.textContent).join('');
+      else if (t === 'str' || t === 'b') val = v ?? '';
+      else if (v != null) val = Number(v);
+      l[coluna(c.getAttribute('r') || 'A')] = val;
+    });
+    return l;
+  });
+  return { linhas };
+}
+const serialParaIso = (n) => formatarData(new Date(Math.round((n - 25569) * 86400000) + 12 * 3600000), 'iso');
+/** Celula de data do P6: numero do Excel, 'dd/mm/aaaa', 'dd/mm/aaaa A' ou 'dd-mmm-aa A'. Devolve [iso, real]. */
+function dataP6(v) {
+  if (v == null || v === '') return ['', false];
+  if (typeof v === 'number') return [serialParaIso(v), false];
+  const t = String(v).trim();
+  const real = /\bA\*?$/.test(t);
+  let m = t.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return [`${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`, real];
+  m = t.match(/(\d{1,2})-([A-Za-zç]{3})-(\d{2,4})/);
+  if (m) {
+    const mes = { jan: 1, feb: 2, fev: 2, mar: 3, apr: 4, abr: 4, may: 5, mai: 5, jun: 6, jul: 7, aug: 8, ago: 8, sep: 9, set: 9, oct: 10, out: 10, nov: 11, dec: 12, dez: 12 }[m[2].toLowerCase()];
+    const ano = m[3].length === 2 ? `20${m[3]}` : m[3];
+    if (mes) return [`${ano}-${String(mes).padStart(2, '0')}-${m[1].padStart(2, '0')}`, real];
+  }
+  return ['', false];
+}
+/** Converte as linhas do extrato em { datas, lidas, extrato }. */
+function interpretarExtratoP6(linhas, nomeArquivo) {
+  const iCab = linhas.findIndex((l) => (l || []).some((c) => /activity\s*id|id\s*da\s*atividade/i.test(String(c ?? ''))));
+  if (iCab < 0) throw new Error('Não achei a coluna "Activity ID". Exporte do P6 com: Activity ID, Activity Name, BL Project Start, BL Project Finish, Start, Finish.');
+  const cab = linhas[iCab].map((c) => String(c ?? '').trim().toLowerCase());
+  const col = (...nomes) => cab.findIndex((c) => nomes.some((n) => c === n));
+  const cId = col('activity id', 'id da atividade');
+  const cBi = col('bl project start', 'bl1 start', 'baseline start');
+  const cBf = col('bl project finish', 'bl1 finish', 'baseline finish');
+  const cAi = col('start', 'início', 'inicio');
+  const cAf = col('finish', 'término', 'termino');
+  if ([cBi, cBf, cAi, cAf].some((c) => c < 0)) throw new Error('Faltam colunas. São necessárias: BL Project Start, BL Project Finish, Start e Finish.');
+  const datas = {};
+  let lidas = 0;
+  linhas.slice(iCab + 1).forEach((l) => {
+    const id = String(l?.[cId] ?? '').trim();
+    if (!id) return;
+    lidas += 1;
+    const [bi] = dataP6(l[cBi]); const [bf] = dataP6(l[cBf]);
+    const [ai, ra] = dataP6(l[cAi]); const [af, rf] = dataP6(l[cAf]);
+    datas[id] = [bi, bf, ai, af, (ra ? 1 : 0) | (rf ? 2 : 0)];
+  });
+  // data do extrato: "... AVANÇO 14-11-2026" na planilha ou no nome do arquivo
+  const texto = [...linhas.slice(0, iCab + 4).flat().map((c) => String(c ?? '')), nomeArquivo].join(' ');
+  const m = texto.match(/(\d{2})[-./](\d{2})[-./](\d{4})/);
+  return { datas, lidas, extrato: m ? `${m[1]}/${m[2]}/${m[3]}` : dataTexto(hojeIso()) };
+}
+/** Atividades do controle que tem elementos ligados (as que alimentam o previsto). */
+const atividadesLigadas = () => CRONO_ATIVIDADES.filter((a) => !a.extra);
+
+async function importarCronogramaP6(arquivo) {
+  const { linhas } = await lerExcelP6(arquivo);
+  const r = interpretarExtratoP6(linhas, arquivo.name);
+  const ligadas = atividadesLigadas();
+  const novas = {};
+  const mudancas = [];
+  let encontradas = 0;
+  ligadas.forEach((a) => {
+    const d = r.datas[a.id];
+    if (!d) return;
+    encontradas += 1;
+    novas[a.id] = d;
+    const antes = datasCronograma(a.id);
+    if (!antes || antes.slice(0, 4).join('|') !== d.slice(0, 4).join('|')) {
+      mudancas.push({ id: a.id, nome: a.nome, baseAntes: antes?.[1] || '', baseDepois: d[1], tendAntes: antes?.[3] || '', tendDepois: d[3],
+        dTend: antes?.[3] && d[3] ? diasEntre(antes[3], d[3]) : null });
+    }
+  });
+  const faltando = ligadas.filter((a) => !r.datas[a.id]).map((a) => a.id);
+  return { ...r, novas, encontradas, mudancas, faltando, arquivo: arquivo.name };
+}
+
+function abrirConferenciaCronograma(res) {
+  const cartao = (rot, val, cor) => h('div', { class: 'ctc-crono__cartao', style: { borderColor: cor } }, h('small', {}, rot), h('b', { style: { color: cor } }, String(val)));
+  const tabela = criarTabela({
+    compacta: true, altura: 'full', porPagina: 0, cabecalhoClaro: true,
+    dados: res.mudancas,
+    colunas: [
+      { campo: 'id', titulo: 'Activity ID', fixa: true },
+      { campo: 'nome', titulo: 'Atividade' },
+      { campo: 'baseAntes', titulo: 'Término base — antes', formatar: (v) => dataTexto(v) },
+      { campo: 'baseDepois', titulo: 'Término base — novo', formatar: (v) => dataTexto(v) },
+      { campo: 'tendAntes', titulo: 'Término tendência — antes', formatar: (v) => dataTexto(v) },
+      { campo: 'tendDepois', titulo: 'Término tendência — novo', formatar: (v) => dataTexto(v) },
+      { campo: 'dTend', titulo: 'Variação (dias)', tipo: 'numero', formatar: (v) => (v == null ? '—' : (v > 0 ? `+${v}` : String(v))) },
+    ],
+    vazio: { titulo: 'Nenhuma data mudou', mensagem: 'As atividades ligadas ao controle têm as mesmas datas do cronograma atual.' },
+  });
+  const modal = criarModal({
+    titulo: `🗓️ Conferir cronograma — extrato de ${res.extrato}`, tamanho: 'xl', destruirAoFechar: true,
+    conteudo: h('div', { class: 'ctc-stack' },
+      h('div', { class: 'ctc-crono__cartoes' },
+        cartao('Atividades no arquivo', res.lidas, '#1e3a5f'),
+        cartao('Ligadas ao controle encontradas', `${res.encontradas} de ${atividadesLigadas().length}`, '#0369a1'),
+        cartao('Com datas alteradas', res.mudancas.length, res.mudancas.length ? '#b45309' : '#15803d'),
+        cartao('Não estão no arquivo', res.faltando.length, res.faltando.length ? '#b91c1c' : '#15803d')),
+      res.faltando.length ? criarAlerta({ tipo: 'warning', titulo: 'Atividades do controle que não vieram no arquivo', mensagem: `${res.faltando.slice(0, 30).join(', ')}${res.faltando.length > 30 ? ` e mais ${res.faltando.length - 30}` : ''}. Elas ficam sem previsto até virem num extrato.` }) : null,
+      criarAlerta({ tipo: 'info', mensagem: 'Ao aplicar, o previsto (linha de base e tendência) de cada elemento passa a vir deste extrato: ficha, banco de dados, desvios e vídeo. Os registros de campo não mudam. A atualização vai junto no próximo salvamento.' }),
+      tabela.elemento),
+    acoes: [
+      { texto: 'Cancelar', variante: 'outline' },
+      {
+        texto: `Aplicar o cronograma de ${res.extrato}`, variante: 'success',
+        onClick: () => {
+          const u = sessao.obter().usuario;
+          cronogramaImportado = { extrato: res.extrato, importadoEm: new Date().toISOString(), arquivo: res.arquivo, autor: u ? u.nome : '', datas: res.novas };
+          reiniciarPrevisto();
+          sessao.marcarAlteracao();
+          agendarSalvamentoLocal();
+          toast.sucesso('Cronograma atualizado', `Previsto do extrato de ${res.extrato}: ${res.encontradas} atividades, ${res.mudancas.length} com datas novas. Salve na nuvem para enviar a todos.`);
+          if (aplicativo) aplicativo.navegar('cronograma');
+        },
+      }],
+  });
+  modal.abrir();
+}
+
+const estadoCronoPagina = { busca: '' };
+function paginaCronograma() {
+  const pode = sessao.podeEditar();
+  const ligadas = atividadesLigadas();
+  const comDatas = ligadas.filter((a) => datasCronograma(a.id)).length;
+  const qtdElementos = new Map();
+  codigosCronogramaPorElemento().forEach((ids) => ids.forEach((id) => qtdElementos.set(id, (qtdElementos.get(id) || 0) + 1)));
+  const entrada = h('input', {
+    type: 'file', accept: '.xlsx', class: 'ctc-hidden', style: { display: 'none' },
+    onChange: async (ev) => {
+      const f = ev.target.files?.[0]; ev.target.value = '';
+      if (!f) return;
+      try {
+        toast.info('Lendo o cronograma…', f.name);
+        abrirConferenciaCronograma(await importarCronogramaP6(f));
+      } catch (erro) { toast.erro('Não foi possível ler o arquivo', erro.message || String(erro)); }
+    },
+  });
+  const origem = cronogramaImportado
+    ? `Extrato do P6 de ${cronogramaImportado.extrato}, importado em ${formatarData(cronogramaImportado.importadoEm, 'data-hora')}${cronogramaImportado.autor ? ` por ${cronogramaImportado.autor}` : ''} (${cronogramaImportado.arquivo || 'arquivo'}).`
+    : `Extrato do P6 de ${CRONO_EXTRATO}, gravado no aplicativo (nenhum cronograma importado nesta base).`;
+  const topo = criarPainel({
+    titulo: 'Cronograma em uso', icone: 'calendario',
+    conteudo: h('div', { class: 'ctc-stack' },
+      h('div', { class: 'ctc-crono__cartoes' },
+        h('div', { class: 'ctc-crono__cartao', style: { borderColor: '#1e3a5f' } }, h('small', {}, 'Extrato'), h('b', {}, extratoCronograma())),
+        h('div', { class: 'ctc-crono__cartao', style: { borderColor: '#0369a1' } }, h('small', {}, 'Atividades ligadas a elementos'), h('b', {}, String(ligadas.length))),
+        h('div', { class: 'ctc-crono__cartao', style: { borderColor: '#15803d' } }, h('small', {}, 'Com datas'), h('b', {}, String(comDatas)))),
+      h('p', { class: 'ctc-text-sm ctc-text-muted' }, origem),
+      pode
+        ? h('div', { class: 'ctc-cluster' },
+          criarBotao({ texto: '📥 Importar cronograma do P6 (.xlsx)', variante: 'primary', tamanho: 'lg', onClick: () => entrada.click() }),
+          cronogramaImportado ? criarBotao({
+            texto: `Voltar ao extrato gravado no app (${CRONO_EXTRATO})`, variante: 'outline',
+            onClick: async () => {
+              const ok = await confirmar({ titulo: 'Voltar ao cronograma do aplicativo?', mensagem: `O previsto volta a ser o do extrato de ${CRONO_EXTRATO} gravado no aplicativo.`, textoConfirmar: 'Voltar' });
+              if (!ok) return;
+              cronogramaImportado = null; reiniciarPrevisto(); sessao.marcarAlteracao(); agendarSalvamentoLocal();
+              aplicativo.navegar('cronograma');
+            },
+          }) : null,
+          entrada)
+        : criarAlerta({ tipo: 'info', mensagem: 'A importação do cronograma é feita pelo Controlador.' }),
+      h('p', { class: 'ctc-text-xs ctc-text-muted' }, 'No P6, exporte para Excel com as colunas: Activity ID, Activity Name, BL Project Start, BL Project Finish, Start e Finish. Datas com "A" são reais.')),
+  }).elemento;
+  const dados = ligadas.map((a) => {
+    const d = datasCronograma(a.id) || [];
+    return { id: a.id, nome: a.nome, grupo: a.grupo, bi: d[0] || '', bf: d[1] || '', ai: d[2] || '', af: d[3] || '', real: d[4] ? [d[4] & 1 ? 'início' : '', d[4] & 2 ? 'término' : ''].filter(Boolean).join(' e ') : '', elementos: qtdElementos.get(a.id) || 0,
+      atraso: d[1] && d[3] ? diasEntre(d[1], d[3]) : null };
+  });
+  const tabela = criarTabela({
+    compacta: true, porPagina: 0, filtroExcel: true, altura: 'full',   // lista unica, rolando dentro da tabela
+    dados,
+    colunas: [
+      { campo: 'id', titulo: 'Activity ID', fixa: true },
+      { campo: 'nome', titulo: 'Atividade' },
+      { campo: 'grupo', titulo: 'Trecho' },
+      { campo: 'bi', titulo: 'Início base', formatar: (v) => dataTexto(v) },
+      { campo: 'bf', titulo: 'Término base', formatar: (v) => dataTexto(v) },
+      { campo: 'ai', titulo: 'Início tendência', formatar: (v) => dataTexto(v) },
+      { campo: 'af', titulo: 'Término tendência', formatar: (v) => dataTexto(v) },
+      { campo: 'atraso', titulo: 'Tendência × base (dias)', tipo: 'numero', formatar: (v) => (v == null ? '—' : (v > 0 ? `+${v}` : String(v))) },
+      { campo: 'real', titulo: 'Real no P6' },
+      { campo: 'elementos', titulo: 'Elementos', tipo: 'numero' },
+    ],
+    linhaVariante: (l) => (l.atraso > 0 ? 'warning' : null),
+  });
+  return [topo, criarPainel({ titulo: 'Atividades ligadas ao controle', icone: 'tabela', tag: `${dados.length}`, conteudo: tabela.elemento }).elemento];
+}
+
+
+/* =============================================================================
    08. RELATORIOS PDF (avanco por local e medicao do periodo)
    ========================================================================== */
 
@@ -16684,6 +17817,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
       }),
       onSair: sair,
+      abasExtras: [{ id: 'memorias', texto: 'Memórias', conteudo: abaMemorias }],   // v6.17.0
     }),
   });
   const app = montarAplicativo({
@@ -16713,6 +17847,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
             { id: 'painel', texto: 'Painel do dia', emoji: '📊' },
             { id: 'estoque', texto: 'Estoque de pré-moldados', emoji: '📦' },
             { id: 'avanco', texto: 'Avanço físico (cronograma)', emoji: '📈' },
+            { id: 'cronograma', texto: 'Cronograma', emoji: '🗓️' },
           ],
         },
         {
@@ -16730,12 +17865,13 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.12.0' : 'Controle de Execução em Campo v6.12.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.18.0' : 'Controle de Execução em Campo v6.18.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
       painel: { titulo: 'Painel do dia', caminho: ['Execução'], acoes: [{ texto: 'Relatórios PDF', icone: 'download', variante: 'primary', onClick: abrirRelatorios }], render: paginaPainel },
       estoque: { titulo: 'Estoque de pré-moldados', caminho: ['Execução'], acoes: [{ texto: 'Relatórios PDF', icone: 'download', variante: 'primary', onClick: abrirRelatorios }], render: paginaEstoquePM },
+      cronograma: { titulo: 'Cronograma', caminho: ['Execução'], render: paginaCronograma },   // v6.18.0
       avanco: { titulo: 'Avanço físico (cronograma)', caminho: ['Execução'], acoes: [{ texto: 'Exportar avanço (Excel)', icone: 'download', variante: 'primary', onClick: exportarAvancoCsv }], render: paginaAvanco },
       elementos: { titulo: 'Elementos', caminho: ['Consulta'], render: paginaElementos },
       banco: { titulo: 'Banco de dados', caminho: ['Consulta'], acoes: [{ texto: 'Exportar banco completo (Excel)', icone: 'download', variante: 'primary', onClick: () => exportarBancoCsv() }], render: paginaBanco },
@@ -16764,7 +17900,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.6 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.18.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
