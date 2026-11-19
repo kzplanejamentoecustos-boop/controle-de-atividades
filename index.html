@@ -2351,11 +2351,23 @@ img { max-width: 100%; display: block; }
 
 
 
+
+/* v6.21.0: balao do 3D ao passar o mouse */
+.ctc-vista__balao { position: absolute; z-index: 4; pointer-events: none; max-width: 320px; padding: 6px 10px; border-radius: 8px; background: rgba(15,23,42,.92); color: #fff;
+  font-size: 13px; font-weight: 600; line-height: 1.3; white-space: nowrap; opacity: 0; transform: translateY(2px); transition: opacity .12s, transform .12s; }
+.ctc-vista__balao.is-visivel { opacity: 1; transform: none; }
 /* v6.18.0: pagina Cronograma */
 .ctc-crono__cartoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
 .ctc-crono__cartao { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background: #fff; border: 1px solid #e2e8f0; border-left-width: 5px; }
 .ctc-crono__cartao small { font-size: 12px; color: #64748b; }
 .ctc-crono__cartao b { font-size: 24px; color: #0f172a; font-variant-numeric: tabular-nums; }
+
+.ctc-crono__origens { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.ctc-crono__origem { all: unset; box-sizing: border-box; cursor: pointer; display: grid; gap: 6px; padding: 16px; border-radius: 16px; border: 2px solid #bae6fd; background: linear-gradient(180deg, #f0f9ff, #e0f2fe); }
+.ctc-crono__origem b { font-size: 20px; color: #0c4a6e; }
+.ctc-crono__origem span { font-size: 13px; color: #334155; line-height: 1.35; }
+.ctc-crono__origem:hover { border-color: #0284c7; }
+.ctc-crono__origem:focus-visible { outline: 3px solid #1e3a5f; outline-offset: 2px; }
 /* v6.17.0: video da obra (aba Memorias) */
 .ctc-video__campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
 .ctc-video__campo { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: #334155; }
@@ -7743,7 +7755,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.18.0
+   Versao: 6.21.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7827,6 +7839,17 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
    6.18.0: pagina "Cronograma" no menu: importa o extrato do P6 (.xlsx, lido no proprio navegador),
           mostra o que mudou e, ao aplicar, atualiza o previsto (linha de base e tendencia) de todos os
           elementos; o cronograma importado vai na base (tablet e nuvem).
+   6.19.0: botao "Importar cronograma" com duas origens: Primavera P6 ou MS Project (.xlsx ou .csv,
+          colunas em portugues ou ingles; o codigo da atividade do P6 vem num campo como o Texto1).
+   6.20.0: previsto ligado em todas as etapas que o cronograma cobre: raiz (perfuracao e camisa),
+          blocos (magro, armadura, resistencia, 2a fase com a 1C), viga do eixo −1 (1C e 2B), estacas dos
+          segmentos 02/03/04 pelo codigo no nome, montagens Laje 09 a 16 (segmentos 02 e 03), Expansao da
+          Laje (segmento 04, faixa geral) e central/canteiro com o prazo dividido entre as etapas.
+   6.21.0: 3D das estacas metalicas e raiz com as partes por dentro: camisa semitransparente, gaiola
+          de aco, concreto, pino e arrasamento, cada parte amarela com a etapa em execucao e verde com
+          ela concluida; tocar na estaca abre o quadro na etapa da vez; balao com o nome ao passar o mouse.
+          Estaca cheia ate a pinagem concluida (camisa colorida pela cravacao e pino pela pinagem; raiz:
+          perfuracao e camisa); depois, corte com a armacao.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -8270,6 +8293,29 @@ function geoEstaca(codigo) {
   return { x: geoX(Number(eixo), Number(resto.slice(1)) || 0), y: GEO_LINHA_Y[resto[0]] ?? GEO_LINHA_Y_04[resto[0]] };
 }
 const caixa = (x0, x1, y0, y1, z0, z1, extra = {}) => ({ forma: 'caixa', x0, x1, y0, y1, z0, z1, ...extra });
+/** v6.21.0: estaca metalica no 3D com as partes por dentro, cada uma ligada a sua etapa (cor e toque):
+ *  camisa (cravacao, semitransparente), pino (escavacao), concreto (concretagem), gaiola de aco (armadura) e arrasamento.
+ *  As partes internas so aparecem no 3D (so3d); na prancha fica so a camisa e o pino, como antes. */
+function geoEstacaMetalica(x, y, diametro, arras, peCamisa, pePino) {
+  const r = diametro / 2000;
+  return [
+    cilindro(x, y, r, peCamisa, arras, { parte: 'camisa', etapa: 'cravacao', casca: true, camada: 3 }),
+    cilindro(x, y, diametro === 1219 ? 0.55 : 0.45, pePino, peCamisa, { parte: 'pino', etapa: 'escavacao', clarear: 0.45, camada: 1 }),
+    cilindro(x, y, r * 0.9, peCamisa, arras - 0.15, { parte: 'concreto', etapa: 'concretagem', so3d: true, camada: 1 }),
+    { forma: 'gaiola', x, y, r: r * 0.72, z0: pePino + 0.3, z1: arras + 0.6, barras: 12, passo: 1.5, parte: 'armadura', etapa: 'armadura', so3d: true, camada: 2 },
+    cilindro(x, y, r * 1.03, arras - 0.15, arras, { parte: 'arrasamento', etapa: 'arrasamento', so3d: true, camada: 4 }),
+  ];
+}
+/** v6.21.0: estaca raiz: camisa Ø410 (implantacao), trecho Ø350 (perfuracao), injecao e armadura (concretagem) e arrasamento. */
+function geoEstacaRaiz(x, y, topo, l410, l350) {
+  return [
+    cilindro(x, y, 0.205, topo - l410, topo, { parte: 'camisa Ø410', etapa: 'camisa', casca: true, camada: 3 }),
+    cilindro(x, y, 0.175, topo - l410 - l350, topo - l410, { parte: 'perfuração Ø350', etapa: 'perfuracao', clarear: 0.45, camada: 1 }),
+    cilindro(x, y, 0.185, topo - l410, topo - 0.1, { parte: 'injeção de argamassa', etapa: 'concretagem', so3d: true, camada: 1 }),
+    { forma: 'gaiola', x, y, r: 0.13, z0: topo - l410 - l350 + 0.3, z1: topo + 0.4, barras: 6, passo: 1.5, parte: 'armadura', etapa: 'concretagem', so3d: true, camada: 2 },
+    cilindro(x, y, 0.215, topo - 0.1, topo, { parte: 'arrasamento', etapa: 'arrasamento', so3d: true, camada: 4 }),
+  ];
+}
 const cilindro = (x, y, r, z0, z1, extra = {}) => ({ forma: 'cilindro', x, y, r, z0, z1, ...extra });
 /** Prisma: planta poligonal (pontos [x, y]) extrudada de z0 a z1 — pecas inclinadas como as do eixo −1. */
 const prisma = (pts, z0, z1, extra = {}) => ({ forma: 'prisma', pts, z0, z1, ...extra });
@@ -8333,7 +8379,7 @@ function estacasMetalicas() {
       id, seg, tipo: 'estaca-metalica', rotulo: id, sub: `Estaca metálica · Ø${d.diametro} #9,5 · camisa ${formatarNumero(d.arrasamento - d.peCamisa, 2)} m · pino ${formatarNumero(d.peCamisa - d.pePino, 2)} m`,
       grupo: `Eixo ${id.split('-')[0]}`,
       info: { ...d, volume: Math.round((d.volEstaca + d.volPino) * 100) / 100 },
-      geo: [cilindro(x, y, r, d.peCamisa, d.arrasamento, { parte: 'camisa' }), cilindro(x, y, d.diametro === 1219 ? 0.55 : 0.45, d.pePino, d.peCamisa, { parte: 'pino', clarear: 0.45 })],
+      geo: geoEstacaMetalica(x, y, d.diametro, d.arrasamento, d.peCamisa, d.pePino),
     }));
   };
   MET_01A.forEach(([id, diametro, arrasamento, carga]) => {
@@ -8400,7 +8446,7 @@ function blocosERaiz() {
         id, seg: '01A', tipo: 'estaca-raiz', rotulo: id, grupo: `Bloco ${b.bloco}`,
         sub: `Estaca raiz · Ø410 ${formatarNumero(b.l410, 2)} m (camisa perdida) + Ø350 12,00 m`,
         info: { l410: b.l410, l350: 12, bloco: b.bloco },
-        geo: [cilindro(x, y, 0.205, b.fundo - b.l410, b.fundo, { parte: 'camisa' }), cilindro(x, y, 0.175, b.fundo - b.l410 - 12, b.fundo - b.l410, { clarear: 0.45 })],
+        geo: geoEstacaRaiz(x, y, b.fundo, b.l410, 12),
       }));
     }
     // bloco: lados paralelos as linhas (y constante) e ao eixo −1
@@ -9178,7 +9224,7 @@ function segmento04(todos) {
         id, seg, tipo: 'estaca-metalica', rotulo: id, grupo: `Eixo ${eixo} · seg. 04`,
         sub: `Estaca metálica · Ø1219 #9,5 · camisa ${formatarNumero(1.70 - peCamisa, 2)} m · pino ${formatarNumero(peCamisa - pePino, 2)} m · DWG-00198`,
         info,
-        geo: [cilindro(x, y, 0.6095, peCamisa, 1.70, { parte: 'camisa' }), cilindro(x, y, 0.55, pePino, peCamisa, { parte: 'pino', clarear: 0.45 })],
+        geo: geoEstacaMetalica(x, y, 1219, 1.70, peCamisa, pePino),
       }));
     });
   });
@@ -9190,7 +9236,7 @@ function segmento04(todos) {
         id, seg, tipo: 'estaca-raiz', rotulo: id, grupo: `Bloco ${bloco}`,
         sub: 'Estaca raiz · Ø410 16,40 m (camisa perdida) + Ø350 9,00 m · DWG-00198',
         info: { l410: 16.4, l350: 9, bloco, carga: b.carga, arrasamento: 1.4 },
-        geo: [cilindro(x, y, 0.205, 1.4 - 16.4, 1.4, { parte: 'camisa' }), cilindro(x, y, 0.175, 1.4 - 16.4 - 9, 1.4 - 16.4, { clarear: 0.45 })],
+        geo: geoEstacaRaiz(x, y, 1.4, 16.4, 9),
       }));
       return id;
     });
@@ -9298,7 +9344,7 @@ function segmentosBasico(todos) {
         id, seg, tipo: 'estaca-metalica', rotulo: id, grupo: `Eixo ${eixo}`,
         sub: `Estaca metálica · Ø1219 #9,5 · cotas de referência do 01B (a confirmar) · ${preliminar}`,
         info,
-        geo: [cilindro(x, y, 0.6095, peCamisa, 1.7, { parte: 'camisa' }), cilindro(x, y, 0.55, pePino, peCamisa, { parte: 'pino', clarear: 0.45 })],
+        geo: geoEstacaMetalica(x, y, 1219, 1.7, peCamisa, pePino),
       }));
       lista.push(novoElemento({
         id: `PM-01 (${id})`, seg, tipo: 'capitel', rotulo: 'PM-01', grupo: `Capitéis eixo ${eixo}`,
@@ -13404,6 +13450,37 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     return polis;
   }
 
+  /** v6.21.0: gaiola de aco da estaca: barras verticais + estribos (os estribos so quando a peca esta grande na tela). */
+  function desenharGaiola(o, alfa) {
+    const c = est.cam;
+    const T0 = projetar(o.x, o.y, o.z1); const B0 = projetar(o.x, o.y, o.z0);
+    const rx = Math.max(o.r * c.escala, 1.2); const ry = rx * Math.sin(c.pitch);
+    ctx.globalAlpha = alfa;
+    ctx.strokeStyle = tom3d(o.cor, -0.3);
+    ctx.lineWidth = Math.max(0.7, Math.min(2.4, 0.035 * c.escala));
+    ctx.beginPath();
+    const n = rx < 3 ? 2 : (o.barras || 8);
+    for (let i = 0; i < n; i += 1) {
+      const a = (i / n) * Math.PI * 2;
+      const px = o.x + o.r * Math.cos(a); const py = o.y + o.r * Math.sin(a);
+      const T = projetar(px, py, o.z1); const B = projetar(px, py, o.z0);
+      ctx.moveTo(T.x, T.y); ctx.lineTo(B.x, B.y);
+    }
+    ctx.stroke();
+    if (rx >= 5) {
+      ctx.lineWidth *= 0.75;
+      ctx.beginPath();
+      for (let z = o.z0; z <= o.z1 + 1e-6; z += o.passo || 1.5) {
+        const p = projetar(o.x, o.y, z);
+        ctx.moveTo(p.x + rx, p.y);
+        ctx.ellipse(p.x, p.y, rx, ry, 0, 0, Math.PI * 2);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    return [[{ x: T0.x - rx, y: T0.y - ry }, { x: T0.x + rx, y: T0.y - ry }, { x: B0.x + rx, y: B0.y + ry }, { x: B0.x - rx, y: B0.y + ry }]];
+  }
+
   function desenharCilindro(o, alfa) {
     const c = est.cam;
     const T = projetar(o.x, o.y, o.z1);
@@ -13660,7 +13737,7 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
         if (r < r0) r0 = r; if (r > r1) r1 = r;
       });
       const { x: cxo, y: cyo } = centroGeo(o);
-      return { sx0, sx1, sy0, sy1, r0, r1, z0: Math.min(o.z0, o.z1), z1: Math.max(o.z0, o.z1), d: projetar(cxo, cyo, (o.z0 + o.z1) / 2).d, ativo: (o.alfa ?? 1) > 0.001 };
+      return { sx0, sx1, sy0, sy1, r0, r1, z0: Math.min(o.z0, o.z1), z1: Math.max(o.z0, o.z1), d: projetar(cxo, cyo, (o.z0 + o.z1) / 2).d, ativo: (o.alfa ?? 1) > 0.001, id: o.id, cam: o.camada };
     });
     const depois = Array.from({ length: n }, () => []);
     const entrada = new Array(n).fill(0);
@@ -13676,6 +13753,7 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
         else if (B.z1 <= A.z0 + EPS) antes = 1;
         else if (A.r1 <= B.r0 + EPS) antes = -1;
         else if (B.r1 <= A.r0 + EPS) antes = 1;
+        else if (A.id === B.id && A.cam != null && B.cam != null && A.cam !== B.cam) antes = A.cam < B.cam ? -1 : 1;   // v6.21.0: partes da mesma peca, de dentro para fora
         if (antes === -1) { depois[a].push(b); entrada[b] += 1; } else if (antes === 1) { depois[b].push(a); entrada[a] += 1; }
       }
     }
@@ -13732,6 +13810,7 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     ordenados.forEach((o) => {
       let alfa = o.alfa ?? 1;
       if (alfa <= 0.001) return;   // camada desligada
+      if (o.so3d && P >= 0.99) return;   // v6.21.0: partes internas da estaca so no 3D
       if (est.area && est.area.ids && !est.area.ids.has(o.id)) alfa = Math.min(alfa, 0.08);   // v6.9.1: fora da faixa de eixos
       if (est.focoId != null && o.id !== est.focoId) alfa *= 1 - 0.78 * est.fade;
       const solido = !est.translucido || o.id === est.selecionadoId || o.id === est.focoId;
@@ -13739,14 +13818,15 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
       if (P < 0.99) {
         const a3d = alfa * (1 - P);
         // modo claro: pecas opacas em tom claro (linhas ocultas) — o que esta embaixo nao aparece atraves do que esta em cima
-        const ob = solido ? o : { ...o, cor: misturar(o.cor, 0.62) };
-        polis = ob.forma === 'prisma' ? desenharPrisma(ob, a3d) : (ob.forma === 'caixa' ? desenharCaixa(ob, a3d) : desenharCilindro(ob, a3d));
+        const ob = solido || o.parteAtiva ? o : { ...o, cor: misturar(o.cor, 0.62) };
+        const aParte = o.casca ? a3d * 0.24 : a3d;   // camisa semitransparente: o aco aparece por dentro
+        polis = ob.forma === 'gaiola' ? desenharGaiola(ob, aParte) : (ob.forma === 'prisma' ? desenharPrisma(ob, aParte) : (ob.forma === 'caixa' ? desenharCaixa(ob, aParte) : desenharCilindro(ob, aParte)));
       }
-      if (P > 0.01) {
-        const pp = desenharPrancha(o, alfa * P);
+      if (P > 0.01 && !o.so3d) {
+        const pp = desenharPrancha(o.corPrancha ? { ...o, cor: o.corPrancha } : o, alfa * P);
         if (P >= 0.5) polis = pp;
       }
-      if (o.selecionavel !== false && alfa > 0.15) areas.push({ id: o.id, polis });
+      if (o.selecionavel !== false && alfa > 0.15 && polis) areas.push({ id: o.id, etapa: P >= 0.5 ? null : o.etapa, casca: Boolean(o.casca) && P < 0.5, dica: o.dica || o.rotulo, polis });
     });
     desenharEixos3D(objetos, grade, P, folha);
     // selecionado: sem contorno; o destaque e o modo solido (3D) / preenchimento cheio (prancha)
@@ -13875,20 +13955,25 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     }
     return c;
   };
-  const acharId = (evento) => {
+  /** v6.21.0: alvo sob o ponteiro { id, etapa, dica }; na camisa semitransparente vale a parte de dentro da mesma estaca. */
+  const acharAlvo = (evento) => {
     const p = pontoNoCanvas(canvas, evento);
+    let topo = null;
     for (let i = areas.length - 1; i >= 0; i -= 1) {
-      if (areas[i].polis.some((pts) => dentro(p, pts))) return areas[i].id;
+      if (!areas[i].polis.some((pts) => dentro(p, pts))) continue;
+      if (!topo) { topo = areas[i]; if (!topo.casca) return topo; continue; }
+      if (areas[i].id === topo.id && !areas[i].casca) return areas[i];
     }
-    return null;
+    return topo;
   };
+  const acharId = (evento) => acharAlvo(evento)?.id ?? null;
   /** Pixels de tela (CSS) -> pixels do canvas. */
   const fatorTela = () => { const cx = canvas.getBoundingClientRect(); return { fx: (canvas._logW || canvas.width) / (cx.width || 1), fy: (canvas._logH || canvas.height) / (cx.height || 1) }; };
   const tocarEm = (evento) => {
-    const id = acharId(evento);
-    if (id == null) return;
-    vista.selecionar(id);
-    if (aoSelecionar) aoSelecionar(id);
+    const alvo = acharAlvo(evento);
+    if (!alvo) return;
+    vista.selecionar(alvo.id);
+    if (aoSelecionar) aoSelecionar(alvo.id, alvo.casca ? null : alvo.etapa);
   };
   /**
    * Antes de orbitar, leva o deslocamento de tela (ox, oy) para o alvo da camera, para o giro
@@ -13939,6 +14024,25 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     arraste = { x: e.clientX, y: e.clientY, yaw: est.cam.yaw, pitch: est.cam.pitch, mover: !orbitar };
     moveu = false;
   });
+  // v6.21.0: balao com o nome da peca (e da parte da estaca) ao passar o mouse
+  const balao = h('div', { class: 'ctc-vista__balao', role: 'tooltip' });
+  let balaoPendente = null;
+  canvas.addEventListener('pointermove', (e) => {
+    if (arraste || e.pointerType === 'touch') { balao.classList.remove('is-visivel'); return; }
+    if (balaoPendente) return;
+    balaoPendente = requestAnimationFrame(() => {
+      balaoPendente = null;
+      const alvo = acharAlvo(e);
+      if (!alvo) { balao.classList.remove('is-visivel'); canvas.style.cursor = ''; return; }
+      const caixa = canvas.getBoundingClientRect();
+      balao.textContent = alvo.dica || alvo.id;
+      balao.style.left = `${e.clientX - caixa.left + 14}px`;
+      balao.style.top = `${e.clientY - caixa.top + 14}px`;
+      balao.classList.add('is-visivel');
+      canvas.style.cursor = 'pointer';
+    });
+  });
+  canvas.addEventListener('pointerleave', () => { balao.classList.remove('is-visivel'); canvas.style.cursor = ''; });
   canvas.addEventListener('pointermove', (e) => {
     if (!arraste || e.pointerType === 'touch') return;
     const dx = e.clientX - arraste.x;
@@ -14062,7 +14166,7 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     atualizarModo();
     const botaoEnq = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', title: 'Centralizar: traz o desenho de volta ao centro da tela', 'aria-label': 'Centralizar o desenho', onClick: enquadrarAtual }, '🎯');
     vista.flutua = h('div', { class: 'ctc-vista__flutua' }, botaoModo, botaoEnq);
-    vista.elemento = h('div', { class: 'ctc-vista' }, canvas, legenda, vista.flutua);
+    vista.elemento = h('div', { class: 'ctc-vista' }, canvas, legenda, vista.flutua, balao);
     vista.piscar = () => { vista.elemento.classList.add('is-piscando'); setTimeout(() => vista.elemento.classList.remove('is-piscando'), 1600); };
     desenhar();
     return vista;
@@ -14165,10 +14269,36 @@ function cenaSegmento(seg) {
     const rotulo = `${e.rotulo} · ${liberado(e) ? 'Liberado' : textoStatus(e)}`;
     // camada desligada: alfa 0 (nao desenha nem recebe toque, mas mantem o enquadramento da folha)
     const curto = camadaVisivel('desenho', 'nomes') ? codigoCurto(e) : '';
-    e.geo.forEach((g, i) => objetos.push({
-      id: e.id, ...g, cor: g.clarear ? misturar(cor, g.clarear) : cor, alfa: visivel ? cobertura : 0, rotulo,
-      curto: i === 0 ? curto : '',
-    }));
+    // v6.21.0: parte ligada a uma etapa (estacas): amarela com a etapa em execucao, verde com ela concluida;
+    // na prancha continua a cor do elemento (corPrancha). "dica" = texto do balao ao passar o mouse.
+    const base = (g) => (g.clarear ? misturar(cor, g.clarear) : cor);
+    // estaca cheia (sem as partes internas) ate a pinagem concluida: a camisa muda de cor com a cravacao e o pino com a
+    // pinagem; com a pinagem concluida abre em corte com a armacao por dentro. Raiz: perfuracao (trecho Ø350) e
+    // implantacao da camisa (Ø410); com a camisa concluida abre em corte.
+    const etapaCorte = e.tipo === 'estaca-metalica' ? 'escavacao' : 'camisa';
+    const emCorte = !e.geo.some((g) => g.casca) || feita(e, etapaCorte);
+    e.geo.forEach((g0, i) => {
+      if (!emCorte && g0.so3d) return;
+      const g = emCorte ? g0 : { ...g0, casca: false };
+      let corParte = base(g); let dica = `${tipoDe(e).nome.split(' (')[0]} ${e.rotulo} · ${liberado(e) ? 'Liberado' : textoStatus(e)}`;
+      if (g.etapa) {
+        const et = etapasDe(e).find((x) => x.chave === g.etapa);
+        const situacao = feita(e, g.etapa) ? 'concluída' : (emAndamento(e, g.etapa) ? 'em execução' : 'a executar');
+        if (feita(e, g.etapa)) corParte = STATUS.concluida.cor;
+        else if (emAndamento(e, g.etapa)) corParte = STATUS.execucao.cor;
+        else if (statusDe(e) !== 'nao-iniciada') {   // peca ja comecou mas esta parte nao: cinza de "nao iniciado"
+          const cinza = TOM_TIPO[e.tipo] || STATUS['nao-iniciada'].cor;
+          corParte = g.clarear ? misturar(cinza, g.clarear) : cinza;
+        }
+        dica = `${tipoDe(e).nome.split(' (')[0]} ${e.rotulo} · ${g.parte || (et ? et.texto : g.etapa)}: ${situacao}`;
+      }
+      objetos.push({
+        id: e.id, ...g, cor: corParte, corPrancha: base(g), alfa: visivel ? cobertura : 0, rotulo, dica,
+        // cor cheia no "3D em tom claro": estaca em corte ou parte com a etapa ja iniciada
+        parteAtiva: Boolean(g.etapa) && (emCorte || feita(e, g.etapa) || emAndamento(e, g.etapa)),
+        curto: i === 0 ? curto : '',
+      });
+    });
   });
   // nomes na prancha quando ha poucos elementos visiveis (leitura em campo)
   const visiveisSeg = elementos.filter((e) => e.seg === seg && passaFrente(e));
@@ -14839,6 +14969,243 @@ const CRONO_DATAS = {
   A1002610:["2026-12-09", "2026-12-15", "2026-12-17", "2026-12-23", 0],A1002620:["2026-12-09", "2026-12-15", "2026-12-17", "2026-12-23", 0],
   A1002630:["2026-12-16", "2026-12-18", "2026-12-24", "2026-12-29", 0],A1002640:["2026-12-16", "2026-12-18", "2026-12-24", "2026-12-29", 0],
   A1002650:["2026-12-21", "2026-12-21", "2026-12-30", "2026-12-30", 0],
+  // v6.20.0: atividades fora do catalogo usadas nas ligacoes automaticas (estacas 02/03/04, Laje 09-16, Expansao)
+  A10000:["2027-08-10", "2027-08-13", "2027-08-16", "2027-08-19", 0],A10010:["2027-08-13", "2027-08-14", "2027-08-19", "2027-08-20", 0],A10020:["2027-08-13", "2027-08-14", "2027-08-19", "2027-08-20", 0],
+  A10021:["2027-08-14", "2027-08-17", "2027-08-20", "2027-08-23", 0],A10030:["2027-08-17", "2027-08-18", "2027-08-23", "2027-08-24", 0],
+  A1003560:["2026-12-10", "2026-12-18", "2027-01-20", "2027-01-27", 0],A1003570:["2026-12-18", "2026-12-21", "2027-01-27", "2027-01-30", 0],
+  A1003580:["2026-12-21", "2026-12-24", "2027-02-01", "2027-02-03", 0],A1003590:["2026-12-24", "2026-12-29", "2027-02-04", "2027-02-05", 0],
+  A1003600:["2026-12-29", "2026-12-30", "2027-02-11", "2027-02-11", 0],A1003610:["2026-12-30", "2027-01-02", "2027-02-11", "2027-02-14", 0],
+  A1003620:["2026-12-18", "2026-12-29", "2027-01-28", "2027-02-04", 0],A1003630:["2026-12-29", "2027-01-01", "2027-02-04", "2027-02-07", 0],
+  A1003640:["2027-01-04", "2027-01-06", "2027-02-11", "2027-02-15", 0],A1003650:["2027-01-07", "2027-01-08", "2027-02-16", "2027-02-17", 0],
+  A1003660:["2027-01-11", "2027-01-11", "2027-02-18", "2027-02-18", 0],A1003670:["2027-01-11", "2027-01-14", "2027-02-18", "2027-02-21", 0],
+  A1003680:["2026-12-29", "2027-01-07", "2027-02-05", "2027-02-17", 0],A1003690:["2027-01-07", "2027-01-10", "2027-02-17", "2027-02-20", 0],
+  A1003700:["2027-01-11", "2027-01-13", "2027-02-22", "2027-02-24", 0],A1003710:["2027-01-14", "2027-01-15", "2027-02-25", "2027-02-26", 0],
+  A1003720:["2027-01-18", "2027-01-18", "2027-03-01", "2027-03-01", 0],A1003730:["2027-01-18", "2027-01-21", "2027-03-01", "2027-03-04", 0],
+  A1003740:["2026-11-27", "2026-12-04", "2026-12-16", "2026-12-23", 0],A1003750:["2026-12-04", "2026-12-07", "2026-12-23", "2026-12-26", 0],
+  A1003760:["2026-12-09", "2026-12-11", "2026-12-28", "2026-12-30", 0],A1003770:["2026-12-14", "2026-12-15", "2026-12-31", "2027-01-04", 0],
+  A1003780:["2026-12-16", "2026-12-16", "2027-01-05", "2027-01-05", 0],A1003790:["2026-12-16", "2026-12-19", "2027-01-05", "2027-01-08", 0],
+  A1003800:["2026-12-07", "2026-12-15", "2026-12-24", "2027-01-04", 0],A1003810:["2026-12-15", "2026-12-18", "2027-01-04", "2027-01-07", 0],
+  A1003820:["2026-12-21", "2026-12-23", "2027-01-08", "2027-01-12", 0],A1003830:["2026-12-24", "2026-12-28", "2027-01-13", "2027-01-14", 0],
+  A1003840:["2026-12-29", "2026-12-29", "2027-01-15", "2027-01-15", 0],A1003850:["2026-12-29", "2027-01-01", "2027-01-15", "2027-01-18", 0],
+  A1003860:["2026-12-16", "2026-12-23", "2027-01-05", "2027-01-12", 0],A1003870:["2026-12-23", "2026-12-26", "2027-01-12", "2027-01-15", 0],
+  A1003880:["2026-12-28", "2026-12-30", "2027-01-18", "2027-01-20", 0],A1003890:["2026-12-31", "2027-01-04", "2027-01-21", "2027-01-22", 0],
+  A1003900:["2027-01-05", "2027-01-05", "2027-01-25", "2027-01-25", 0],A1003910:["2027-01-05", "2027-01-08", "2027-01-25", "2027-01-28", 0],
+  A1003920:["2027-07-09", "2027-07-12", "2027-07-13", "2027-07-14", 0],A1003930:["2027-07-13", "2027-07-14", "2027-07-15", "2027-07-16", 0],
+  A1003940:["2027-07-15", "2027-07-15", "2027-07-19", "2027-07-19", 0],A1003950:["2027-07-16", "2027-07-16", "2027-07-20", "2027-07-20", 0],
+  A1003960:["2027-07-16", "2027-07-19", "2027-07-20", "2027-07-23", 0],A1003970:["2027-07-20", "2027-07-20", "2027-07-26", "2027-07-26", 0],
+  A1003980:["2027-07-19", "2027-07-19", "2027-07-21", "2027-07-21", 0],A1003990:["2027-07-19", "2027-07-20", "2027-07-21", "2027-07-22", 0],
+  A1004000:["2027-07-21", "2027-07-22", "2027-07-23", "2027-07-26", 0],A1004010:["2027-07-23", "2027-07-23", "2027-07-27", "2027-07-27", 0],
+  A1004020:["2027-07-26", "2027-07-26", "2027-07-28", "2027-07-28", 0],A1004030:["2027-07-26", "2027-07-29", "2027-07-28", "2027-07-31", 0],
+  A1004040:["2027-07-30", "2027-07-30", "2027-08-02", "2027-08-02", 0],A1004050:["2027-07-27", "2027-07-28", "2027-07-29", "2027-07-30", 0],
+  A1004060:["2027-07-29", "2027-07-30", "2027-08-02", "2027-08-03", 0],A1004070:["2027-08-02", "2027-08-02", "2027-08-04", "2027-08-04", 0],
+  A1004080:["2027-08-03", "2027-08-03", "2027-08-05", "2027-08-05", 0],A1004081:["2027-08-04", "2027-08-04", "2027-08-06", "2027-08-06", 0],
+  A1004090:["2027-08-03", "2027-08-06", "2027-08-05", "2027-08-08", 0],A1004100:["2027-08-09", "2027-08-09", "2027-08-09", "2027-08-09", 0],
+  A1004110:["2027-08-04", "2027-08-05", "2027-08-06", "2027-08-09", 0],A1004120:["2027-08-06", "2027-08-09", "2027-08-10", "2027-08-11", 0],
+  A1004130:["2027-08-10", "2027-08-10", "2027-08-12", "2027-08-12", 0],A1004140:["2027-08-11", "2027-08-11", "2027-08-13", "2027-08-13", 0],
+  A1004150:["2027-08-11", "2027-08-14", "2027-08-13", "2027-08-16", 0],A1004160:["2027-08-16", "2027-08-16", "2027-08-17", "2027-08-17", 0],
+  A1004170:["2027-08-12", "2027-08-12", "2027-08-16", "2027-08-16", 0],A1004190:["2027-07-27", "2027-07-27", "2027-07-29", "2027-07-29", 0],
+  A1004210:["2027-08-12", "2027-08-13", "2027-08-16", "2027-08-17", 0],A1004220:["2027-08-16", "2027-08-17", "2027-08-18", "2027-08-19", 0],
+  A1004230:["2027-08-18", "2027-08-18", "2027-08-20", "2027-08-20", 0],A1004240:["2027-08-19", "2027-08-19", "2027-08-23", "2027-08-23", 0],
+  A1004250:["2027-08-19", "2027-08-22", "2027-08-23", "2027-08-26", 0],A1004260:["2027-08-23", "2027-08-23", "2027-08-27", "2027-08-27", 0],
+  A1004270:["2027-08-20", "2027-08-20", "2027-08-24", "2027-08-24", 0],A1004280:["2027-08-20", "2027-08-23", "2027-08-24", "2027-08-25", 0],
+  A1004290:["2027-08-24", "2027-08-25", "2027-08-26", "2027-08-27", 0],A1004300:["2027-08-26", "2027-08-26", "2027-08-30", "2027-08-30", 0],
+  A1004310:["2027-08-27", "2027-08-27", "2027-08-31", "2027-08-31", 0],A1004320:["2027-08-27", "2027-08-30", "2027-08-31", "2027-09-03", 0],
+  A1004330:["2027-08-31", "2027-08-31", "2027-09-06", "2027-09-06", 0],A1004340:["2027-08-30", "2027-08-30", "2027-09-01", "2027-09-01", 0],
+  A1004350:["2027-08-30", "2027-08-31", "2027-09-01", "2027-09-02", 0],A1004360:["2027-09-01", "2027-09-02", "2027-09-03", "2027-09-06", 0],
+  A1004370:["2027-09-03", "2027-09-03", "2027-09-08", "2027-09-08", 0],A1004380:["2027-09-06", "2027-09-06", "2027-09-09", "2027-09-09", 0],
+  A1004390:["2027-09-06", "2027-09-09", "2027-09-09", "2027-09-12", 0],A1004400:["2027-09-10", "2027-09-10", "2027-09-13", "2027-09-13", 0],
+  A1004410:["2027-09-08", "2027-09-08", "2027-09-10", "2027-09-10", 0],A1004420:["2027-09-08", "2027-09-09", "2027-09-10", "2027-09-13", 0],
+  A1004430:["2027-09-10", "2027-09-13", "2027-09-14", "2027-09-15", 0],A1004440:["2027-09-14", "2027-09-14", "2027-09-16", "2027-09-16", 0],
+  A1004450:["2027-09-15", "2027-09-15", "2027-09-17", "2027-09-17", 0],A1004460:["2027-09-15", "2027-09-18", "2027-09-17", "2027-09-20", 0],
+  A1004470:["2027-09-20", "2027-09-20", "2027-09-21", "2027-09-21", 0],A1004480:["2027-09-16", "2027-09-16", "2027-09-20", "2027-09-20", 0],
+  A1004490:["2027-09-16", "2027-09-17", "2027-09-20", "2027-09-21", 0],A1004500:["2027-09-20", "2027-09-21", "2027-09-22", "2027-09-23", 0],
+  A1004510:["2027-09-22", "2027-09-22", "2027-09-24", "2027-09-24", 0],A1004520:["2027-09-23", "2027-09-23", "2027-09-27", "2027-09-27", 0],
+  A1004530:["2027-09-23", "2027-09-26", "2027-09-27", "2027-09-30", 0],A1004540:["2027-09-27", "2027-09-27", "2027-10-01", "2027-10-01", 0],
+  A1004550:["2027-09-24", "2027-09-24", "2027-09-28", "2027-09-28", 0],A1004560:["2027-09-24", "2027-09-27", "2027-09-28", "2027-09-29", 0],
+  A1004570:["2027-09-28", "2027-09-29", "2027-09-30", "2027-10-01", 0],A1004580:["2027-09-30", "2027-09-30", "2027-10-04", "2027-10-04", 0],
+  A1004590:["2027-10-01", "2027-10-01", "2027-10-05", "2027-10-05", 0],A1004600:["2027-10-01", "2027-10-04", "2027-10-05", "2027-10-08", 0],
+  A1004610:["2027-10-05", "2027-10-05", "2027-10-11", "2027-10-11", 0],A1004620:["2027-10-04", "2027-10-04", "2027-10-06", "2027-10-06", 0],
+  A1004630:["2027-10-04", "2027-10-05", "2027-10-06", "2027-10-07", 0],A1004640:["2027-10-06", "2027-10-07", "2027-10-08", "2027-10-11", 0],
+  A1004650:["2027-10-08", "2027-10-08", "2027-10-13", "2027-10-13", 0],A1004660:["2027-10-11", "2027-10-11", "2027-10-14", "2027-10-14", 0],
+  A1004670:["2027-10-11", "2027-10-14", "2027-10-14", "2027-10-17", 0],A1004680:["2027-10-15", "2027-10-15", "2027-10-18", "2027-10-18", 0],
+  A1004690:["2027-10-13", "2027-10-13", "2027-10-15", "2027-10-15", 0],A1004700:["2027-10-13", "2027-10-14", "2027-10-15", "2027-10-18", 0],
+  A1004710:["2027-10-15", "2027-10-18", "2027-10-19", "2027-10-20", 0],A1004720:["2027-10-19", "2027-10-19", "2027-10-21", "2027-10-21", 0],
+  A1004730:["2027-10-20", "2027-10-20", "2027-10-22", "2027-10-22", 0],A1004740:["2027-10-20", "2027-10-23", "2027-10-22", "2027-10-25", 0],
+  A1004750:["2027-10-25", "2027-10-25", "2027-10-26", "2027-10-26", 0],A1004760:["2027-10-21", "2027-10-21", "2027-10-25", "2027-10-25", 0],
+  A1004770:["2027-10-21", "2027-10-22", "2027-10-25", "2027-10-26", 0],A1004780:["2027-10-25", "2027-10-26", "2027-10-27", "2027-10-28", 0],
+  A1004790:["2027-10-27", "2027-10-27", "2027-10-29", "2027-10-29", 0],A1004800:["2027-10-28", "2027-10-28", "2027-11-01", "2027-11-01", 0],
+  A1004810:["2027-10-28", "2027-10-31", "2027-11-01", "2027-11-04", 0],A1004820:["2027-11-01", "2027-11-01", "2027-11-05", "2027-11-05", 0],
+  A1004830:["2027-10-29", "2027-10-29", "2027-11-03", "2027-11-03", 0],A1004840:["2027-10-29", "2027-11-01", "2027-11-03", "2027-11-04", 0],
+  A1004850:["2027-11-03", "2027-11-04", "2027-11-05", "2027-11-08", 0],A1004860:["2027-11-05", "2027-11-05", "2027-11-09", "2027-11-09", 0],
+  A1004870:["2027-11-08", "2027-11-08", "2027-11-10", "2027-11-10", 0],A1004880:["2027-11-08", "2027-11-11", "2027-11-10", "2027-11-13", 0],
+  A1004890:["2027-11-12", "2027-11-12", "2027-11-16", "2027-11-16", 0],A1004900:["2027-11-09", "2027-11-09", "2027-11-11", "2027-11-11", 0],
+  A1004910:["2027-11-09", "2027-11-10", "2027-11-11", "2027-11-12", 0],A1004920:["2027-11-11", "2027-11-12", "2027-11-16", "2027-11-17", 0],
+  A1004930:["2027-11-16", "2027-11-16", "2027-11-18", "2027-11-18", 0],A1004940:["2027-11-17", "2027-11-17", "2027-11-19", "2027-11-19", 0],
+  A1004950:["2027-11-17", "2027-11-20", "2027-11-19", "2027-11-22", 0],A1004960:["2027-11-22", "2027-11-22", "2027-11-23", "2027-11-23", 0],
+  A1004970:["2027-11-18", "2027-11-18", "2027-11-22", "2027-11-22", 0],A1004980:["2027-11-18", "2027-11-19", "2027-11-22", "2027-11-23", 0],
+  A1004990:["2027-11-22", "2027-11-23", "2027-11-24", "2027-11-25", 0],A10050:["2027-08-14", "2027-08-17", "2027-08-20", "2027-08-23", 0],
+  A1005000:["2027-11-24", "2027-11-24", "2027-11-26", "2027-11-26", 0],A1005010:["2027-11-25", "2027-11-25", "2027-11-29", "2027-11-29", 0],
+  A1005020:["2027-11-25", "2027-11-28", "2027-11-29", "2027-12-02", 0],A1005030:["2027-11-29", "2027-11-29", "2027-12-03", "2027-12-03", 0],
+  A1005040:["2027-11-26", "2027-11-26", "2027-11-30", "2027-11-30", 0],A1005050:["2027-11-26", "2027-11-29", "2027-11-30", "2027-12-01", 0],
+  A1005060:["2027-11-30", "2027-12-01", "2027-12-02", "2027-12-03", 0],A1005070:["2027-12-02", "2027-12-02", "2027-12-06", "2027-12-06", 0],
+  A1005080:["2027-12-03", "2027-12-03", "2027-12-07", "2027-12-07", 0],A1005090:["2027-12-03", "2027-12-06", "2027-12-07", "2027-12-10", 0],
+  A1005100:["2027-12-07", "2027-12-07", "2027-12-13", "2027-12-13", 0],A1005110:["2027-12-06", "2027-12-06", "2027-12-09", "2027-12-09", 0],
+  A1005120:["2027-12-06", "2027-12-07", "2027-12-09", "2027-12-10", 0],A1005130:["2027-12-09", "2027-12-10", "2027-12-13", "2027-12-14", 0],
+  A1005140:["2027-12-13", "2027-12-13", "2027-12-15", "2027-12-15", 0],A1005150:["2027-12-14", "2027-12-14", "2027-12-16", "2027-12-16", 0],
+  A1005160:["2027-12-14", "2027-12-17", "2027-12-16", "2027-12-19", 0],A1005170:["2027-12-20", "2027-12-20", "2027-12-20", "2027-12-20", 0],
+  A1005180:["2027-12-15", "2027-12-15", "2027-12-17", "2027-12-17", 0],A1005230:["2027-09-06", "2027-10-06", "2027-09-06", "2027-10-06", 0],
+  A1005280:["2027-10-08", "2027-11-07", "2027-10-11", "2027-11-10", 0],A1005330:["2027-11-08", "2027-12-08", "2027-11-09", "2027-12-09", 0],
+  A1005380:["2027-12-02", "2028-01-01", "2027-12-03", "2028-01-02", 0],A1005430:["2028-01-06", "2028-02-05", "2028-01-06", "2028-02-05", 0],
+  A1005440:["2027-08-10", "2027-08-12", "2027-08-10", "2027-08-12", 0],A1005450:["2027-08-13", "2027-08-19", "2027-08-13", "2027-08-19", 0],
+  A1005460:["2027-08-20", "2027-08-26", "2027-08-20", "2027-08-26", 0],A1005470:["2027-09-13", "2027-09-15", "2027-09-14", "2027-09-16", 0],
+  A1005480:["2027-09-16", "2027-09-22", "2027-09-17", "2027-09-23", 0],A1005490:["2027-09-23", "2027-09-29", "2027-09-24", "2027-09-30", 0],
+  A1005500:["2027-10-18", "2027-10-19", "2027-10-19", "2027-10-20", 0],A1005510:["2027-10-20", "2027-10-22", "2027-10-21", "2027-10-25", 0],
+  A1005520:["2027-10-25", "2027-10-27", "2027-10-26", "2027-10-28", 0],A1005530:["2027-11-16", "2027-11-17", "2027-11-17", "2027-11-18", 0],
+  A1005540:["2027-11-18", "2027-11-19", "2027-11-19", "2027-11-22", 0],A1005550:["2027-11-22", "2027-11-23", "2027-11-23", "2027-11-24", 0],
+  A1005560:["2027-12-21", "2027-12-22", "2027-12-21", "2027-12-22", 0],A1005570:["2027-12-23", "2027-12-24", "2027-12-23", "2027-12-24", 0],
+  A1005580:["2027-12-27", "2027-12-28", "2027-12-27", "2027-12-28", 0],A10060:["2027-08-16", "2027-08-18", "2027-08-21", "2027-08-25", 0],
+  A10070:["2027-08-18", "2027-08-20", "2027-08-25", "2027-08-26", 0],A10080:["2027-08-18", "2027-08-20", "2027-08-25", "2027-08-26", 0],A10081:["2027-08-20", "2027-08-23", "2027-08-26", "2027-08-29", 0],
+  A10090:["2027-08-23", "2027-08-24", "2027-08-30", "2027-08-31", 0],A10110:["2027-08-20", "2027-08-23", "2027-08-26", "2027-08-28", 0],A10120:["2027-08-21", "2027-08-24", "2027-08-27", "2027-08-30", 0],
+  A10130:["2027-08-24", "2027-08-25", "2027-08-30", "2027-09-01", 0],A10140:["2027-08-24", "2027-08-25", "2027-08-30", "2027-09-01", 0],A10141:["2027-08-25", "2027-08-28", "2027-09-01", "2027-09-04", 0],
+  A10150:["2027-08-28", "2027-08-31", "2027-09-04", "2027-09-06", 0],A10170:["2027-08-25", "2027-08-28", "2027-09-01", "2027-09-03", 0],A10180:["2027-08-27", "2027-08-30", "2027-09-02", "2027-09-04", 0],
+  A10190:["2027-08-30", "2027-08-31", "2027-09-04", "2027-09-06", 0],A10200:["2027-08-30", "2027-08-31", "2027-09-04", "2027-09-06", 0],A10201:["2027-08-31", "2027-09-03", "2027-09-06", "2027-09-09", 0],
+  A10210:["2027-09-03", "2027-09-04", "2027-09-09", "2027-09-11", 0],A10230:["2027-08-31", "2027-09-03", "2027-09-06", "2027-09-10", 0],A10240:["2027-09-01", "2027-09-04", "2027-09-09", "2027-09-11", 0],
+  A10250:["2027-09-04", "2027-09-06", "2027-09-11", "2027-09-13", 0],A10260:["2027-09-04", "2027-09-06", "2027-09-11", "2027-09-13", 0],A10261:["2027-09-06", "2027-09-09", "2027-09-13", "2027-09-16", 0],
+  A10270:["2027-09-09", "2027-09-10", "2027-09-16", "2027-09-17", 0],A10290:["2027-09-06", "2027-09-08", "2027-09-13", "2027-09-14", 0],A10300:["2027-09-08", "2027-09-09", "2027-09-14", "2027-09-16", 0],
+  A10310:["2027-09-09", "2027-09-11", "2027-09-16", "2027-09-17", 0],A10320:["2027-09-09", "2027-09-11", "2027-09-16", "2027-09-17", 0],A10321:["2027-09-11", "2027-09-14", "2027-09-17", "2027-09-20", 0],
+  A10330:["2027-09-14", "2027-09-15", "2027-09-20", "2027-09-21", 0],A10350:["2027-09-10", "2027-09-13", "2027-09-16", "2027-09-20", 0],A10360:["2027-09-11", "2027-09-14", "2027-09-18", "2027-09-21", 0],
+  A10370:["2027-09-14", "2027-09-15", "2027-09-21", "2027-09-22", 0],A10380:["2027-09-14", "2027-09-15", "2027-09-21", "2027-09-22", 0],A10381:["2027-09-15", "2027-09-18", "2027-09-22", "2027-09-25", 0],
+  A10390:["2027-09-18", "2027-09-21", "2027-09-25", "2027-09-27", 0],A10410:["2027-09-15", "2027-09-18", "2027-09-22", "2027-09-25", 0],A10420:["2027-09-17", "2027-09-20", "2027-09-23", "2027-09-27", 0],
+  A10430:["2027-09-20", "2027-09-21", "2027-09-27", "2027-09-28", 0],A10440:["2027-09-20", "2027-09-21", "2027-09-27", "2027-09-28", 0],A10441:["2027-09-21", "2027-09-24", "2027-09-28", "2027-10-01", 0],
+  A10450:["2027-09-24", "2027-09-25", "2027-10-01", "2027-10-02", 0],A10470:["2027-09-21", "2027-09-24", "2027-09-28", "2027-09-30", 0],A10480:["2027-09-22", "2027-09-25", "2027-09-29", "2027-10-02", 0],
+  A10490:["2027-09-25", "2027-09-27", "2027-10-02", "2027-10-04", 0],A10500:["2027-09-25", "2027-09-27", "2027-10-02", "2027-10-04", 0],A10501:["2027-09-27", "2027-09-30", "2027-10-04", "2027-10-07", 0],
+  A10510:["2027-09-30", "2027-10-01", "2027-10-07", "2027-10-08", 0],A10530:["2027-09-27", "2027-09-29", "2027-10-04", "2027-10-06", 0],A10540:["2027-09-28", "2027-10-01", "2027-10-05", "2027-10-07", 0],
+  A10550:["2027-10-01", "2027-10-02", "2027-10-07", "2027-10-09", 0],A10560:["2027-10-01", "2027-10-02", "2027-10-07", "2027-10-09", 0],A10561:["2027-10-02", "2027-10-05", "2027-10-09", "2027-10-12", 0],
+  A10570:["2027-10-05", "2027-10-06", "2027-10-13", "2027-10-14", 0],A10590:["2027-10-02", "2027-10-05", "2027-10-09", "2027-10-13", 0],A10600:["2027-10-04", "2027-10-06", "2027-10-11", "2027-10-14", 0],
+  A10610:["2027-10-06", "2027-10-08", "2027-10-14", "2027-10-15", 0],A10620:["2027-10-06", "2027-10-08", "2027-10-14", "2027-10-15", 0],A10621:["2027-10-08", "2027-10-11", "2027-10-15", "2027-10-18", 0],
+  A10630:["2027-10-11", "2027-10-13", "2027-10-18", "2027-10-20", 0],A10650:["2027-10-08", "2027-10-11", "2027-10-15", "2027-10-19", 0],A10660:["2027-10-09", "2027-10-13", "2027-10-18", "2027-10-20", 0],
+  A10670:["2027-10-13", "2027-10-14", "2027-10-20", "2027-10-21", 0],A10680:["2027-10-13", "2027-10-14", "2027-10-20", "2027-10-21", 0],A10681:["2027-10-14", "2027-10-17", "2027-10-21", "2027-10-24", 0],
+  A10690:["2027-10-18", "2027-10-19", "2027-10-25", "2027-10-26", 0],A10710:["2027-09-11", "2027-09-13", "2027-09-17", "2027-09-18", 0],A10720:["2027-09-13", "2027-09-14", "2027-09-18", "2027-09-20", 0],
+  A10730:["2027-09-14", "2027-09-15", "2027-09-20", "2027-09-21", 0],A10740:["2027-09-14", "2027-09-15", "2027-09-20", "2027-09-21", 0],A10741:["2027-09-15", "2027-09-18", "2027-09-21", "2027-09-24", 0],
+  A10750:["2027-09-18", "2027-09-20", "2027-09-24", "2027-09-26", 0],A10770:["2027-09-15", "2027-09-18", "2027-09-21", "2027-09-24", 0],A10780:["2027-09-16", "2027-09-20", "2027-09-23", "2027-09-25", 0],
+  A10790:["2027-09-20", "2027-09-21", "2027-09-25", "2027-09-27", 0],A10800:["2027-09-20", "2027-09-21", "2027-09-25", "2027-09-27", 0],A10801:["2027-09-21", "2027-09-24", "2027-09-27", "2027-09-30", 0],
+  A10810:["2027-09-24", "2027-09-25", "2027-09-30", "2027-10-01", 0],A10830:["2027-09-21", "2027-09-23", "2027-09-27", "2027-09-30", 0],A10840:["2027-09-22", "2027-09-25", "2027-09-28", "2027-10-01", 0],
+  A10850:["2027-09-25", "2027-09-27", "2027-10-01", "2027-10-02", 0],A10860:["2027-09-25", "2027-09-27", "2027-10-01", "2027-10-02", 0],A10861:["2027-09-27", "2027-09-30", "2027-10-02", "2027-10-05", 0],
+  A10870:["2027-09-30", "2027-10-01", "2027-10-05", "2027-10-06", 0],A10890:["2027-09-27", "2027-09-29", "2027-10-02", "2027-10-05", 0],A10900:["2027-09-28", "2027-09-30", "2027-10-04", "2027-10-07", 0],
+  A10910:["2027-09-30", "2027-10-02", "2027-10-07", "2027-10-08", 0],A10920:["2027-09-30", "2027-10-02", "2027-10-07", "2027-10-08", 0],A10921:["2027-10-02", "2027-10-05", "2027-10-08", "2027-10-11", 0],
+  A10930:["2027-10-05", "2027-10-06", "2027-10-11", "2027-10-13", 0],A10950:["2027-10-02", "2027-10-05", "2027-10-08", "2027-10-11", 0],A10960:["2027-10-04", "2027-10-06", "2027-10-09", "2027-10-13", 0],
+  A10970:["2027-10-06", "2027-10-07", "2027-10-13", "2027-10-15", 0],A10980:["2027-10-06", "2027-10-07", "2027-10-13", "2027-10-15", 0],A10981:["2027-10-07", "2027-10-10", "2027-10-15", "2027-10-18", 0],
+  A10990:["2027-10-11", "2027-10-13", "2027-10-18", "2027-10-19", 0],A11010:["2027-10-07", "2027-10-11", "2027-10-15", "2027-10-18", 0],A11020:["2027-10-09", "2027-10-13", "2027-10-16", "2027-10-19", 0],
+  A11030:["2027-10-13", "2027-10-14", "2027-10-19", "2027-10-20", 0],A11040:["2027-10-13", "2027-10-14", "2027-10-19", "2027-10-20", 0],A11041:["2027-10-14", "2027-10-17", "2027-10-20", "2027-10-23", 0],
+  A11050:["2027-10-18", "2027-10-19", "2027-10-23", "2027-10-26", 0],A11070:["2027-10-14", "2027-10-15", "2027-10-20", "2027-10-22", 0],A11080:["2027-10-15", "2027-10-17", "2027-10-22", "2027-10-23", 0],
+  A11090:["2027-10-17", "2027-10-19", "2027-10-23", "2027-10-25", 0],A11100:["2027-10-17", "2027-10-19", "2027-10-23", "2027-10-25", 0],A11101:["2027-10-19", "2027-10-22", "2027-10-25", "2027-10-28", 0],
+  A11110:["2027-10-22", "2027-10-23", "2027-10-28", "2027-10-29", 0],A11130:["2027-10-14", "2027-10-18", "2027-10-21", "2027-10-24", 0],A11140:["2027-10-16", "2027-10-19", "2027-10-22", "2027-10-26", 0],
+  A11150:["2027-10-19", "2027-10-20", "2027-10-26", "2027-10-27", 0],A11160:["2027-10-19", "2027-10-20", "2027-10-26", "2027-10-27", 0],A11161:["2027-10-20", "2027-10-23", "2027-10-27", "2027-10-30", 0],
+  A11170:["2027-10-23", "2027-10-25", "2027-10-30", "2027-11-01", 0],A11190:["2027-10-20", "2027-10-23", "2027-10-27", "2027-10-29", 0],A11200:["2027-10-21", "2027-10-25", "2027-10-28", "2027-10-31", 0],
+  A11210:["2027-10-25", "2027-10-26", "2027-11-01", "2027-11-03", 0],A11220:["2027-10-25", "2027-10-26", "2027-11-01", "2027-11-03", 0],A11221:["2027-10-26", "2027-10-29", "2027-11-03", "2027-11-06", 0],
+  A11230:["2027-10-29", "2027-10-30", "2027-11-06", "2027-11-08", 0],A11250:["2027-10-26", "2027-10-28", "2027-11-03", "2027-11-05", 0],A11260:["2027-10-27", "2027-10-30", "2027-11-04", "2027-11-06", 0],
+  A11270:["2027-10-30", "2027-11-01", "2027-11-06", "2027-11-09", 0],A11280:["2027-10-30", "2027-11-01", "2027-11-06", "2027-11-09", 0],A11281:["2027-11-01", "2027-11-04", "2027-11-09", "2027-11-12", 0],
+  A11290:["2027-11-04", "2027-11-05", "2027-11-12", "2027-11-13", 0],A11310:["2027-11-01", "2027-11-04", "2027-11-09", "2027-11-11", 0],A11320:["2027-11-03", "2027-11-05", "2027-11-10", "2027-11-12", 0],
+  A11330:["2027-11-05", "2027-11-07", "2027-11-12", "2027-11-13", 0],A11340:["2027-11-05", "2027-11-07", "2027-11-12", "2027-11-13", 0],A11341:["2027-11-07", "2027-11-10", "2027-11-13", "2027-11-16", 0],
+  A11350:["2027-11-10", "2027-11-11", "2027-11-16", "2027-11-18", 0],A11370:["2027-11-07", "2027-11-10", "2027-11-13", "2027-11-18", 0],A11380:["2027-11-09", "2027-11-11", "2027-11-17", "2027-11-19", 0],
+  A11390:["2027-11-11", "2027-11-12", "2027-11-19", "2027-11-22", 0],A11400:["2027-11-11", "2027-11-12", "2027-11-19", "2027-11-22", 0],A11401:["2027-11-12", "2027-11-15", "2027-11-22", "2027-11-25", 0],
+  A11410:["2027-11-16", "2027-11-17", "2027-11-25", "2027-11-26", 0],A11430:["2027-11-12", "2027-11-17", "2027-11-22", "2027-11-25", 0],A11440:["2027-11-14", "2027-11-18", "2027-11-23", "2027-11-26", 0],
+  A11450:["2027-11-18", "2027-11-19", "2027-11-26", "2027-11-27", 0],A11460:["2027-11-18", "2027-11-19", "2027-11-26", "2027-11-27", 0],A11461:["2027-11-19", "2027-11-22", "2027-11-27", "2027-11-30", 0],
+  A11470:["2027-11-22", "2027-11-23", "2027-11-30", "2027-12-01", 0],A11490:["2027-10-19", "2027-10-20", "2027-10-25", "2027-10-26", 0],A11500:["2027-10-20", "2027-10-21", "2027-10-26", "2027-10-27", 0],
+  A11510:["2027-10-21", "2027-10-22", "2027-10-27", "2027-10-29", 0],A11520:["2027-10-21", "2027-10-22", "2027-10-27", "2027-10-29", 0],A11521:["2027-10-22", "2027-10-25", "2027-10-29", "2027-11-01", 0],
+  A11530:["2027-10-25", "2027-10-27", "2027-11-01", "2027-11-03", 0],A11550:["2027-10-22", "2027-10-26", "2027-10-29", "2027-11-01", 0],A11560:["2027-10-24", "2027-10-27", "2027-10-30", "2027-11-03", 0],
+  A11570:["2027-10-27", "2027-10-28", "2027-11-03", "2027-11-04", 0],A11580:["2027-10-27", "2027-10-28", "2027-11-03", "2027-11-04", 0],A11581:["2027-10-28", "2027-10-31", "2027-11-04", "2027-11-07", 0],
+  A11590:["2027-11-01", "2027-11-03", "2027-11-08", "2027-11-09", 0],A11610:["2027-10-28", "2027-10-31", "2027-11-04", "2027-11-08", 0],A11620:["2027-10-29", "2027-11-03", "2027-11-06", "2027-11-09", 0],
+  A11630:["2027-11-03", "2027-11-04", "2027-11-09", "2027-11-10", 0],A11640:["2027-11-03", "2027-11-04", "2027-11-09", "2027-11-10", 0],A11641:["2027-11-04", "2027-11-07", "2027-11-10", "2027-11-13", 0],
+  A11650:["2027-11-08", "2027-11-09", "2027-11-13", "2027-11-16", 0],A11670:["2027-11-04", "2027-11-06", "2027-11-10", "2027-11-13", 0],A11680:["2027-11-05", "2027-11-09", "2027-11-11", "2027-11-16", 0],
+  A11690:["2027-11-09", "2027-11-10", "2027-11-16", "2027-11-17", 0],A11700:["2027-11-09", "2027-11-10", "2027-11-16", "2027-11-17", 0],A11701:["2027-11-10", "2027-11-13", "2027-11-17", "2027-11-20", 0],
+  A11710:["2027-11-13", "2027-11-16", "2027-11-21", "2027-11-23", 0],A11730:["2027-11-10", "2027-11-12", "2027-11-17", "2027-11-19", 0],A11740:["2027-11-12", "2027-11-16", "2027-11-19", "2027-11-24", 0],
+  A11750:["2027-11-16", "2027-11-18", "2027-11-24", "2027-11-25", 0],A11760:["2027-11-16", "2027-11-18", "2027-11-24", "2027-11-25", 0],A11761:["2027-11-18", "2027-11-21", "2027-11-25", "2027-11-28", 0],
+  A11770:["2027-11-22", "2027-11-23", "2027-11-29", "2027-11-30", 0],A11790:["2027-11-18", "2027-11-22", "2027-11-25", "2027-11-27", 0],A11800:["2027-11-22", "2027-11-24", "2027-11-27", "2027-12-01", 0],
+  A11810:["2027-11-24", "2027-11-26", "2027-12-01", "2027-12-02", 0],A11820:["2027-11-24", "2027-11-26", "2027-12-01", "2027-12-02", 0],A11821:["2027-11-26", "2027-11-29", "2027-12-02", "2027-12-05", 0],
+  A11830:["2027-11-29", "2027-11-30", "2027-12-06", "2027-12-07", 0],A11850:["2027-11-26", "2027-11-27", "2027-12-02", "2027-12-03", 0],A11860:["2027-11-27", "2027-11-29", "2027-12-03", "2027-12-04", 0],
+  A11870:["2027-11-29", "2027-11-30", "2027-12-04", "2027-12-07", 0],A11880:["2027-11-29", "2027-11-30", "2027-12-04", "2027-12-07", 0],A11881:["2027-11-30", "2027-12-03", "2027-12-07", "2027-12-10", 0],
+  A11890:["2027-12-03", "2027-12-04", "2027-12-10", "2027-12-11", 0],A13080:["2027-06-15", "2027-06-18", "2027-06-23", "2027-06-26", 0],A13090:["2027-06-18", "2027-06-22", "2027-06-26", "2027-07-01", 0],
+  A13100:["2027-07-06", "2027-07-09", "2027-07-14", "2027-07-17", 0],A13110:["2027-07-09", "2027-07-14", "2027-07-17", "2027-07-21", 0],A13120:["2027-07-24", "2027-07-28", "2027-08-02", "2027-08-04", 0],
+  A13130:["2027-07-28", "2027-07-31", "2027-08-04", "2027-08-09", 0],A13140:["2027-08-13", "2027-08-17", "2027-08-21", "2027-08-24", 0],A13150:["2027-08-17", "2027-08-20", "2027-08-24", "2027-08-28", 0],
+  A13160:["2027-08-31", "2027-09-02", "2027-09-08", "2027-09-10", 0],A13170:["2027-09-02", "2027-09-08", "2027-09-10", "2027-09-15", 0],A13180:["2027-09-21", "2027-09-23", "2027-09-28", "2027-09-30", 0],
+  A13190:["2027-09-23", "2027-09-28", "2027-09-30", "2027-10-05", 0],A13200:["2027-10-19", "2027-10-21", "2027-10-26", "2027-10-28", 0],A13210:["2027-10-21", "2027-10-26", "2027-10-28", "2027-11-03", 0],
+  A13220:["2027-12-04", "2027-12-09", "2027-12-11", "2027-12-14", 0],A13230:["2027-12-09", "2027-12-13", "2027-12-14", "2027-12-18", 0],A17570:["2027-06-22", "2027-06-28", "2027-07-01", "2027-07-05", 0],
+  A17580:["2027-07-14", "2027-07-18", "2027-07-21", "2027-07-26", 0],A17590:["2027-07-31", "2027-08-05", "2027-08-09", "2027-08-12", 0],A17600:["2027-08-20", "2027-08-25", "2027-08-28", "2027-09-01", 0],
+  A17610:["2027-09-08", "2027-09-11", "2027-09-15", "2027-09-18", 0],A18120:["2027-09-28", "2027-10-01", "2027-10-05", "2027-10-08", 0],A18380:["2027-10-26", "2027-10-29", "2027-11-03", "2027-11-06", 0],
+  A19050:["2027-12-13", "2027-12-17", "2027-12-18", "2027-12-22", 0],A7830:["2027-05-19", "2027-05-20", "2027-05-26", "2027-05-27", 0],A7840:["2027-05-20", "2027-05-21", "2027-05-27", "2027-05-28", 0],
+  A7850:["2027-05-21", "2027-05-22", "2027-05-28", "2027-05-29", 0],A7860:["2027-05-21", "2027-05-22", "2027-05-28", "2027-05-29", 0],A7861:["2027-05-22", "2027-05-25", "2027-05-29", "2027-06-01", 0],
+  A7870:["2027-05-25", "2027-05-27", "2027-06-01", "2027-06-02", 0],A7890:["2027-05-22", "2027-05-26", "2027-05-29", "2027-06-02", 0],A7900:["2027-05-25", "2027-05-27", "2027-05-31", "2027-06-03", 0],
+  A7910:["2027-05-27", "2027-05-28", "2027-06-03", "2027-06-04", 0],A7920:["2027-05-27", "2027-05-28", "2027-06-03", "2027-06-04", 0],A7921:["2027-05-28", "2027-05-31", "2027-06-04", "2027-06-07", 0],
+  A7930:["2027-05-31", "2027-06-01", "2027-06-07", "2027-06-08", 0],A7950:["2027-05-28", "2027-06-01", "2027-06-04", "2027-06-07", 0],A7960:["2027-05-29", "2027-06-02", "2027-06-05", "2027-06-09", 0],
+  A7970:["2027-06-02", "2027-06-03", "2027-06-09", "2027-06-10", 0],A7980:["2027-06-02", "2027-06-03", "2027-06-09", "2027-06-10", 0],A7981:["2027-06-03", "2027-06-06", "2027-06-10", "2027-06-13", 0],
+  A7990:["2027-06-07", "2027-06-08", "2027-06-14", "2027-06-15", 0],A8010:["2027-06-03", "2027-06-05", "2027-06-10", "2027-06-12", 0],A8020:["2027-06-04", "2027-06-08", "2027-06-11", "2027-06-14", 0],
+  A8030:["2027-06-08", "2027-06-09", "2027-06-14", "2027-06-16", 0],A8040:["2027-06-08", "2027-06-09", "2027-06-14", "2027-06-16", 0],A8041:["2027-06-09", "2027-06-12", "2027-06-16", "2027-06-19", 0],
+  A8050:["2027-06-12", "2027-06-14", "2027-06-19", "2027-06-21", 0],A8070:["2027-06-09", "2027-06-11", "2027-06-16", "2027-06-18", 0],A8080:["2027-06-10", "2027-06-12", "2027-06-17", "2027-06-19", 0],
+  A8090:["2027-06-12", "2027-06-15", "2027-06-19", "2027-06-21", 0],A8100:["2027-06-12", "2027-06-15", "2027-06-19", "2027-06-21", 0],A8101:["2027-06-15", "2027-06-18", "2027-06-21", "2027-06-24", 0],
+  A8110:["2027-06-18", "2027-06-19", "2027-06-25", "2027-06-26", 0],A8130:["2027-06-15", "2027-06-17", "2027-06-21", "2027-06-25", 0],A8140:["2027-06-16", "2027-06-18", "2027-06-23", "2027-06-26", 0],
+  A8150:["2027-06-18", "2027-06-19", "2027-06-26", "2027-06-28", 0],A8160:["2027-06-18", "2027-06-19", "2027-06-26", "2027-06-28", 0],A8161:["2027-06-19", "2027-06-22", "2027-06-28", "2027-07-01", 0],
+  A8170:["2027-06-22", "2027-06-24", "2027-07-01", "2027-07-02", 0],A8190:["2027-06-19", "2027-06-22", "2027-06-28", "2027-06-29", 0],A8200:["2027-06-22", "2027-06-23", "2027-06-29", "2027-07-01", 0],
+  A8210:["2027-06-23", "2027-06-25", "2027-07-01", "2027-07-02", 0],A8220:["2027-06-23", "2027-06-25", "2027-07-01", "2027-07-02", 0],A8221:["2027-06-25", "2027-06-28", "2027-07-02", "2027-07-05", 0],
+  A8230:["2027-06-28", "2027-06-29", "2027-07-05", "2027-07-06", 0],A8250:["2027-05-21", "2027-05-22", "2027-05-28", "2027-05-30", 0],A8260:["2027-05-22", "2027-05-24", "2027-05-31", "2027-06-01", 0],
+  A8270:["2027-05-24", "2027-05-26", "2027-06-01", "2027-06-02", 0],A8280:["2027-05-24", "2027-05-26", "2027-06-01", "2027-06-02", 0],A8281:["2027-05-26", "2027-05-29", "2027-06-02", "2027-06-05", 0],
+  A8290:["2027-05-29", "2027-05-31", "2027-06-05", "2027-06-07", 0],A8310:["2027-05-26", "2027-05-28", "2027-06-02", "2027-06-04", 0],A8320:["2027-05-27", "2027-05-29", "2027-06-03", "2027-06-06", 0],
+  A8330:["2027-05-29", "2027-05-31", "2027-06-07", "2027-06-08", 0],A8340:["2027-05-29", "2027-05-31", "2027-06-07", "2027-06-08", 0],A8341:["2027-05-31", "2027-06-03", "2027-06-08", "2027-06-11", 0],
+  A8350:["2027-06-03", "2027-06-05", "2027-06-11", "2027-06-12", 0],A8370:["2027-05-31", "2027-06-03", "2027-06-08", "2027-06-10", 0],A8380:["2027-06-02", "2027-06-04", "2027-06-09", "2027-06-11", 0],
+  A8390:["2027-06-04", "2027-06-05", "2027-06-11", "2027-06-13", 0],A8400:["2027-06-04", "2027-06-05", "2027-06-11", "2027-06-13", 0],A8401:["2027-06-05", "2027-06-08", "2027-06-13", "2027-06-16", 0],
+  A8410:["2027-06-08", "2027-06-09", "2027-06-16", "2027-06-17", 0],A8430:["2027-06-05", "2027-06-09", "2027-06-14", "2027-06-16", 0],A8440:["2027-06-07", "2027-06-10", "2027-06-15", "2027-06-17", 0],
+  A8450:["2027-06-10", "2027-06-11", "2027-06-17", "2027-06-18", 0],A8460:["2027-06-10", "2027-06-11", "2027-06-17", "2027-06-18", 0],A8461:["2027-06-11", "2027-06-14", "2027-06-18", "2027-06-21", 0],
+  A8470:["2027-06-14", "2027-06-15", "2027-06-21", "2027-06-23", 0],A8490:["2027-06-11", "2027-06-14", "2027-06-18", "2027-06-22", 0],A8500:["2027-06-12", "2027-06-16", "2027-06-21", "2027-06-23", 0],
+  A8510:["2027-06-16", "2027-06-17", "2027-06-23", "2027-06-25", 0],A8520:["2027-06-16", "2027-06-17", "2027-06-23", "2027-06-25", 0],A8521:["2027-06-17", "2027-06-20", "2027-06-25", "2027-06-28", 0],
+  A8530:["2027-06-21", "2027-06-22", "2027-06-28", "2027-06-29", 0],A8550:["2027-06-17", "2027-06-19", "2027-06-25", "2027-06-29", 0],A8560:["2027-06-18", "2027-06-21", "2027-06-26", "2027-06-30", 0],
+  A8570:["2027-06-21", "2027-06-23", "2027-06-30", "2027-07-01", 0],A8580:["2027-06-21", "2027-06-23", "2027-06-30", "2027-07-01", 0],A8581:["2027-06-23", "2027-06-26", "2027-07-01", "2027-07-04", 0],
+  A8590:["2027-06-26", "2027-06-28", "2027-07-05", "2027-07-06", 0],A8610:["2027-06-23", "2027-06-25", "2027-07-01", "2027-07-02", 0],A8620:["2027-06-25", "2027-06-26", "2027-07-02", "2027-07-03", 0],
+  A8630:["2027-06-26", "2027-06-28", "2027-07-03", "2027-07-06", 0],A8640:["2027-06-26", "2027-06-28", "2027-07-03", "2027-07-06", 0],A8641:["2027-06-28", "2027-07-01", "2027-07-06", "2027-07-09", 0],
+  A8650:["2027-07-01", "2027-07-02", "2027-07-09", "2027-07-10", 0],A8670:["2027-06-25", "2027-06-26", "2027-07-02", "2027-07-03", 0],A8680:["2027-06-26", "2027-06-28", "2027-07-03", "2027-07-05", 0],
+  A8690:["2027-06-28", "2027-06-30", "2027-07-05", "2027-07-06", 0],A8700:["2027-06-28", "2027-06-30", "2027-07-05", "2027-07-06", 0],A8701:["2027-06-30", "2027-07-03", "2027-07-06", "2027-07-09", 0],
+  A8710:["2027-07-03", "2027-07-05", "2027-07-09", "2027-07-11", 0],A8730:["2027-06-30", "2027-07-02", "2027-07-06", "2027-07-10", 0],A8740:["2027-07-01", "2027-07-03", "2027-07-09", "2027-07-12", 0],
+  A8750:["2027-07-03", "2027-07-05", "2027-07-12", "2027-07-13", 0],A8760:["2027-07-03", "2027-07-05", "2027-07-12", "2027-07-13", 0],A8761:["2027-07-05", "2027-07-08", "2027-07-13", "2027-07-16", 0],
+  A8770:["2027-07-08", "2027-07-10", "2027-07-16", "2027-07-17", 0],A8790:["2027-07-05", "2027-07-09", "2027-07-13", "2027-07-16", 0],A8800:["2027-07-08", "2027-07-10", "2027-07-14", "2027-07-17", 0],
+  A8810:["2027-07-10", "2027-07-12", "2027-07-17", "2027-07-19", 0],A8820:["2027-07-10", "2027-07-12", "2027-07-17", "2027-07-19", 0],A8821:["2027-07-12", "2027-07-15", "2027-07-19", "2027-07-22", 0],
+  A8830:["2027-07-15", "2027-07-16", "2027-07-22", "2027-07-23", 0],A8850:["2027-07-12", "2027-07-15", "2027-07-19", "2027-07-21", 0],A8860:["2027-07-13", "2027-07-16", "2027-07-20", "2027-07-23", 0],
+  A8870:["2027-07-16", "2027-07-17", "2027-07-23", "2027-07-24", 0],A8880:["2027-07-16", "2027-07-17", "2027-07-23", "2027-07-24", 0],A8881:["2027-07-17", "2027-07-20", "2027-07-24", "2027-07-27", 0],
+  A8890:["2027-07-20", "2027-07-21", "2027-07-27", "2027-07-28", 0],A8910:["2027-07-17", "2027-07-20", "2027-07-24", "2027-07-27", 0],A8920:["2027-07-19", "2027-07-22", "2027-07-26", "2027-07-28", 0],
+  A8930:["2027-07-22", "2027-07-23", "2027-07-28", "2027-07-30", 0],A8940:["2027-07-22", "2027-07-23", "2027-07-28", "2027-07-30", 0],A8941:["2027-07-23", "2027-07-26", "2027-07-30", "2027-08-02", 0],
+  A8950:["2027-07-26", "2027-07-27", "2027-08-02", "2027-08-03", 0],A8970:["2027-07-23", "2027-07-26", "2027-07-30", "2027-08-02", 0],A8980:["2027-07-24", "2027-07-27", "2027-07-31", "2027-08-03", 0],
+  A8990:["2027-07-27", "2027-07-29", "2027-08-03", "2027-08-04", 0],A9000:["2027-07-27", "2027-07-29", "2027-08-03", "2027-08-04", 0],A9001:["2027-07-29", "2027-08-01", "2027-08-04", "2027-08-07", 0],
+  A9010:["2027-08-01", "2027-08-03", "2027-08-07", "2027-08-10", 0],A9030:["2027-07-29", "2027-07-30", "2027-08-04", "2027-08-06", 0],A9040:["2027-07-30", "2027-07-31", "2027-08-06", "2027-08-07", 0],
+  A9050:["2027-07-31", "2027-08-02", "2027-08-07", "2027-08-09", 0],A9060:["2027-07-31", "2027-08-02", "2027-08-07", "2027-08-09", 0],A9061:["2027-08-02", "2027-08-05", "2027-08-09", "2027-08-12", 0],
+  A9070:["2027-08-05", "2027-08-06", "2027-08-12", "2027-08-13", 0],A9090:["2027-06-28", "2027-06-29", "2027-07-06", "2027-07-08", 0],A9100:["2027-06-29", "2027-07-01", "2027-07-08", "2027-07-09", 0],
+  A9110:["2027-07-01", "2027-07-02", "2027-07-09", "2027-07-10", 0],A9120:["2027-07-01", "2027-07-02", "2027-07-09", "2027-07-10", 0],A9121:["2027-07-02", "2027-07-05", "2027-07-10", "2027-07-13", 0],
+  A9130:["2027-07-05", "2027-07-06", "2027-07-13", "2027-07-14", 0],A9150:["2027-07-02", "2027-07-05", "2027-07-10", "2027-07-14", 0],A9160:["2027-07-03", "2027-07-06", "2027-07-12", "2027-07-15", 0],
+  A9170:["2027-07-06", "2027-07-09", "2027-07-15", "2027-07-16", 0],A9180:["2027-07-06", "2027-07-09", "2027-07-15", "2027-07-16", 0],A9181:["2027-07-09", "2027-07-12", "2027-07-16", "2027-07-19", 0],
+  A9190:["2027-07-12", "2027-07-13", "2027-07-19", "2027-07-20", 0],A9210:["2027-07-09", "2027-07-12", "2027-07-16", "2027-07-19", 0],A9220:["2027-07-10", "2027-07-13", "2027-07-17", "2027-07-21", 0],
+  A9230:["2027-07-13", "2027-07-14", "2027-07-21", "2027-07-22", 0],A9240:["2027-07-13", "2027-07-14", "2027-07-21", "2027-07-22", 0],A9241:["2027-07-14", "2027-07-17", "2027-07-22", "2027-07-25", 0],
+  A9250:["2027-07-17", "2027-07-20", "2027-07-26", "2027-07-27", 0],A9270:["2027-07-14", "2027-07-17", "2027-07-22", "2027-07-24", 0],A9280:["2027-07-16", "2027-07-19", "2027-07-23", "2027-07-26", 0],
+  A9290:["2027-07-19", "2027-07-20", "2027-07-26", "2027-07-28", 0],A9300:["2027-07-19", "2027-07-20", "2027-07-26", "2027-07-28", 0],A9301:["2027-07-20", "2027-07-23", "2027-07-28", "2027-07-31", 0],
+  A9310:["2027-07-23", "2027-07-24", "2027-07-31", "2027-08-02", 0],A9330:["2027-07-20", "2027-07-23", "2027-07-28", "2027-07-30", 0],A9340:["2027-07-21", "2027-07-24", "2027-07-29", "2027-07-31", 0],
+  A9350:["2027-07-24", "2027-07-26", "2027-07-31", "2027-08-02", 0],A9360:["2027-07-24", "2027-07-26", "2027-07-31", "2027-08-02", 0],A9361:["2027-07-26", "2027-07-29", "2027-08-02", "2027-08-05", 0],
+  A9370:["2027-07-29", "2027-07-30", "2027-08-05", "2027-08-07", 0],A9390:["2027-07-26", "2027-07-28", "2027-08-02", "2027-08-05", 0],A9400:["2027-07-27", "2027-07-30", "2027-08-04", "2027-08-06", 0],
+  A9410:["2027-07-30", "2027-07-31", "2027-08-06", "2027-08-07", 0],A9420:["2027-07-30", "2027-07-31", "2027-08-06", "2027-08-07", 0],A9421:["2027-07-31", "2027-08-03", "2027-08-07", "2027-08-10", 0],
+  A9430:["2027-08-03", "2027-08-04", "2027-08-10", "2027-08-11", 0],A9450:["2027-07-31", "2027-08-02", "2027-08-07", "2027-08-09", 0],A9460:["2027-08-02", "2027-08-03", "2027-08-09", "2027-08-11", 0],
+  A9470:["2027-08-03", "2027-08-04", "2027-08-11", "2027-08-12", 0],A9480:["2027-08-03", "2027-08-04", "2027-08-11", "2027-08-12", 0],A9481:["2027-08-04", "2027-08-07", "2027-08-12", "2027-08-15", 0],
+  A9490:["2027-08-07", "2027-08-10", "2027-08-16", "2027-08-17", 0],A9510:["2027-08-02", "2027-08-03", "2027-08-09", "2027-08-10", 0],A9520:["2027-08-03", "2027-08-05", "2027-08-10", "2027-08-11", 0],
+  A9530:["2027-08-05", "2027-08-06", "2027-08-11", "2027-08-13", 0],A9540:["2027-08-05", "2027-08-06", "2027-08-11", "2027-08-13", 0],A9541:["2027-08-06", "2027-08-09", "2027-08-13", "2027-08-16", 0],
+  A9550:["2027-08-09", "2027-08-10", "2027-08-16", "2027-08-17", 0],A9570:["2027-08-06", "2027-08-09", "2027-08-13", "2027-08-16", 0],A9580:["2027-08-09", "2027-08-12", "2027-08-16", "2027-08-18", 0],
+  A9590:["2027-08-12", "2027-08-13", "2027-08-18", "2027-08-20", 0],A9600:["2027-08-12", "2027-08-13", "2027-08-18", "2027-08-20", 0],A9601:["2027-08-13", "2027-08-16", "2027-08-20", "2027-08-23", 0],
+  A9610:["2027-08-16", "2027-08-17", "2027-08-23", "2027-08-24", 0],A9630:["2027-08-13", "2027-08-16", "2027-08-20", "2027-08-23", 0],A9640:["2027-08-14", "2027-08-17", "2027-08-21", "2027-08-24", 0],
+  A9650:["2027-08-17", "2027-08-19", "2027-08-24", "2027-08-25", 0],A9660:["2027-08-17", "2027-08-19", "2027-08-24", "2027-08-25", 0],A9661:["2027-08-19", "2027-08-22", "2027-08-25", "2027-08-28", 0],
+  A9670:["2027-08-22", "2027-08-24", "2027-08-28", "2027-08-31", 0],A9690:["2027-08-19", "2027-08-21", "2027-08-25", "2027-08-28", 0],A9700:["2027-08-20", "2027-08-23", "2027-08-27", "2027-08-30", 0],
+  A9710:["2027-08-23", "2027-08-24", "2027-08-30", "2027-08-31", 0],A9720:["2027-08-23", "2027-08-24", "2027-08-30", "2027-08-31", 0],A9721:["2027-08-24", "2027-08-27", "2027-08-31", "2027-09-03", 0],
+  A9730:["2027-08-27", "2027-08-29", "2027-09-03", "2027-09-04", 0],A9750:["2027-08-24", "2027-08-27", "2027-08-31", "2027-09-03", 0],A9760:["2027-08-26", "2027-08-28", "2027-09-01", "2027-09-04", 0],
+  A9770:["2027-08-28", "2027-08-30", "2027-09-04", "2027-09-06", 0],A9780:["2027-08-28", "2027-08-30", "2027-09-04", "2027-09-06", 0],A9781:["2027-08-30", "2027-09-02", "2027-09-06", "2027-09-09", 0],
+  A9790:["2027-09-02", "2027-09-03", "2027-09-09", "2027-09-10", 0],A9810:["2027-08-30", "2027-09-02", "2027-09-06", "2027-09-09", 0],A9820:["2027-08-31", "2027-09-03", "2027-09-08", "2027-09-11", 0],
+  A9830:["2027-09-03", "2027-09-04", "2027-09-11", "2027-09-13", 0],A9840:["2027-09-03", "2027-09-04", "2027-09-11", "2027-09-13", 0],A9841:["2027-09-04", "2027-09-07", "2027-09-13", "2027-09-16", 0],
+  A9850:["2027-09-08", "2027-09-09", "2027-09-16", "2027-09-17", 0],A9870:["2027-09-04", "2027-09-06", "2027-09-13", "2027-09-14", 0],A9880:["2027-09-06", "2027-09-08", "2027-09-14", "2027-09-15", 0],
+  A9890:["2027-09-08", "2027-09-10", "2027-09-15", "2027-09-16", 0],A9900:["2027-09-08", "2027-09-10", "2027-09-15", "2027-09-16", 0],A9901:["2027-09-10", "2027-09-13", "2027-09-16", "2027-09-19", 0],
+  A9910:["2027-09-13", "2027-09-14", "2027-09-20", "2027-09-21", 0],A9930:["2027-08-04", "2027-08-06", "2027-08-12", "2027-08-13", 0],A9940:["2027-08-06", "2027-08-07", "2027-08-13", "2027-08-14", 0],
+  A9950:["2027-08-07", "2027-08-09", "2027-08-14", "2027-08-16", 0],A9960:["2027-08-07", "2027-08-09", "2027-08-14", "2027-08-16", 0],A9961:["2027-08-09", "2027-08-12", "2027-08-16", "2027-08-19", 0],
+  A9970:["2027-08-12", "2027-08-13", "2027-08-19", "2027-08-21", 0],A9990:["2027-08-09", "2027-08-11", "2027-08-14", "2027-08-18", 0],
 };
 /** Datas previstas por elemento e etapa: preenchidas quando o cronograma for carregado. { [id]: { [etapa]: { inicio, fim, atividade } } } */
 const PREVISTO_ELEMENTOS = {};
@@ -14857,36 +15224,135 @@ function reiniciarPrevisto() {
  * inicio/fim = linha de base (BL); atual = datas atuais do P6; p6 = datas reais marcadas com "A" no P6.
  * '*' = atividade que mede o elemento inteiro (canteiro, central). Varias atividades na mesma etapa: menor inicio e maior fim.
  */
+/* v6.20.0: ligacoes do previsto que nao passam pela medicao do avanco: etapas sem atividade propria
+ * (raiz: perfuracao/camisa; blocos: magro, armadura, resistencia, 2a fase; viga do eixo −1), estacas dos
+ * segmentos 02/03/04 pelo codigo no nome ("Camisas (A-25 / B-25 ...)"), montagens "Laje 09" a "Laje 16"
+ * (segmentos 02 e 03) e a "Expansao da Laje" (segmento 04, cronograma ainda no projeto basico: faixa geral). */
+const VERBO_ESTACA_P6 = [[/Transporte e Crava/i, 'cravacao'], [/pino em rocha/i, 'escavacao'], [/Posicionamento da armadura/i, 'armadura'],
+  [/Concretagem da estaca/i, 'concretagem'], [/^Arrasamento\b/i, 'arrasamento'], [/^Cura do concreto/i, 'cura']];
+const LAJE_EIXOS_P6 = { 9: [24, 28], 10: [28, 31], 11: [31, 34], 12: [34, 37], 13: [37, 40], 14: [40, 43], 15: [43, 48], 16: [48, 54] };
+function ligacoesExtrasPrevisto(a) {
+  const nome = a.nome; const out = [];
+  const expansao = /Expans.o/i.test(nome);
+  const verbo = VERBO_ESTACA_P6.find(([rx]) => rx.test(nome));
+  if (verbo && /Camisas/i.test(nome)) {
+    // Expansao (seg. 04) no cronograma pelo basico: "(10 A 11 - I-01 / J-02 / K-03)" = fileira do eixo 11 (numeracao local);
+    // "(I-00 / J-00 / (K- 2 Ø 1016 mm)" = primeira fileira, que no executivo e o eixo 2 ("K- 2 Ø" e quantidade, nao estaca)
+    const faixaLocal = expansao && nome.match(/\((\d+)\s*A\s*(\d+)\s*-/i);
+    let ids;
+    if (faixaLocal) ids = ['I', 'J', 'K'].map((L) => `${Number(faixaLocal[2])}-${L}`);
+    else {
+      ids = [...nome.matchAll(/\b([A-N])-\s?(\d{1,2})\b(?!\s*(Ø|mm))/g)].map(([, L, n]) => `${Number(n)}-${L}`);
+      if (expansao && ids.some((id) => id.startsWith('0-'))) ids = ['I', 'J', 'K'].map((L) => `2-${L}`);
+    }
+    const els = ids.map((id) => porId.get(id))
+      .filter((e) => e && e.tipo === 'estaca-metalica' && ['02', '03', '04'].includes(e.trecho));
+    if (els.length) out.push({ els, etapas: verbo[1] === 'concretagem' ? ['concretagem'] : [verbo[1]] });
+  }
+  const mLaje = nome.match(/Montagem do Pr.-Moldados - Laje (\d{2})/);
+  if (mLaje && !expansao && LAJE_EIXOS_P6[Number(mLaje[1])]) {
+    const [e0, e1] = LAJE_EIXOS_P6[Number(mLaje[1])];
+    const x0 = geoX(e0) - 0.5; const x1 = geoX(e1) + 0.5;
+    const tipos = /Capitel/i.test(nome) ? ['capitel', 'viga-u'] : ['laje'];
+    const els = elementos.filter((e) => ['02', '03'].includes(e.trecho) && tipos.includes(e.tipo) && xCentro(e) >= x0 && xCentro(e) <= x1);
+    if (els.length) out.push({ els, etapas: ['montagem'] });
+  }
+  if (expansao) {
+    const s4 = (...tipos) => elementos.filter((e) => e.trecho === '04' && tipos.includes(e.tipo));
+    if (/Perfura/i.test(nome)) out.push({ els: s4('estaca-raiz'), etapas: ['perfuracao', 'camisa', 'concretagem'] });
+    else if (/Arrasamento e Ensaios/i.test(nome)) out.push({ els: s4('estaca-raiz'), etapas: ['arrasamento'] });
+    else if (/Forma \(Bloco\)/i.test(nome)) out.push({ els: s4('bloco'), etapas: ['magro'] });
+    else if (/Armadura\s*\/\s*Concretagem \(Bloco\)/i.test(nome)) out.push({ els: s4('bloco'), etapas: ['armacao1', 'concretagem1'] });
+    else if (/Montagem do Pr.-Moldados/i.test(nome)) out.push({ els: s4(...(/Capitel/i.test(nome) ? ['capitel', 'viga-u'] : ['laje'])), etapas: ['montagem'] });
+  }
+  const al = a.alvo || {};
+  if (a.disc === 'raiz' && al.bloco) {
+    const bloco = porId.get(`Bloco ${al.bloco}`);
+    const estacas = elementos.filter((e) => e.tipo === 'estaca-raiz' && e.info.bloco === al.bloco && e.trecho === '01A');
+    if (/Perfura/i.test(nome)) out.push({ els: estacas, etapas: ['perfuracao', 'camisa'] });
+    if (bloco && /Forma \(Bloco\)/i.test(nome)) out.push({ els: [bloco], etapas: ['magro'] });
+    if (bloco && /Armadura.*Concretagem \(Bloco\)/i.test(nome)) out.push({ els: [bloco], etapas: ['armacao1'] });
+  }
+  return out.filter((l) => l.els.length);
+}
+/** Atividades que alimentam o previsto (catalogo + ligacoes extras) — o que a importacao guarda na base. */
+let cacheAtivPrevisto = null;
+function atividadesDoPrevisto() {
+  if (!cacheAtivPrevisto) cacheAtivPrevisto = CRONO_ATIVIDADES.filter((a) => !a.extra || ligacoesExtrasPrevisto(a).length || /^Cura do Concreto.*Expans/i.test(a.nome));
+  return cacheAtivPrevisto;
+}
 function montarPrevisto() {
   if (previstoMontado) return;
   previstoMontado = true;
   const menor = (a, b) => (!a ? b : (!b ? a : (a < b ? a : b)));
   const maior = (a, b) => (!a ? b : (!b ? a : (a > b ? a : b)));
+  const aplicar = (e, etapaCh, d, id) => {
+    const [bi, bf, ai, af, marcas] = d;
+    const porEtapa = (PREVISTO_ELEMENTOS[e.id] = PREVISTO_ELEMENTOS[e.id] || {});
+    const p = (porEtapa[etapaCh] = porEtapa[etapaCh] || { atividades: [] });
+    p.inicio = menor(p.inicio, bi); p.fim = maior(p.fim, bf);
+    p.atualInicio = menor(p.atualInicio, ai); p.atualFim = maior(p.atualFim, af);
+    if (marcas & 1) p.p6Inicio = menor(p.p6Inicio, ai);
+    if (marcas & 2) p.p6Fim = maior(p.p6Fim, af);
+    if (!p.atividades.includes(id)) p.atividades.push(id);
+  };
   CRONO_ATIVIDADES.forEach((a) => {
     const d = datasCronograma(a.id);
     if (!d) return;
-    const m = medirAtividade(a);
-    if (!m.elementos || !m.elementos.length) return;
-    const [bi, bf, ai, af, marcas] = d;
-    const etapa = m.etapa || '*';
-    // "Armadura/Concretagem" (estacas metalicas): a mesma atividade vale para a armadura e a concretagem
-    const armaduraJunto = etapa === 'concretagem' && /Armadura\s*\/\s*Concretagem/i.test(a.nome);
-    m.elementos.forEach((e) => {
-      const chaves = armaduraJunto && etapasDe(e).some((et) => et.chave === 'armadura') ? [etapa, 'armadura'] : [etapa];
-      chaves.forEach((ch) => aplicar(e, ch));
-    });
-    function aplicar(e, etapaCh) {
-      const porEtapa = (PREVISTO_ELEMENTOS[e.id] = PREVISTO_ELEMENTOS[e.id] || {});
-      const p = (porEtapa[etapaCh] = porEtapa[etapaCh] || { atividades: [] });
-      p.inicio = menor(p.inicio, bi); p.fim = maior(p.fim, bf);
-      p.atualInicio = menor(p.atualInicio, ai); p.atualFim = maior(p.atualFim, af);
-      if (marcas & 1) p.p6Inicio = menor(p.p6Inicio, ai);
-      if (marcas & 2) p.p6Fim = maior(p.p6Fim, af);
-      if (!p.atividades.includes(a.id)) p.atividades.push(a.id);
+    if (!a.extra) {
+      const m = medirAtividade(a);
+      if (m.elementos && m.elementos.length) {
+        const etapa = m.etapa || '*';
+        // "Armadura/Concretagem" (estacas metalicas): a mesma atividade vale para a armadura e a concretagem
+        const armaduraJunto = etapa === 'concretagem' && /Armadura\s*\/\s*Concretagem/i.test(a.nome);
+        m.elementos.forEach((e) => {
+          const chaves = armaduraJunto && etapasDe(e).some((et) => et.chave === 'armadura') ? [etapa, 'armadura'] : [etapa];
+          chaves.forEach((ch) => aplicar(e, ch, d, a.id));
+        });
+      }
     }
+    ligacoesExtrasPrevisto(a).forEach((l) => l.els.forEach((e) => l.etapas.forEach((ch) => {
+      if (ch === 'cura' || etapasDe(e).some((et) => et.chave === ch)) aplicar(e, ch, d, a.id);
+    })));
   });
+  // cura dos blocos -> resistencia da 1a fase: a cura mais tardia de cada bloco (a outra e a das estacas raiz)
+  const curasPorBloco = new Map();
+  CRONO_ATIVIDADES.forEach((a) => {
+    if (!/^Cura do Concreto/i.test(a.nome)) return;
+    const d = datasCronograma(a.id); if (!d) return;
+    const bloco = a.alvo?.bloco ? `Bloco ${a.alvo.bloco}` : (/Expans/i.test(a.nome) ? `exp-${(a.nome.match(/Bloco - (\d+)/) || [])[1]}` : null);
+    if (!bloco) return;
+    (curasPorBloco.get(bloco) || curasPorBloco.set(bloco, []).get(bloco)).push({ id: a.id, d });
+  });
+  curasPorBloco.forEach((lista, chave) => {
+    const tardia = lista.sort((x, y) => String(x.d[0] || x.d[2]).localeCompare(String(y.d[0] || y.d[2]))).pop();
+    const alvos = chave.startsWith('exp-') ? elementos.filter((e) => e.trecho === '04' && e.tipo === 'bloco') : [porId.get(chave)].filter(Boolean);
+    alvos.forEach((e) => aplicar(e, 'resistencia1', tardia.d, tardia.id));
+  });
+  // "junto com a 1C / 2B": 2a fase dos blocos e viga do eixo −1 herdam a concretagem dessas fases
+  const herdar = (ids) => ids.map((id) => PREVISTO_ELEMENTOS[id]?.concretagem).filter(Boolean);
+  const prev1C = herdar(elementos.filter((e) => /^1C · /.test(e.id)).map((e) => e.id));
+  const prev2B = herdar(['2B · vão −1/0']);
+  const copiar = (e, ch, lista) => lista.forEach((p) => p.atividades.forEach((id) => {
+    aplicar(e, ch, [p.inicio, p.fim, p.atualInicio, p.atualFim, (p.p6Inicio ? 1 : 0) | (p.p6Fim ? 2 : 0)], id);
+  }));
+  elementos.filter((e) => e.tipo === 'bloco' && e.trecho === '01A').forEach((e) => copiar(e, 'concretagem2', prev1C));
+  elementos.filter((e) => e.tipo === 'viga-eixo').forEach((e) => { copiar(e, 'armacao1', prev1C); copiar(e, 'concretagem1', prev1C); copiar(e, 'concretagem2', prev2B); });
 }
-const previstoDe = (e, chave) => { montarPrevisto(); return (PREVISTO_ELEMENTOS[e.id] || {})[chave] || null; };
+/** Previsto da etapa; sem atividade propria mas com uma atividade do elemento inteiro ('*'), o prazo e dividido entre as etapas. */
+const previstoDe = (e, chave) => {
+  montarPrevisto();
+  const porEtapa = PREVISTO_ELEMENTOS[e.id] || {};
+  if (porEtapa[chave] || chave === '*' || chave === 'cura') return porEtapa[chave] || null;
+  const g = porEtapa['*'];
+  if (!g) return null;
+  const ets = etapasDe(e).filter((et) => !et.opcional);
+  const k = ets.findIndex((et) => et.chave === chave);
+  if (k < 0) return null;
+  const parte = (a, b) => (a && b ? [dataMaisDias(a, Math.floor((diasEntre(a, b) * k) / ets.length)), dataMaisDias(a, Math.floor((diasEntre(a, b) * (k + 1)) / ets.length))] : [a, b]);
+  const [i0, f0] = parte(g.inicio, g.fim); const [i1, f1] = parte(g.atualInicio, g.atualFim);
+  return { inicio: i0, fim: f0, atualInicio: i1, atualFim: f1, atividades: g.atividades, rateado: true };
+};
 const previstoEtapa = (e, et) => previstoDe(e, et.chave);
 /** Desvio em dias do termino real (ou de hoje, se ja passou do previsto e nao terminou) contra o termino da linha de base. */
 function desvioEtapa(prev, realFim) {
@@ -15359,6 +15825,8 @@ function paginaCampo() {
     altura: Math.round(Math.min(1600, Math.max(560, (1500 * alturaUtil) / larguraUtil))),
     compacta: true, legenda: legendaCores,
     // tocar no elemento: abre o quadro (com o botao de registro de um toque no topo)
+    // tocar no elemento (ou em qualquer parte da estaca) abre o quadro do apontador: trilha das etapas e
+    // "Quando foi?" ja na etapa da vez (ex.: estaca com a armadura pendente abre em "Armadura instalada")
     aoSelecionar: (id) => { estadoCampo.selecionadoId = id; abrirFichaCompleta(porId.get(id)); },
     aoConfirmar: (id) => {
       const e = porId.get(id);
@@ -17218,11 +17686,94 @@ function interpretarExtratoP6(linhas, nomeArquivo) {
   return { datas, lidas, extrato: m ? `${m[1]}/${m[2]}/${m[3]}` : dataTexto(hojeIso()) };
 }
 /** Atividades do controle que tem elementos ligados (as que alimentam o previsto). */
-const atividadesLigadas = () => CRONO_ATIVIDADES.filter((a) => !a.extra);
+const atividadesLigadas = () => atividadesDoPrevisto();   // v6.20.0: catalogo + atividades das ligacoes extras
 
-async function importarCronogramaP6(arquivo) {
-  const { linhas } = await lerExcelP6(arquivo);
-  const r = interpretarExtratoP6(linhas, arquivo.name);
+/* ---- v6.19.0: MS Project (Excel .xlsx ou .csv) ---- */
+/** Le um .csv (separador ; , ou tab; UTF-8 ou Windows-1252) em linhas de celulas. */
+async function lerCsv(arquivo) {
+  const buf = await arquivo.arrayBuffer();
+  let texto = new TextDecoder('utf-8').decode(buf);
+  if (texto.includes('�')) texto = new TextDecoder('windows-1252').decode(buf);
+  texto = texto.replace(/^﻿/, '');
+  const primeira = texto.split(/\r?\n/)[0] || '';
+  const sep = [';', '\t', ','].sort((a, b) => primeira.split(b).length - primeira.split(a).length)[0];
+  const linhas = []; let linha = []; let campo = ''; let aspas = false;
+  for (let i = 0; i < texto.length; i += 1) {
+    const ch = texto[i];
+    if (aspas) {
+      if (ch === '"' && texto[i + 1] === '"') { campo += '"'; i += 1; } else if (ch === '"') aspas = false; else campo += ch;
+    } else if (ch === '"') aspas = true;
+    else if (ch === sep) { linha.push(campo); campo = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && texto[i + 1] === '\n') i += 1;
+      linha.push(campo); linhas.push(linha); linha = []; campo = '';
+    } else campo += ch;
+  }
+  if (campo || linha.length) { linha.push(campo); linhas.push(linha); }
+  return { linhas };
+}
+const lerPlanilhaCronograma = (arquivo) => (/\.csv$/i.test(arquivo.name) ? lerCsv(arquivo) : lerExcelP6(arquivo));
+/** Data do Project: numero do Excel, 'sex 14/11/26', '14/11/2026 08:00', '14 Novembro 2026', 'NA'/'ND' (sem data). */
+function dataProject(v) {
+  if (v == null || v === '') return '';
+  if (typeof v === 'number') return serialParaIso(v);
+  const t = String(v).trim().toLowerCase();
+  if (!t || /^(na|nd|n\/d|-)$/.test(t)) return '';
+  let m = t.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  m = t.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (m) return `${m[3].length === 2 ? `20${m[3]}` : m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+  const meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  const mesesEn = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  m = t.match(/(\d{1,2})\s*(?:de\s+)?([a-zç]{3})[a-zç]*\.?\s*(?:de\s+)?(\d{2,4})/);
+  if (m) {
+    let mes = meses.indexOf(m[2]); if (mes < 0) mes = mesesEn.indexOf(m[2]);
+    if (mes >= 0) return `${m[3].length === 2 ? `20${m[3]}` : m[3]}-${String(mes + 1).padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+  }
+  return '';
+}
+/** Converte a planilha do Project em { datas, lidas, extrato }. A coluna do codigo e a que mais casa com os codigos do controle. */
+function interpretarProject(linhas, nomeArquivo) {
+  const norm = (c) => String(c ?? '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ');
+  const nomes = {
+    bi: ['inicio da linha de base', 'inicio da linha de base0', 'inicio da linha de base 0', 'baseline start', 'baseline0 start', 'inicio previsto'],
+    bf: ['termino da linha de base', 'termino da linha de base0', 'termino da linha de base 0', 'baseline finish', 'baseline0 finish', 'termino previsto'],
+    ai: ['inicio', 'start'], af: ['termino', 'finish'],
+    ri: ['inicio real', 'actual start'], rf: ['termino real', 'actual finish'],
+  };
+  const iCab = linhas.findIndex((l) => { const c = (l || []).map(norm); return c.some((x) => nomes.ai.includes(x)) && c.some((x) => nomes.af.includes(x)); });
+  if (iCab < 0) throw new Error('Não achei as colunas "Início" e "Término". Exporte do Project uma tabela com: código da atividade do P6, Início/Término da linha de base, Início, Término, Início real e Término real.');
+  const cab = linhas[iCab].map(norm);
+  const col = (lista) => cab.findIndex((c) => lista.includes(c));
+  const c = { bi: col(nomes.bi), bf: col(nomes.bf), ai: col(nomes.ai), af: col(nomes.af), ri: col(nomes.ri), rf: col(nomes.rf) };
+  // coluna do codigo: a que mais tem codigos das atividades do controle (ex.: Texto1 com o Activity ID do P6)
+  const conhecidos = new Set(CRONO_ATIVIDADES.map((a) => a.id));
+  const corpo = linhas.slice(iCab + 1);
+  let cId = -1; let melhor = 0;
+  cab.forEach((_, k) => {
+    const n = corpo.reduce((t, l) => t + (conhecidos.has(String(l?.[k] ?? '').trim()) ? 1 : 0), 0);
+    if (n > melhor) { melhor = n; cId = k; }
+  });
+  if (cId < 0) throw new Error('Nenhuma coluna tem os códigos das atividades do controle (ex.: A2000, A1001430). No Project, coloque o Activity ID do P6 num campo (ex.: Texto1) e inclua essa coluna na exportação.');
+  const datas = {};
+  let lidas = 0;
+  corpo.forEach((l) => {
+    const id = String(l?.[cId] ?? '').trim();
+    if (!id) return;
+    lidas += 1;
+    const v = (k) => (k >= 0 ? dataProject(l[k]) : '');
+    const ri = v(c.ri); const rf = v(c.rf);
+    datas[id] = [v(c.bi), v(c.bf), ri || v(c.ai), rf || v(c.af), (ri ? 1 : 0) | (rf ? 2 : 0)];
+  });
+  const m = String(nomeArquivo).match(/(\d{2})[-./](\d{2})[-./](\d{4})/);
+  return { datas, lidas, extrato: m ? `${m[1]}/${m[2]}/${m[3]}` : dataTexto(hojeIso()), semBase: c.bi < 0 || c.bf < 0 };
+}
+
+/** Importa o cronograma (origem 'P6' ou 'Project') e compara com o que esta em uso. */
+async function importarCronograma(arquivo, origem = 'P6') {
+  const { linhas } = await lerPlanilhaCronograma(arquivo);
+  const r = origem === 'Project' ? interpretarProject(linhas, arquivo.name) : interpretarExtratoP6(linhas, arquivo.name);
+  r.origem = origem;
   const ligadas = atividadesLigadas();
   const novas = {};
   const mudancas = [];
@@ -17240,6 +17791,25 @@ async function importarCronogramaP6(arquivo) {
   });
   const faltando = ligadas.filter((a) => !r.datas[a.id]).map((a) => a.id);
   return { ...r, novas, encontradas, mudancas, faltando, arquivo: arquivo.name };
+}
+const importarCronogramaP6 = (arquivo) => importarCronograma(arquivo, 'P6');
+
+/** Escolha da origem antes de abrir o arquivo: Primavera P6 ou MS Project. */
+function escolherOrigemCronograma(aoEscolher) {
+  const opcao = (origem, titulo, texto, formatos) => h('button', {
+    type: 'button', class: 'ctc-crono__origem',
+    onClick: () => { modal.fechar(); aoEscolher(origem, formatos); },
+  }, h('b', {}, titulo), h('span', {}, texto));
+  const modal = criarModal({
+    titulo: '📥 Importar cronograma', tamanho: 'md', destruirAoFechar: true,
+    conteudo: h('div', { class: 'ctc-stack' },
+      h('p', { class: 'ctc-text-sm ctc-text-muted' }, 'De onde vem o cronograma?'),
+      h('div', { class: 'ctc-crono__origens' },
+        opcao('P6', 'Primavera P6', 'Excel (.xlsx) exportado do P6 com: Activity ID, Activity Name, BL Project Start, BL Project Finish, Start e Finish. Datas com "A" são reais.', '.xlsx'),
+        opcao('Project', 'MS Project', 'Excel (.xlsx) ou CSV exportado do Project com: código da atividade do P6 (ex.: campo Texto1), Início e Término da linha de base, Início, Término, Início real e Término real.', '.xlsx,.csv'))),
+    acoes: [{ texto: 'Cancelar', variante: 'outline' }],
+  });
+  modal.abrir();
 }
 
 function abrirConferenciaCronograma(res) {
@@ -17259,13 +17829,14 @@ function abrirConferenciaCronograma(res) {
     vazio: { titulo: 'Nenhuma data mudou', mensagem: 'As atividades ligadas ao controle têm as mesmas datas do cronograma atual.' },
   });
   const modal = criarModal({
-    titulo: `🗓️ Conferir cronograma — extrato de ${res.extrato}`, tamanho: 'xl', destruirAoFechar: true,
+    titulo: `🗓️ Conferir cronograma (${res.origem === 'Project' ? 'MS Project' : 'P6'}) — ${res.extrato}`, tamanho: 'xl', destruirAoFechar: true,
     conteudo: h('div', { class: 'ctc-stack' },
       h('div', { class: 'ctc-crono__cartoes' },
         cartao('Atividades no arquivo', res.lidas, '#1e3a5f'),
         cartao('Ligadas ao controle encontradas', `${res.encontradas} de ${atividadesLigadas().length}`, '#0369a1'),
         cartao('Com datas alteradas', res.mudancas.length, res.mudancas.length ? '#b45309' : '#15803d'),
         cartao('Não estão no arquivo', res.faltando.length, res.faltando.length ? '#b91c1c' : '#15803d')),
+      res.semBase ? criarAlerta({ tipo: 'warning', titulo: 'Arquivo sem linha de base', mensagem: 'Não vieram as colunas "Início/Término da linha de base": a linha de base fica vazia e o desvio não é calculado.' }) : null,
       res.faltando.length ? criarAlerta({ tipo: 'warning', titulo: 'Atividades do controle que não vieram no arquivo', mensagem: `${res.faltando.slice(0, 30).join(', ')}${res.faltando.length > 30 ? ` e mais ${res.faltando.length - 30}` : ''}. Elas ficam sem previsto até virem num extrato.` }) : null,
       criarAlerta({ tipo: 'info', mensagem: 'Ao aplicar, o previsto (linha de base e tendência) de cada elemento passa a vir deste extrato: ficha, banco de dados, desvios e vídeo. Os registros de campo não mudam. A atualização vai junto no próximo salvamento.' }),
       tabela.elemento),
@@ -17275,11 +17846,11 @@ function abrirConferenciaCronograma(res) {
         texto: `Aplicar o cronograma de ${res.extrato}`, variante: 'success',
         onClick: () => {
           const u = sessao.obter().usuario;
-          cronogramaImportado = { extrato: res.extrato, importadoEm: new Date().toISOString(), arquivo: res.arquivo, autor: u ? u.nome : '', datas: res.novas };
+          cronogramaImportado = { origem: res.origem || 'P6', extrato: res.extrato, importadoEm: new Date().toISOString(), arquivo: res.arquivo, autor: u ? u.nome : '', datas: res.novas };
           reiniciarPrevisto();
           sessao.marcarAlteracao();
           agendarSalvamentoLocal();
-          toast.sucesso('Cronograma atualizado', `Previsto do extrato de ${res.extrato}: ${res.encontradas} atividades, ${res.mudancas.length} com datas novas. Salve na nuvem para enviar a todos.`);
+          toast.sucesso('Cronograma atualizado', `Previsto do cronograma (${res.origem === 'Project' ? 'MS Project' : 'P6'}) de ${res.extrato}: ${res.encontradas} atividades, ${res.mudancas.length} com datas novas. Salve na nuvem para enviar a todos.`);
           if (aplicativo) aplicativo.navegar('cronograma');
         },
       }],
@@ -17294,6 +17865,7 @@ function paginaCronograma() {
   const comDatas = ligadas.filter((a) => datasCronograma(a.id)).length;
   const qtdElementos = new Map();
   codigosCronogramaPorElemento().forEach((ids) => ids.forEach((id) => qtdElementos.set(id, (qtdElementos.get(id) || 0) + 1)));
+  let origemEscolhida = 'P6';
   const entrada = h('input', {
     type: 'file', accept: '.xlsx', class: 'ctc-hidden', style: { display: 'none' },
     onChange: async (ev) => {
@@ -17301,12 +17873,13 @@ function paginaCronograma() {
       if (!f) return;
       try {
         toast.info('Lendo o cronograma…', f.name);
-        abrirConferenciaCronograma(await importarCronogramaP6(f));
+        abrirConferenciaCronograma(await importarCronograma(f, origemEscolhida));
       } catch (erro) { toast.erro('Não foi possível ler o arquivo', erro.message || String(erro)); }
     },
   });
+  const nomeOrigem = (o) => (o === 'Project' ? 'MS Project' : 'P6');
   const origem = cronogramaImportado
-    ? `Extrato do P6 de ${cronogramaImportado.extrato}, importado em ${formatarData(cronogramaImportado.importadoEm, 'data-hora')}${cronogramaImportado.autor ? ` por ${cronogramaImportado.autor}` : ''} (${cronogramaImportado.arquivo || 'arquivo'}).`
+    ? `Cronograma do ${nomeOrigem(cronogramaImportado.origem)} de ${cronogramaImportado.extrato}, importado em ${formatarData(cronogramaImportado.importadoEm, 'data-hora')}${cronogramaImportado.autor ? ` por ${cronogramaImportado.autor}` : ''} (${cronogramaImportado.arquivo || 'arquivo'}).`
     : `Extrato do P6 de ${CRONO_EXTRATO}, gravado no aplicativo (nenhum cronograma importado nesta base).`;
   const topo = criarPainel({
     titulo: 'Cronograma em uso', icone: 'calendario',
@@ -17318,7 +17891,10 @@ function paginaCronograma() {
       h('p', { class: 'ctc-text-sm ctc-text-muted' }, origem),
       pode
         ? h('div', { class: 'ctc-cluster' },
-          criarBotao({ texto: '📥 Importar cronograma do P6 (.xlsx)', variante: 'primary', tamanho: 'lg', onClick: () => entrada.click() }),
+          criarBotao({
+            texto: '📥 Importar cronograma', variante: 'primary', tamanho: 'lg',
+            onClick: () => escolherOrigemCronograma((origem, formatos) => { origemEscolhida = origem; entrada.accept = formatos; entrada.click(); }),
+          }),
           cronogramaImportado ? criarBotao({
             texto: `Voltar ao extrato gravado no app (${CRONO_EXTRATO})`, variante: 'outline',
             onClick: async () => {
@@ -17330,7 +17906,7 @@ function paginaCronograma() {
           }) : null,
           entrada)
         : criarAlerta({ tipo: 'info', mensagem: 'A importação do cronograma é feita pelo Controlador.' }),
-      h('p', { class: 'ctc-text-xs ctc-text-muted' }, 'No P6, exporte para Excel com as colunas: Activity ID, Activity Name, BL Project Start, BL Project Finish, Start e Finish. Datas com "A" são reais.')),
+      h('p', { class: 'ctc-text-xs ctc-text-muted' }, 'P6: Excel com Activity ID, Activity Name, BL Project Start, BL Project Finish, Start e Finish (datas com "A" são reais). MS Project: Excel ou CSV com o código da atividade do P6 (ex.: campo Texto1), Início e Término da linha de base, Início, Término, Início real e Término real.')),
   }).elemento;
   const dados = ligadas.map((a) => {
     const d = datasCronograma(a.id) || [];
@@ -17865,7 +18441,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.18.0' : 'Controle de Execução em Campo v6.18.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.21.0' : 'Controle de Execução em Campo v6.21.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -17900,7 +18476,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.18.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.21.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
