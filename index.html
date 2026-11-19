@@ -7633,7 +7633,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.10.0
+   Versao: 6.11.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7688,6 +7688,10 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           ligadas a cada elemento e etapa; por etapa: linha de base, tendencia, real do campo e desvio (dias).
           Ficha com previsto (base), cronograma atual e real. Comprimento da camisa e do pino nas
           estacas metalicas.
+   6.11.0: predecessoras: as 105 lajes do 01A (que estavam sem nenhuma) so montam com as vigas U de
+          apoio montadas (bordas: viga da linha A ou H; borda do eixo −1: 1a fase da viga do eixo −1 e
+          dos blocos). Corrente estaca -> capitel -> viga U -> laje. Dentro do elemento, a etapa so
+          comeca com a etapa obrigatoria anterior terminada (e nao antes do termino dela).
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -8933,6 +8937,30 @@ function criarElementosDoProjeto() {
   // notas 6/7/13: 2a fase dos blocos e 1a da viga do eixo −1 junto com a 1C; vigas U posicionadas antes
   todos.filter((e) => e.tipo === 'bloco').forEach((b) => {
     b.deps.push({ etapa: 'concretagem2', ids: todos.filter((e) => e.seg === '01A' && e.tipo === 'viga-u').map((e) => e.id), texto: 'vigas longitudinais posicionadas (nota 13)' });
+  });
+  // v6.11.0: lajes do 01A (posicao real do DWG-00017) so montam com as vigas U que as apoiam ja montadas:
+  // faixa entre duas linhas = vigas U das duas linhas no mesmo trecho; borda = viga U da linha A ou da linha H.
+  // (viga U depende do capitel, que depende da estaca concretada: a corrente vai ate a estaca)
+  const vigas01A = todos.filter((e) => e.seg === '01A' && e.tipo === 'viga-u').map((v) => ({ v, x: extensaoGeo(v.geo[0]) }));
+  todos.filter((e) => e.seg === '01A' && e.tipo === 'laje').forEach((l) => {
+    const x = extensaoGeo(l.geo[0]);
+    const cy = (x.y0 + x.y1) / 2;
+    let linhas;
+    if (cy <= GEO_LINHA_Y.A) linhas = ['A'];
+    else if (cy >= GEO_LINHA_Y.H) linhas = ['H'];
+    else {
+      const i = LINHAS.findIndex((L, k) => k < LINHAS.length - 1 && cy >= GEO_LINHA_Y[L] && cy <= GEO_LINHA_Y[LINHAS[k + 1]]);
+      linhas = [LINHAS[i], LINHAS[i + 1]];
+    }
+    const naLinha = linhas.map((L) => vigas01A.filter(({ v, x: vx }) => v.info.linha === L && vx.x1 > x.x0 + 0.05 && vx.x0 < x.x1 - 0.05).map(({ v }) => v.id));
+    const apoios = naLinha.flat();
+    if (apoios.length) l.deps.push({ etapa: 'montagem', ids: apoios, texto: `vigas U de apoio (linha${linhas.length > 1 ? 's' : ''} ${linhas.join(' e ')}) montadas` });
+    // borda inclinada do eixo −1: o lado sem viga U apoia na viga do eixo −1 / blocos -> 1a fase concretada
+    if (naLinha.some((ids) => !ids.length) && linhas.length > 1) {
+      const blocos = todos.filter((b) => b.tipo === 'bloco' && (() => { const bx = extensaoGeo(b.geo[0]); return bx.x1 > x.x0 && bx.x0 < x.x1 && bx.y1 > x.y0 && bx.y0 < x.y1; })()).map((b) => b.id);
+      const vigaEixo = todos.filter((v) => v.tipo === 'viga-eixo').map((v) => v.id);
+      l.deps.push({ etapa: 'montagem', ids: [...vigaEixo, ...blocos], regra: 'fase1', texto: `apoio no eixo −1: 1ª fase concretada (${[...vigaEixo, ...blocos].join(', ')})` });
+    }
   });
   todos.push(...centralDeConcreto(), ...obrasProvisorias(), ...canteiroDeObras());
   return todos;
@@ -12671,9 +12699,13 @@ function validarInicio(e, etapa, inicio, campo = 'inicio') {
   if (!inicio) return { campo, mensagem: 'Informe a data de início.' };
   if (inicio > hojeIso()) return { campo, mensagem: 'A data não pode ser futura.' };
   const lista = etapasDe(e);
-  const anterior = lista.slice(0, lista.indexOf(etapa)).reverse().find((et) => iniciada(e, et.chave));
-  const ref = anterior && (e.reg[anterior.chave].inicio || e.reg[anterior.chave].data);
-  if (ref && inicio < ref) return { campo, mensagem: `Não pode ser antes do início de "${anterior.texto}" (${dataTexto(ref)}).` };
+  // v6.11.0: a etapa so comeca com a etapa obrigatoria anterior TERMINADA (opcionais podem ser puladas)
+  const antes = lista.slice(0, lista.indexOf(etapa));
+  const pendente = antes.find((et) => !et.opcional && !feita(e, et.chave));
+  if (pendente) return { campo, mensagem: `Antes, termine "${pendente.texto}" deste elemento.` };
+  const anterior = [...antes].reverse().find((et) => feita(e, et.chave));
+  const ref = anterior && e.reg[anterior.chave].data;
+  if (ref && inicio < ref) return { campo, mensagem: `Não pode ser antes do término de "${anterior.texto}" (${dataTexto(ref)}).` };
   const faltas = bloqueiosDe(e, etapa.chave);
   if (faltas.length) return { campo, mensagem: `Ainda não liberado — ${faltas[0]}.` };
   return null;
@@ -16690,7 +16722,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.10.0' : 'Controle de Execução em Campo v6.10.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.11.0' : 'Controle de Execução em Campo v6.11.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
