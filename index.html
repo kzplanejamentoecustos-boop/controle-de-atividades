@@ -7633,7 +7633,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.11.0
+   Versao: 6.12.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7692,6 +7692,9 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           apoio montadas (bordas: viga da linha A ou H; borda do eixo −1: 1a fase da viga do eixo −1 e
           dos blocos). Corrente estaca -> capitel -> viga U -> laje. Dentro do elemento, a etapa so
           comeca com a etapa obrigatoria anterior terminada (e nao antes do termino dela).
+   6.12.0: segmentos 01A e 01B unidos num so local "Laje estaqueada", em sequencia como no projeto
+          (eixo −1 ao 24, uma prancha so). O trecho (01A / 01B) aparece no local de cada elemento e as
+          regras de projeto de cada trecho continuam valendo. Registros salvos nao mudam.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -7901,12 +7904,16 @@ const MARCA = { logo: 'CTC', titulo: 'Controle de Execução em Campo' };
    ========================================================================== */
 
 const SEGMENTOS = {
-  '01A': { texto: 'Segmento 01A', sub: 'Laje estaqueada · DWG-00002 a 00004, 00008, 00024, 00025, 00046, 00047' },
-  '01B': { texto: 'Segmento 01B', sub: 'Laje estaqueada · DWG-00048 a 00050, 00057 a 00059' },
+  // v6.12.0: segmentos 01A e 01B unidos num so local, em sequencia como no projeto (eixo −1 ao 24).
+  // Cada elemento guarda o trecho de origem em e.trecho ('01A' | '01B'): as regras de projeto dependem dele.
+  '01': { texto: 'Laje estaqueada', sub: 'Segmentos 01A e 01B · DWG-00002 a 00004, 00008, 00024, 00025, 00046 a 00050, 00057 a 00059' },
   CENTRAL: { texto: 'Central de concreto', sub: 'Canteiro · DWG-GCO-00012 a 00015' },
   PROV: { texto: 'Obras provisórias', sub: 'Plataforma e sistema de cravação · DWG-00236 a 00258' },
   CANTEIRO: { texto: 'Canteiro de obras', sub: 'Edificações e áreas · DWG-GCO-ARQ-00001 a 00012' },
 };
+
+/** Texto do local do elemento: na laje estaqueada mostra tambem o trecho (01A / 01B). */
+const textoLocal = (e) => (e.trecho ? `${SEGMENTOS[e.seg].texto} · ${e.trecho}` : SEGMENTOS[e.seg].texto);
 
 const FRENTES = {
   fundacoes: { texto: 'Fundações', icone: 'painel' },
@@ -8963,6 +8970,8 @@ function criarElementosDoProjeto() {
     }
   });
   todos.push(...centralDeConcreto(), ...obrasProvisorias(), ...canteiroDeObras());
+  // v6.12.0: 01A e 01B no mesmo local; o trecho de origem fica em e.trecho
+  todos.forEach((e) => { if (e.seg === '01A' || e.seg === '01B') { e.trecho = e.seg; e.seg = '01'; } });
   return todos;
 }
 
@@ -9729,8 +9738,8 @@ const xCentro = (e) => centroGeo(e.geo[0]).x;
 const yCentro = (e) => centroGeo(e.geo[0]).y;
 /** Elementos da "Laje NN" do cronograma: 01 = segmento 01A (eixos 0 a 3); 02..08 = 01B, 3 eixos cada. */
 function noTrechoLaje(e, laje) {
-  if (laje === 1) return e.seg === '01A';
-  if (e.seg !== '01B') return false;
+  if (laje === 1) return e.trecho === '01A';
+  if (e.trecho !== '01B') return false;
   const eixo = xCentro(e) / 8.2;
   return eixo >= 3 * (laje - 1) - 0.01 && (laje === 8 || eixo < 3 * laje - 0.01);
 }
@@ -9805,7 +9814,7 @@ function medirAtividade(a) {
   }
   if (a.disc === 'pavimento') {
     if (al.laje !== 1) return manual(null, '%', 'trecho sem pavimento no controle: preencher em campo');
-    const l = elementos.filter((e) => e.tipo === 'pavimento' && e.seg === '01A');
+    const l = elementos.filter((e) => e.tipo === 'pavimento' && e.trecho === '01A');
     const chave = /BGTC/i.test(nome) ? 'bgtc' : (/areia/i.test(nome) ? 'areia' : 'paver');
     return { ...contar(l, chave), nota: 'por vão do 01A (o controle não tem m²)' };
   }
@@ -12674,7 +12683,7 @@ function bloqueadoAgora(e) {
 }
 
 /* ---- Regra especifica: cota de escavacao do pino — nota 19 do DWG-00008 (01A) e nota 18 do DWG-00048 (01B) ---- */
-const notaPino = (e) => (e.seg === '01A' ? 'nota 19 do DWG-00008' : 'nota 18 do DWG-00048');
+const notaPino = (e) => (e.trecho === '01A' ? 'nota 19 do DWG-00008' : 'nota 18 do DWG-00048');
 function cotaExigidaPino(e, cotaCamisa = e.reg.cravacao?.valores?.cota) {
   const { peCamisa, pePino } = e.info;
   if (!temValor(cotaCamisa)) return pePino;
@@ -13680,7 +13689,7 @@ function lerCamadasOcultas() {
   } catch (erro) { /* sem armazenamento: tudo visivel */ }
   return vazio;
 }
-const estadoCampo = { seg: '01A', selecionadoId: null, ocultas: lerCamadasOcultas() };
+const estadoCampo = { seg: '01', selecionadoId: null, ocultas: lerCamadasOcultas() };
 const camadaVisivel = (grupo, chave) => !estadoCampo.ocultas[grupo].includes(chave);
 function definirCamada(grupo, chave, visivel) {
   const lista = estadoCampo.ocultas[grupo].filter((k) => k !== chave);
@@ -13701,8 +13710,7 @@ const chaveStatusCamada = (e) => (liberado(e) ? 'liberado' : statusDe(e));
 const passaFrente = (e) => camadaVisivel('frentes', tipoDe(e).frente) && camadaVisivel('status', chaveStatusCamada(e));
 
 const GRADES = {
-  '01A': { eixos: [0, 1, 2, 3], titulo: 'LAJE ESTAQUEADA — SEGMENTO 01A', desenho: 'Estacas: DWG-00008 · demais: DWG-00002 a 04, 24, 25, 46, 47' },
-  '01B': { eixos: Array.from({ length: 22 }, (_, i) => i + 3), titulo: 'LAJE ESTAQUEADA — SEGMENTO 01B', desenho: 'Estacas: DWG-00048 · lajes: arranjo DWG-00019' },
+  '01': { eixos: Array.from({ length: 25 }, (_, i) => i), titulo: 'LAJE ESTAQUEADA — SEGMENTOS 01A E 01B', desenho: '01A: DWG-00002 a 04, 08, 17, 24, 25, 46, 47 · 01B: DWG-00019, 00048' },
   CENTRAL: { eixos: [], titulo: 'CENTRAL DE CONCRETO — FUNDAÇÕES', desenho: 'Bases: DWG-GCO-00014/00015 · canteiro: DWG-GCO-00012' },
   PROV: { eixos: [], titulo: 'OBRAS PROVISÓRIAS', desenho: 'DWG-00236 a 00258 (posições esquemáticas)' },
   CANTEIRO: { eixos: [], titulo: 'CANTEIRO DE OBRAS — IMPLANTAÇÃO', desenho: 'DWG-GCO-ARQ-00001/00002 · alturas esquemáticas' },
@@ -14499,7 +14507,7 @@ function abrirFichaElemento(e) {
   const corpo = h('div', { class: 'ctc-ficha' },
     h('div', { class: 'ctc-ficha__cab' },
       h('span', { class: 'ctc-ficha__situacao', style: { background: cor } }, situacao),
-      h('span', {}, `${tipoDe(e).nome} · ${SEGMENTOS[e.seg].texto}${e.grupo ? ` · ${e.grupo}` : ''}`),
+      h('span', {}, `${tipoDe(e).nome} · ${textoLocal(e)}${e.grupo ? ` · ${e.grupo}` : ''}`),
       h('span', {}, `${feitas} de ${etapas.length} etapas concluídas`)),
     e.sub ? h('p', { class: 'ctc-ficha__sub' }, e.sub) : null,
     e.pendencia ? criarAlerta({ tipo: 'danger', titulo: 'Pendência', mensagem: e.descricaoPendencia || 'sim' }) : null,
@@ -14575,7 +14583,7 @@ function abrirFichaCompleta(e) {
   const cabecalho = h('div', { class: 'ctc-stack' },
     h('div', { class: 'ctc-grid ctc-grid--3' },
       kpiElemento({ rotulo: e.rotulo, valor: liberado(e) ? 'Liberado para começar' : STATUS[st].texto, variante: STATUS[st].kpi, sub: e.pendencia ? e.descricaoPendencia : etapaAtualTexto(e) }),
-      kpiElemento({ rotulo: tipoDe(e).nome, valor: e.sub || '—', sub: `${SEGMENTOS[e.seg].texto} · ${e.grupo || ''}` }),
+      kpiElemento({ rotulo: tipoDe(e).nome, valor: e.sub || '—', sub: `${textoLocal(e)} · ${e.grupo || ''}` }),
       kpiElemento({ rotulo: 'Etapas registradas', valor: `${etapas.filter((et) => feita(e, et.chave)).length} de ${etapas.length}`, sub: 'preencha todas neste quadro e salve' })),
     h('button', { type: 'button', class: 'ctc-ficha__abrir', onClick: () => abrirFichaElemento(e) }, '📋 Ver ficha completa: todas as etapas, datas previstas e reais, quantidades e dados'),
     projeto.length ? criarAlerta({ tipo: 'info', titulo: 'Dados de projeto', mensagem: projeto.map(([r, v]) => `${r}: ${v}`).join(' · ') }) : null,
@@ -14691,7 +14699,7 @@ function abrirFichaCompleta(e) {
    ========================================================================== */
 
 function paginaCampo() {
-  if (!SEGMENTOS[estadoCampo.seg]) estadoCampo.seg = '01A';
+  if (!SEGMENTOS[estadoCampo.seg]) estadoCampo.seg = '01';
   const frentes = frentesDoSegmento(estadoCampo.seg);
   const sel = porId.get(estadoCampo.selecionadoId);
   if (sel && sel.seg !== estadoCampo.seg) estadoCampo.selecionadoId = null;
@@ -14704,7 +14712,7 @@ function paginaCampo() {
       .map(([cor, txt]) => h('span', {}, h('i', { style: { background: cor } }), txt)));
   const vista = criarVista3D({
     chave: `campo-${estadoCampo.seg}`, titulo: SEGMENTOS[estadoCampo.seg].texto,
-    obterCena: () => cenaSegmento(estadoCampo.seg), escalaZ: ['01A', '01B'].includes(estadoCampo.seg) ? 0.4 : 1,
+    obterCena: () => cenaSegmento(estadoCampo.seg), escalaZ: estadoCampo.seg === '01' ? 0.4 : 1,
     altura: Math.round(Math.min(1600, Math.max(560, (1500 * alturaUtil) / larguraUtil))),
     compacta: true, legenda: legendaCores,
     // tocar no elemento: abre o quadro (com o botao de registro de um toque no topo)
@@ -14966,7 +14974,7 @@ const classesMenu = (direita) => (direita ? 'ctc-dropdown__panel ctc-dropdown__p
 /* ---- Areas para zoom: eixo, linha, quadrante (entre 2 eixos e 2 linhas) ---- */
 function eixosDoSegmento(seg) {
   const lista = [...(GRADES[seg]?.eixos || [])];
-  if (seg === '01A') lista.unshift(-1);
+  if (seg === '01') lista.unshift(-1);
   return lista;
 }
 function areasDoSegmento(seg) {
@@ -15232,7 +15240,7 @@ function painelBI(depoisDosCartoes = null) {
       cartao('azul', '🔓', m.liberado, 'Liberados p/ começar'), cartao('verm', '⚠️', m.pendencia, 'Pendências'));
 
     // por tipo de servico (com local escolhido) ou por local + frente (obra toda)
-    const chaveLinha = (e) => (estadoBI.seg ? categoriaBI(e) : `${SEGMENTOS[e.seg].texto} · ${FRENTES[tipoDe(e).frente].texto}`);
+    const chaveLinha = (e) => (estadoBI.seg ? categoriaBI(e) : `${textoLocal(e)} · ${FRENTES[tipoDe(e).frente].texto}`);
     const grupos = Array.from(agruparPor(lista, chaveLinha), ([rotulo, itens]) => ({ rotulo, itens, m: metricasBI(itens), seg: itens[0].seg, frente: tipoDe(itens[0]).frente }));
     const ordemFrente = Object.keys(FRENTES);
     grupos.sort((a, b) => Object.keys(SEGMENTOS).indexOf(a.seg) - Object.keys(SEGMENTOS).indexOf(b.seg) || ordemFrente.indexOf(a.frente) - ordemFrente.indexOf(b.frente) || a.rotulo.localeCompare(b.rotulo, 'pt-BR', { numeric: true }));
@@ -15279,7 +15287,7 @@ function painelBI(depoisDosCartoes = null) {
 function paginaPainel() {
   const hoje = registrosDoDia();
   const tabelaHoje = criarTabela({
-    dados: hoje.map(({ e, et, momento }) => ({ elemento: e.rotulo, seg: SEGMENTOS[e.seg].texto, etapa: `${et.texto} · ${momento.toLowerCase()}`, registro: momento === 'Início' ? '' : valoresTexto(e.reg[et.chave]), id: e.id })),
+    dados: hoje.map(({ e, et, momento }) => ({ elemento: e.rotulo, seg: textoLocal(e), etapa: `${et.texto} · ${momento.toLowerCase()}`, registro: momento === 'Início' ? '' : valoresTexto(e.reg[et.chave]), id: e.id })),
     porPagina: 0, altura: 'auto', compacta: true,
     vazio: { titulo: 'Nenhum registro hoje', mensagem: 'Os registros feitos hoje aparecem aqui.' },
     onLinhaClick: (l) => abrirFichaModal(porId.get(l.id)),
@@ -15287,7 +15295,7 @@ function paginaPainel() {
   });
   const liberados = elementos.filter(liberado);
   const tabelaLiberados = criarTabela({
-    dados: liberados.map((e) => ({ elemento: e.rotulo, seg: SEGMENTOS[e.seg].texto, frente: FRENTES[tipoDe(e).frente].texto, proxima: proximaEtapa(e)?.texto, id: e.id })),
+    dados: liberados.map((e) => ({ elemento: e.rotulo, seg: textoLocal(e), frente: FRENTES[tipoDe(e).frente].texto, proxima: proximaEtapa(e)?.texto, id: e.id })),
     porPagina: 15, compacta: true,
     vazio: { titulo: 'Nada liberado aguardando', mensagem: 'Itens com as dependências atendidas aparecem aqui.' },
     onLinhaClick: (l) => abrirFichaModal(porId.get(l.id)),
@@ -15307,7 +15315,7 @@ function paginaElementos() {
     && (!filtroLista.frentes.length || filtroLista.frentes.includes(tipoDe(e).frente))
     && (!filtroLista.status || (filtroLista.status === 'liberado' ? liberado(e) : (filtroLista.status === 'bloqueado' ? bloqueadoAgora(e) && statusDe(e) !== 'concluida' : statusDe(e) === filtroLista.status))));
   const linhas = (lista) => lista.map((e) => ({
-    id: e.id, elemento: e.rotulo, seg: e.seg, frente: FRENTES[tipoDe(e).frente].texto, grupo: e.grupo,
+    id: e.id, elemento: e.rotulo, seg: textoLocal(e), frente: FRENTES[tipoDe(e).frente].texto, grupo: e.grupo,
     etapa: etapaAtualTexto(e), conclusao: dataConclusao(e), status: liberado(e) ? 'Liberado' : textoStatus(e), st: liberado(e) ? 'liberado' : statusDe(e),
   }));
   let barra = null;
@@ -15353,7 +15361,7 @@ const valorBanco = (v) => (!temValor(v) ? '' : (typeof v === 'number' ? formatar
 /** Linha completa do elemento: identificacao, dados de projeto, chegada, cada etapa (datas e valores reais), cura. */
 function linhaBanco(e, { chegadas, codigos } = {}) {
   const l = {
-    Elemento: e.rotulo, 'Código (id)': e.id, Local: SEGMENTOS[e.seg].texto, Tipo: tipoDe(e).nome, Grupo: e.grupo || '', Descrição: e.sub || '',
+    Elemento: e.rotulo, 'Código (id)': e.id, Local: textoLocal(e), Tipo: tipoDe(e).nome, Grupo: e.grupo || '', Descrição: e.sub || '',
     Status: liberado(e) ? 'Liberado para começar' : textoStatus(e),
   };
   if (codigos) l['Código cronograma'] = (codigos.get(e.id) || []).join(', ');
@@ -15397,7 +15405,7 @@ function bancoParaBase() {
   return elementos.filter(temRegistro).map((e) => {
     const c = curaDe(e);
     return {
-      id: e.id, elemento: e.rotulo, local: e.seg, tipo: tipoDe(e).nome, grupo: e.grupo || '', status: textoStatus(e),
+      id: e.id, elemento: e.rotulo, local: e.seg, ...(e.trecho ? { trecho: e.trecho } : {}), tipo: tipoDe(e).nome, grupo: e.grupo || '', status: textoStatus(e),
       projeto: Object.fromEntries(dadosProjeto(e)),
       ...(chegadas.get(e.id) ? { chegada: chegadas.get(e.id) } : {}),
       execucao: Object.fromEntries(etapasDe(e).filter((et) => e.reg[et.chave]).map((et) => [et.texto, e.reg[et.chave]])),
@@ -15830,7 +15838,7 @@ function paginaAvanco() {
 function paginaPendencias() {
   const lista = elementos.filter((e) => e.pendencia);
   const tabela = criarTabela({
-    dados: lista.map((e) => ({ id: e.id, elemento: e.rotulo, seg: SEGMENTOS[e.seg].texto, frente: FRENTES[tipoDe(e).frente].texto, motivo: e.descricaoPendencia, etapa: etapaAtualTexto(e) })),
+    dados: lista.map((e) => ({ id: e.id, elemento: e.rotulo, seg: textoLocal(e), frente: FRENTES[tipoDe(e).frente].texto, motivo: e.descricaoPendencia, etapa: etapaAtualTexto(e) })),
     porPagina: 0, altura: 'auto', compacta: true,
     vazio: { titulo: 'Nenhuma pendência', mensagem: 'Pendências registradas em campo aparecem aqui.' },
     onLinhaClick: (l) => abrirFichaModal(porId.get(l.id)),
@@ -16229,7 +16237,7 @@ function canvas3dRelatorio(seg) {
   ESTADO_VISTAS_3D[`pdf-${seg}`] = { cam: null, focoId: null, selecionadoId: null, fade: 0, translucido: false, prancha: 0 };
   const v = criarVista3D({
     chave: `pdf-${seg}`, titulo: SEGMENTOS[seg].texto, obterCena: () => cenaSegmento(seg),
-    escalaZ: ['01A', '01B'].includes(seg) ? 0.4 : 1, altura: 760, semRodape: true,
+    escalaZ: seg === '01' ? 0.4 : 1, altura: 760, semRodape: true,
   });
   estadoCampo.ocultas = ocultas;
   return v.elemento.querySelector('canvas');
@@ -16334,7 +16342,7 @@ function gerarRelatorioAvanco(segs) {
   const pend = todos.filter((e) => e.pendencia);
   r.titulo('Pendências / não conformidades', `${pend.length} elemento(s)`);
   if (pend.length) {
-    pend.forEach((e) => r.cartaoTexto({ tituloCartao: e.rotulo, info: `${SEGMENTOS[e.seg].texto} · ${etapaAtualTexto(e)}`, linhas: quebrarTextoPdf(`Motivo: ${e.descricaoPendencia || '—'}`, larguraUtil - 24, 8.5, 3), cor: PDF_CORES.vermelho, fundo: PDF_CORES.vermelhoClaro }));
+    pend.forEach((e) => r.cartaoTexto({ tituloCartao: e.rotulo, info: `${textoLocal(e)} · ${etapaAtualTexto(e)}`, linhas: quebrarTextoPdf(`Motivo: ${e.descricaoPendencia || '—'}`, larguraUtil - 24, 8.5, 3), cor: PDF_CORES.vermelho, fundo: PDF_CORES.vermelhoClaro }));
   } else {
     r.cartaoTexto({ tituloCartao: 'Nenhuma pendência.', linhas: [], cor: PDF_CORES.verde, fundo: PDF_CORES.verdeClaro });
   }
@@ -16342,7 +16350,7 @@ function gerarRelatorioAvanco(segs) {
   if (obs.length) {
     doc.y += 8;
     r.titulo('Observações registradas', `${obs.length}`);
-    obs.forEach((e) => r.cartaoTexto({ tituloCartao: e.rotulo, info: SEGMENTOS[e.seg].texto, linhas: quebrarTextoPdf(e.observacao, larguraUtil - 24, 8.5, 3), cor: PDF_CORES.marca, fundo: PDF_CORES.fundo }));
+    obs.forEach((e) => r.cartaoTexto({ tituloCartao: e.rotulo, info: textoLocal(e), linhas: quebrarTextoPdf(e.observacao, larguraUtil - 24, 8.5, 3), cor: PDF_CORES.marca, fundo: PDF_CORES.fundo }));
   }
   doc.novaPagina();
   r.titulo('Relação por grupo', 'elementos iniciados ou concluídos');
@@ -16375,7 +16383,7 @@ function gerarMedicao(segs, de, ate) {
   r.cartoes([['Itens medidos', String(lista.length), PDF_CORES.verde], ['Concreto (projeto)', formatarM3(volProj), PDF_CORES.marca], ['Concreto lançado', formatarM3(volLanc), '#0ea5e9'], ['Peso pré-moldado', `${formatarNumero(lista.reduce((s, e) => s + num(e.info.peso), 0), 1)} t`, '#64748b', true]]);
   quebrarTextoPdf('Critério: elementos com a etapa de conclusão registrada no período e sem pendência. Volume de projeto conforme os desenhos; volume lançado conforme o registro de campo.', larguraUtil, 8, 3).forEach((l) => { doc.texto(PDF_MARGEM, doc.y + 8, l, { tamanho: 8, cor: PDF_CORES.suave }); doc.y += 11; });
   doc.y += 8;
-  const porTipo = Array.from(agruparPor(lista, (e) => `${SEGMENTOS[e.seg].texto} · ${e.info.tipoPM || tipoDe(e).nome}`), ([chave, itens]) => ({ chave, itens }));
+  const porTipo = Array.from(agruparPor(lista, (e) => `${textoLocal(e)} · ${e.info.tipoPM || tipoDe(e).nome}`), ([chave, itens]) => ({ chave, itens }));
   r.titulo('Resumo por tipo', `${porTipo.length} tipo(s)`);
   tabelaPdf(doc, {
     colunas: [{ titulo: 'Tipo', largura: 250 }, { titulo: 'Quant.', largura: 50, alinhar: 'centro' }, { titulo: 'Concreto projeto (m³)', largura: 110, alinhar: 'direita' }, { titulo: 'Lançado (m³)', largura: larguraUtil - 410, alinhar: 'direita' }],
@@ -16386,7 +16394,7 @@ function gerarMedicao(segs, de, ate) {
   // atividades do cronograma com avanco no periodo (codigo = Activity ID), ligadas aos locais escolhidos
   const de0 = de || '2000-01-01';
   const ate0 = ate || hojeIso();
-  const todosLocais = ['01A', '01B', 'CENTRAL', 'PROV', 'CANTEIRO'].every((s) => segs.includes(s));
+  const todosLocais = ['01', 'CENTRAL', 'PROV', 'CANTEIRO'].every((s) => segs.includes(s));
   const ativs = medicaoPeriodo(de0, ate0).filter((x) => (x.m1.elementos || []).length ? x.m1.elementos.some((e) => segs.includes(e.seg)) : todosLocais);
   r.titulo('Medição por atividade do cronograma', `${ativs.length} atividade(s)`);
   if (ativs.length) {
@@ -16404,7 +16412,7 @@ function gerarMedicao(segs, de, ate) {
   tabelaPdf(doc, {
     tamanho: 6.8,
     colunas: [{ titulo: 'Código cronograma', largura: 250 }, { titulo: 'Elemento', largura: 75 }, { titulo: 'Local', largura: 35 }, { titulo: 'Conclusão', largura: 55, alinhar: 'centro' }, { titulo: 'Projeto m³', largura: 50, alinhar: 'direita' }, { titulo: 'Lançado m³', largura: larguraUtil - 465, alinhar: 'direita' }],
-    linhas: lista.map((e) => [{ texto: (codigos.get(e.id) || []).join(', ') || '—', cor: PDF_CORES.marca }, { texto: e.rotulo, negrito: true }, e.seg, dataPdf(dataConclusao(e)), e.info.volume != null ? formatarNumero(e.info.volume, 2) : '—', temValor(e.reg[etapaConclusao(e).chave]?.valores?.volume) ? formatarNumero(e.reg[etapaConclusao(e).chave].valores.volume, 2) : '']),
+    linhas: lista.map((e) => [{ texto: (codigos.get(e.id) || []).join(', ') || '—', cor: PDF_CORES.marca }, { texto: e.rotulo, negrito: true }, textoLocal(e), dataPdf(dataConclusao(e)), e.info.volume != null ? formatarNumero(e.info.volume, 2) : '—', temValor(e.reg[etapaConclusao(e).chave]?.valores?.volume) ? formatarNumero(e.reg[etapaConclusao(e).chave].valores.volume, 2) : '']),
   });
   r.assinaturas(['Responsável pela obra', 'Fiscalização / contratada']);
   return r.finalizar('controle-campo-medicao');
@@ -16413,7 +16421,7 @@ function gerarMedicao(segs, de, ate) {
 function abrirRelatorios() {
   const selLocais = criarSeletorMultiplo({
     rotulo: 'Locais', opcoes: Object.entries(SEGMENTOS).map(([valor, s]) => ({ valor, texto: s.texto })),
-    selecionados: ['01A', '01B'], semFiltroVazio: false,
+    selecionados: ['01'], semFiltroVazio: false,
   });
   const formulario = criarFormulario({
     colunas: 2,
@@ -16722,7 +16730,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.11.0' : 'Controle de Execução em Campo v6.11.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.12.0' : 'Controle de Execução em Campo v6.12.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
