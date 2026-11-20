@@ -2491,6 +2491,11 @@ img { max-width: 100%; display: block; }
 .ctc-sinc-ponto.is-ok { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.25); }
 .ctc-sinc-ponto.is-espera { background: #facc15; box-shadow: 0 0 0 3px rgba(250,204,21,.25); }
 .ctc-sinc-ponto.is-erro { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,.25); }
+/* v6.22.0: quem esta com o controle aberto (iniciais, como no Excel) */
+.ctc-presenca { display: inline-flex; align-items: center; padding-left: 6px; }
+.ctc-presenca:empty { display: none; }
+.ctc-presenca__av { width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-left: -6px; border: 2px solid #fff; color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .02em; cursor: default; box-shadow: 0 1px 2px rgba(15,23,42,.25); }
+.ctc-presenca__mais { background: #475569; }
 .ctc-sinc-linhas { display: grid; gap: 8px; font-size: 14px; color: #475569; }
 .ctc-sinc-linhas div { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid #eef2f6; padding-top: 8px; }
 .ctc-sinc-linhas b { color: #0f172a; }
@@ -7755,7 +7760,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.21.0
+   Versao: 6.22.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7850,6 +7855,15 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           ela concluida; tocar na estaca abre o quadro na etapa da vez; balao com o nome ao passar o mouse.
           Estaca cheia ate a pinagem concluida (camisa colorida pela cravacao e pino pela pinagem; raiz:
           perfuracao e camisa); depois, corte com a armacao.
+   6.22.0: iniciais de quem esta com o controle aberto no cabecalho (como no Excel), em tempo real.
+          Varias pessoas no mesmo controle: todos sincronizam numa versao unica da obra na nuvem
+          ("Controle compartilhado da obra"); na primeira vez ela junta as versoes de sincronizacao
+          que cada tablet criava antes. Antes de enviar, o controle junta o que esta na nuvem
+          com o que foi lancado no aparelho, registro por registro (cada etapa de cada elemento,
+          pendencia/observacao, entrada de estoque, avanco de cada atividade). Vale a ultima
+          alteracao so quando duas pessoas mexem na mesma etapa do mesmo elemento. A gravacao e
+          feita numa transacao (ninguem envia no meio). A cada minuto o controle busca o que os
+          outros lancaram; o Visualizador so recebe.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -18203,9 +18217,153 @@ async function salvarNoTablet() {
   } catch (erro) {
     estadoSync.erro = `Cópia no tablet falhou: ${erro.message}`;
   }
-  if (navigator.onLine && armazenamento.usandoFirebase && armazenamento.usandoFirebase()) sincronizar({ silencioso: true });
+  if (navigator.onLine && armazenamento.usandoFirebase && armazenamento.usandoFirebase() && !algumModalAberto()) sincronizar({ silencioso: true });
 }
 
+/* =============================================================================
+   v6.22.0: VARIAS PESSOAS NO MESMO CONTROLE
+   Todos sincronizam numa versao unica da obra: obras/{obra}/{controle}/campo-compartilhado.
+   Antes de gravar, junta (em transacao) a nuvem com o aparelho, registro por registro, usando
+   como referencia ("ancestral") a ultima base que este aparelho recebeu da nuvem:
+     - so o aparelho mudou o item -> vale o aparelho;  - so a nuvem mudou -> vale a nuvem;
+     - os dois mudaram -> vale o aparelho (ultima alteracao);  - sem ancestral -> une, e no
+       conflito vale a nuvem (base antiga aberta por engano nao apaga o que os outros lancaram).
+   ========================================================================== */
+const ID_COMPARTILHADO = 'campo-compartilhado';
+const NOME_COMPARTILHADO = 'Controle compartilhado da obra (todos lançam aqui)';
+const CHAVE_ANCESTRAL = 'controle-campo-otf3:ancestral';
+let ancestral = null;          // base da ultima vez que o aparelho ficou igual a nuvem
+let ancestralConfiavel = false; // false: une sem apagar e, no conflito, vale a nuvem
+let temporizadorBusca = null;
+
+/** Itens independentes da base (chave -> JSON). Duas pessoas so "brigam" pelo mesmo item. */
+function itensDaBase(base) {
+  const d = (base && base.dados) || {};
+  const m = new Map();
+  (d.registros || []).forEach((r) => {
+    Object.entries(r.reg || {}).forEach(([etapa, v]) => { if (v != null) m.set(`reg|${r.id}|${etapa}`, JSON.stringify(v)); });
+    const meta = { pendencia: Boolean(r.pendencia), descricaoPendencia: r.descricaoPendencia || '', observacao: r.observacao || '' };
+    if (meta.pendencia || meta.descricaoPendencia || meta.observacao) m.set(`meta|${r.id}`, JSON.stringify(meta));
+  });
+  (d.estoquePM || []).forEach((x) => m.set(`pm|${x.id}`, JSON.stringify(x)));
+  Object.entries(d.avancoCampo || {}).forEach(([k, v]) => { if (v != null) m.set(`av|${k}`, JSON.stringify(v)); });
+  (d.funcionarios || []).forEach((x) => m.set(`func|${(x && x.id) || JSON.stringify(x)}`, JSON.stringify(x)));
+  (d.apropriacoes || []).forEach((x) => m.set(`apr|${(x && x.id) || JSON.stringify(x)}`, JSON.stringify(x)));
+  if (d.cronograma) m.set('crono', JSON.stringify(d.cronograma));
+  if (base && base.identidade) m.set('ident', JSON.stringify(base.identidade));
+  return m;
+}
+
+/** Junta tres versoes (anc pode ser null). Devolve { itens, daNuvem, conflitos }. */
+function mesclarItens(anc, loc, nuv, confiavel) {
+  const itens = new Map();
+  let daNuvem = 0; let conflitos = 0;
+  const chaves = new Set([...loc.keys(), ...nuv.keys(), ...(anc ? anc.keys() : [])]);
+  chaves.forEach((k) => {
+    const a = anc ? anc.get(k) : undefined;
+    const l = loc.get(k);
+    const n = nuv.get(k);
+    let v;
+    if (l === n) v = l;
+    else if (anc && confiavel && l === a) { v = n; daNuvem += 1; }
+    else if (anc && confiavel && n === a) v = l;
+    else if (anc && confiavel) { v = l !== undefined ? l : n; conflitos += 1; if (v === n) daNuvem += 1; }
+    else { v = n !== undefined ? n : l; if (n !== undefined) daNuvem += 1; }   // sem referencia: une; no conflito vale a nuvem
+    if (v !== undefined) itens.set(k, v);
+  });
+  return { itens, daNuvem, conflitos };
+}
+
+/** Remonta a base a partir dos itens (o resto da base vem do aparelho). */
+function montarBaseDosItens(itens, baseLocal) {
+  const registros = new Map();
+  const reg = (id) => { if (!registros.has(id)) registros.set(id, { id, reg: {}, pendencia: false, descricaoPendencia: '', observacao: '' }); return registros.get(id); };
+  const estoque = []; const avanco = {}; const func = []; const apr = [];
+  let crono = null; let ident = null;
+  itens.forEach((v, k) => {
+    const valor = JSON.parse(v);
+    const tipo = k.slice(0, k.indexOf('|') < 0 ? k.length : k.indexOf('|'));
+    const resto = k.slice(tipo.length + 1);
+    if (tipo === 'reg') { const corte = resto.lastIndexOf('|'); reg(resto.slice(0, corte)).reg[resto.slice(corte + 1)] = valor; }
+    else if (tipo === 'meta') Object.assign(reg(resto), valor);
+    else if (tipo === 'pm') estoque.push(valor);
+    else if (tipo === 'av') avanco[resto] = valor;
+    else if (tipo === 'func') func.push(valor);
+    else if (tipo === 'apr') apr.push(valor);
+    else if (tipo === 'crono') crono = valor;
+    else if (tipo === 'ident') ident = valor;
+  });
+  estoque.sort((x, y) => String(x.data || '').localeCompare(String(y.data || '')) || String(x.id).localeCompare(String(y.id)));
+  const dados = { ...((baseLocal && baseLocal.dados) || {}), registros: [...registros.values()], estoquePM: estoque, avancoCampo: avanco, funcionarios: func, apropriacoes: apr };
+  if (crono) dados.cronograma = crono; else delete dados.cronograma;
+  return { ...baseLocal, ...(ident ? { identidade: ident } : {}), dados };
+}
+
+const algumModalAberto = () => Boolean(document.querySelector('.ctc-modal.is-open'));
+const chaveAncestral = () => `${CHAVE_ANCESTRAL}:${obraNuvem}:${controleKZ}`;
+
+async function guardarAncestral(base) {
+  ancestral = base; ancestralConfiavel = true;
+  try {
+    const id = lerChave(chaveAncestral());
+    let ok = false;
+    if (id) { try { await armazenamentoLocal.substituir(id, { base, autor: 'sincronização' }); ok = true; } catch (erro) { ok = false; } }
+    if (!ok) { const novo = await armazenamentoLocal.salvar({ nome: 'Referência da sincronização (não abrir)', base, autor: 'sincronização' }); gravarChave(chaveAncestral(), novo.id); }
+  } catch (erro) { /* fica so na memoria */ }
+}
+
+async function lerAncestralGuardado() {
+  const id = lerChave(chaveAncestral());
+  if (!id) return null;
+  try { return (await armazenamentoLocal.abrir(id)).base || null; } catch (erro) { return null; }
+}
+
+/** Aplica no aparelho a base que veio da nuvem (sem mexer em quem esta com um quadro aberto). */
+function aplicarBaseDaNuvem(base, quantos) {
+  identidade = { ...IDENTIDADE_PADRAO, ...(base.identidade || {}) };
+  carregarDados(base);
+  if (aplicativo) {
+    aplicativo.navegar(aplicativo.paginaAtual());
+    if (quantos) toast.info('Lançamentos de outras pessoas', `${quantos} item(ns) recebido(s) da nuvem da obra.`);
+  }
+}
+
+/** Referencias do documento unico da obra. */
+async function refsCompartilhado() {
+  await garantirNuvemKZ({ pedirLogin: false });
+  const { db, fs } = await KZ.iniciarFirebase(FIREBASE_KZ);
+  return {
+    db, fs,
+    meta: fs.doc(db, 'obras', obraNuvem, controleKZ, ID_COMPARTILHADO),
+    conteudo: fs.doc(db, 'obras', obraNuvem, `${controleKZ}_conteudo`, ID_COMPARTILHADO),
+  };
+}
+
+/** Visualizador (ou sem permissao de gravar): so recebe a versao da obra. */
+async function receberCompartilhado() {
+  const { fs, conteudo } = await refsCompartilhado();
+  const c = await fs.getDoc(conteudo);
+  if (!c.exists()) return false;
+  const nuvem = JSON.parse(c.data().conteudo);
+  if (JSON.stringify([...itensDaBase(nuvem)]) !== JSON.stringify([...itensDaBase(obterBaseParaSalvar())])) aplicarBaseDaNuvem(nuvem, 0);
+  estadoSync.ultimoNuvem = new Date().toISOString();
+  return true;
+}
+
+/** Primeira vez da obra: junta as versoes "Controle de campo (sincronizacao)" que cada tablet
+ *  criava antes da v6.22.0 (da mais antiga para a mais nova: no mesmo item vale a mais nova). */
+async function itensDasVersoesAntigas() {
+  const versoes = (await armazenamento.listar())
+    .filter((v) => v.id !== ID_COMPARTILHADO && /sincroniza/i.test(v.nome || ''))
+    .sort((a, b) => String(a.salvoEm || '').localeCompare(String(b.salvoEm || '')));
+  const itens = new Map();
+  for (const v of versoes) {
+    try { itensDaBase((await armazenamento.abrir(v.id)).base).forEach((valor, chave) => itens.set(chave, valor)); } catch (erro) { /* versao ilegivel: ignora */ }
+  }
+  return { itens, quantas: versoes.length };
+}
+
+let sincronizando = false;
 async function sincronizar({ silencioso = false } = {}) {
   if (!(armazenamento.usandoFirebase && armazenamento.usandoFirebase())) {
     if (silencioso) return false;
@@ -18218,52 +18376,159 @@ async function sincronizar({ silencioso = false } = {}) {
     if (!silencioso) toast.aviso('Sem sinal', 'Os registros ficam no tablet e serão enviados quando a conexão voltar.');
     return false;
   }
-  const base = { ...obterBaseParaSalvar(), salvoEm: new Date().toISOString() };
-  const car = silencioso ? null : mostrarCarregamento('salvar', 'Sincronização', { logo: (base.identidade || {}).logo || identidade.logo || MARCA.logo, rodape: identidade.subtitulo || '' });
+  if (sincronizando) return false;
+  if (algumModalAberto()) {   // quadro aberto: os dados dele nao podem ser trocados agora; tenta de novo em seguida
+    if (!silencioso) toast.aviso('Feche o quadro aberto', 'A sincronização roda assim que o quadro for fechado.');
+    return false;
+  }
+  if (sessao.obter().perfil === 'visualizador') {
+    try { return await receberCompartilhado(); } catch (erro) { estadoSync.erro = `Leitura da nuvem falhou: ${erro.message}`; return false; }
+  }
+  sincronizando = true;
+  const car = silencioso ? null : mostrarCarregamento('salvar', 'Sincronização', { logo: identidade.logo || MARCA.logo, rodape: identidade.subtitulo || '' });
   try {
-    const chaveNuvem = `${CHAVE_NUVEM}:${obraNuvem}:${controleKZ}`;
-    const id = lerChave(chaveNuvem);
-    let ok = false;
-    if (id) {
-      try { await armazenamento.substituir(id, { base, autor: autorAtual() }); ok = true; } catch (erro) { ok = false; }
-    }
-    if (!ok) {
-      const novo = await armazenamento.salvar({ nome: 'Controle de campo (sincronização)', base, autor: autorAtual() });
-      gravarChave(chaveNuvem, novo.id);
-    }
-    estadoSync.ultimoNuvem = base.salvoEm;
+    const { db, fs, meta, conteudo } = await refsCompartilhado();
+    const local = obterBaseParaSalvar();
+    const itensLocal = itensDaBase(local);
+    const existe = (await fs.getDoc(conteudo)).exists();
+    const antigas = existe ? null : await itensDasVersoesAntigas();
+    let resultado = null;
+    await fs.runTransaction(db, async (tx) => {
+      const c = await tx.get(conteudo);
+      const nuvem = c.exists() ? JSON.parse(c.data().conteudo) : null;
+      if (nuvem) resultado = mesclarItens(ancestral ? itensDaBase(ancestral) : null, itensLocal, itensDaBase(nuvem), ancestralConfiavel);
+      else if (antigas && antigas.itens.size) resultado = mesclarItens(null, itensLocal, antigas.itens, false);   // une tudo; no mesmo item vale a versao salva mais nova
+      else resultado = { itens: itensLocal, daNuvem: 0, conflitos: 0 };
+      const salvoEm = new Date().toISOString();
+      const final = { ...montarBaseDosItens(resultado.itens, local), salvoEm, compartilhadoEm: salvoEm };
+      const texto = JSON.stringify(final);
+      if (texto.length > 900000) throw new Error(`O controle tem ${Math.round(texto.length / 1024)} KB e passa do limite de cerca de 900 KB da nuvem.`);
+      resultado.final = final;
+      tx.set(meta, { nome: NOME_COMPARTILHADO, salvoEm, autor: autorAtual(), tamanho: texto.length });
+      tx.set(conteudo, { conteudo: texto });
+    });
+    const mudouAqui = JSON.stringify([...resultado.itens]) !== JSON.stringify([...itensLocal]);
+    if (mudouAqui) aplicarBaseDaNuvem(resultado.final, resultado.daNuvem);
+    await guardarAncestral(resultado.final);
+    estadoSync.ultimoNuvem = resultado.final.salvoEm;
     estadoSync.pendenteNuvem = false;
+    estadoSync.erro = null;
+    if (mudouAqui) salvarNoTablet();   // a copia do tablet passa a ter o que veio da nuvem
     if (car) await car.fim(true);
-    if (!silencioso) toast.sucesso('Sincronizado', 'Os registros foram enviados para a nuvem.');
+    if (!silencioso) toast.sucesso('Sincronizado', resultado.conflitos ? `Enviado. Em ${resultado.conflitos} item(ns) mexidos por duas pessoas, valeu a alteração deste aparelho.` : 'Os registros foram juntados com os da obra e enviados para a nuvem.');
     return true;
   } catch (erro) {
     if (car) await car.fim(false, 'Não foi possível sincronizar');
     estadoSync.erro = `Envio para a nuvem falhou: ${erro.message}`;
     if (!silencioso) toast.erro('Falha na sincronização', erro.message);
     return false;
+  } finally {
+    sincronizando = false;
   }
 }
+
+/* ---- v6.22.0: quem esta com o controle aberto (iniciais no cabecalho, como no Excel) ----
+   Cada aparelho grava a cada 30 s em obras/{obra}/{controle}/campo-compartilhado/presenca/{uid}.
+   So Editor/Admin gravam (regras da nuvem); o Visualizador ve os outros, mas nao aparece. */
+const CORES_PRESENCA = ['#2563eb', '#16a34a', '#ea580c', '#9333ea', '#db2777', '#0891b2', '#b45309', '#dc2626'];
+function iniciaisDe(nome) {
+  const partes = String(nome || '').replace(/@.*$/, '').split(/[\s._-]+/).filter((x) => x && !/^(da|de|do|das|dos|e)$/i.test(x));
+  if (!partes.length) return '?';
+  return ((partes[0][0] || '') + (partes.length > 1 ? partes[partes.length - 1][0] : (partes[0][1] || ''))).toUpperCase();
+}
+const corPresenca = (texto) => { let s = 0; for (const c of String(texto)) s = (s * 31 + c.charCodeAt(0)) >>> 0; return CORES_PRESENCA[s % CORES_PRESENCA.length]; };
+const presenca = { timer: null, redesenho: null, desligar: null, ref: null, fs: null, saiu: null };
+
+async function iniciarPresenca(alvo, perfil) {
+  pararPresenca();
+  if (!usuarioKZ || !alvo) return;
+  try {
+    const { db, fs } = await KZ.iniciarFirebase(FIREBASE_KZ);
+    const user = await KZ.usuarioAtual();
+    if (!user) return;
+    const col = fs.collection(db, 'obras', obraNuvem, controleKZ, ID_COMPARTILHADO, 'presenca');
+    const ref = fs.doc(col, user.uid);
+    const grava = perfil !== 'visualizador' && ['editor', 'admin'].includes(usuarioKZ.papel);
+    const entrouEm = new Date().toISOString();
+    const nome = usuarioKZ.nome || usuarioKZ.email;
+    const bater = (saiu = false) => fs.setDoc(ref, { uid: user.uid, nome, email: usuarioKZ.email, entrouEm, vistoEm: new Date().toISOString(), saiu }).catch(() => {});
+    presenca.fs = fs; presenca.ref = grava ? ref : null;
+    if (grava) { bater(); presenca.timer = setInterval(() => { if (!document.hidden) bater(); }, 30000); }
+    // ativo = batida recebida neste aparelho ha menos de 90 s (e relogio da pessoa dentro de 5 min, para ignorar sobras antigas)
+    const recebido = new Map();
+    let pessoas = [];
+    const desenhar = () => {
+      const agora = Date.now();
+      const ativos = pessoas.filter((d) => d.uid !== user.uid && !d.saiu
+        && Math.abs(agora - Date.parse(d.vistoEm || 0)) < 300000 && agora - (recebido.get(d.uid) || 0) < 90000)
+        .sort((a, b) => String(a.entrouEm).localeCompare(String(b.entrouEm)));
+      const hora = (iso) => { const d = new Date(iso); return Number.isNaN(d.getTime()) ? '' : d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); };
+      const max = 5;
+      alvo.replaceChildren(...[
+        ...ativos.slice(0, max).map((d) => h('span', { class: 'ctc-presenca__av', style: { background: corPresenca(d.email || d.nome) }, title: `${d.nome} — com o controle aberto desde ${hora(d.entrouEm)}` }, iniciaisDe(d.nome))),
+        ativos.length > max ? h('span', { class: 'ctc-presenca__av ctc-presenca__mais', title: ativos.slice(max).map((d) => d.nome).join(', ') }, `+${ativos.length - max}`) : null,
+      ].filter(Boolean));
+      alvo.title = ativos.length ? `Com o controle aberto agora: ${ativos.map((d) => d.nome).join(', ')}` : '';
+    };
+    presenca.desligar = fs.onSnapshot(col, (snap) => {
+      snap.docChanges().forEach((m) => { if (m.type !== 'removed') recebido.set(m.doc.id, Date.now()); });
+      pessoas = snap.docs.map((d) => d.data());
+      desenhar();
+    }, () => {});
+    presenca.redesenho = setInterval(desenhar, 15000);
+    presenca.saiu = () => { if (presenca.ref) bater(true); };
+    window.addEventListener('pagehide', presenca.saiu);
+  } catch (erro) { /* sem presenca: o controle segue normal */ }
+}
+
+function pararPresenca() {
+  clearInterval(presenca.timer); clearInterval(presenca.redesenho);
+  if (presenca.desligar) presenca.desligar();
+  if (presenca.saiu) { presenca.saiu(); window.removeEventListener('pagehide', presenca.saiu); }
+  Object.assign(presenca, { timer: null, redesenho: null, desligar: null, ref: null, saiu: null });
+}
+
+/** Ao abrir: define a referencia da juncao e busca o que os outros lancaram (e depois a cada minuto). */
+async function iniciarCompartilhado(baseInicialSessao, { recuperada = false } = {}) {
+  clearInterval(temporizadorBusca);
+  if (!usuarioKZ) return;
+  const vazia = !((baseInicialSessao.dados || {}).registros || []).length;
+  if (recuperada) {
+    ancestral = await lerAncestralGuardado();
+    ancestralConfiavel = Boolean(ancestral);
+  } else {
+    ancestral = baseInicialSessao;
+    ancestralConfiavel = Boolean(baseInicialSessao.compartilhadoEm) || vazia;
+  }
+  sincronizar({ silencioso: true });
+  temporizadorBusca = setInterval(() => {
+    if (!aplicativo) { clearInterval(temporizadorBusca); return; }
+    if (navigator.onLine && !document.hidden) sincronizar({ silencioso: true });
+  }, 60000);
+}
+
 window.addEventListener('online', () => { if (estadoSync.pendenteNuvem && aplicativo) sincronizar({ silencioso: true }); });
 
 /** Ao entrar: oferece recuperar a copia automatica do tablet se for mais recente que a base aberta. */
 async function ofereceRecuperarCopia(base) {
   const id = lerChave(CHAVE_RASCUNHO);
-  if (!id) return;
+  if (!id) return false;
   try {
     const copia = await armazenamentoLocal.abrir(id);
     const salvoCopia = copia?.base?.salvoEm;
-    if (!salvoCopia || (base.salvoEm && salvoCopia <= base.salvoEm)) return;
+    if (!salvoCopia || (base.salvoEm && salvoCopia <= base.salvoEm)) return false;
     const ok = await confirmar({
       titulo: 'Recuperar registros deste tablet?',
       mensagem: `Há uma cópia automática de ${formatarData(salvoCopia, 'data-hora')}, mais recente que a base aberta. Recuperar os registros dela?`,
       textoConfirmar: 'Recuperar',
     });
-    if (!ok) return;
+    if (!ok) return false;
     carregarDados(copia.base);
     sessao.marcarAlteracao();
     aplicativo.navegar(aplicativo.paginaAtual());
     toast.sucesso('Registros recuperados', 'A cópia automática do tablet foi carregada.');
-  } catch (erro) { /* sem copia valida */ }
+    return true;
+  } catch (erro) { return false; /* sem copia valida */ }
 }
 
 /** v6.6: resumo aberto pelo ponto de sincronizacao do cabecalho. */
@@ -18349,6 +18614,8 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
   const desligarProtecao = protegerSaida(sessao);
   const sair = () => {
     clearInterval(temporizadorSinc);
+    clearInterval(temporizadorBusca);
+    pararPresenca();
     reiniciarAceitePrivacidade();
     desligarProtecao();
     const estado = sessao.obter();
@@ -18361,6 +18628,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
   const pontoSinc = h('i', { class: 'ctc-sinc-ponto', 'aria-hidden': 'true' });
   const textoSinc = h('span', {});
   const pilulaSinc = h('button', { type: 'button', class: 'ctc-btn ctc-btn--outline ctc-btn--sm ctc-sinc-pilula ctc-allow-readonly', onClick: () => abrirResumoSincronizacao() }, pontoSinc, textoSinc);
+  const presencaEl = h('div', { class: 'ctc-presenca', 'aria-label': 'Quem está com o controle aberto' });   // v6.22.0
   const atualizarPilulaSinc = () => {
     let classe = ''; let texto = 'Só no tablet';
     if (estadoSync.erro) { classe = 'is-erro'; texto = 'Falha no envio'; }
@@ -18401,6 +18669,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
     cabecalho: {
       titulo: identidade.titulo, subtitulo: identidade.subtitulo || '',
       acoes: [
+        presencaEl,
         pilulaSinc,
         { texto: 'Ajuda', titulo: 'Ajuda', classe: 'ctc-btn--icone-tablet', icone: 'info', variante: 'outline', onClick: abrirAjuda },
       ],
@@ -18441,7 +18710,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.21.0' : 'Controle de Execução em Campo v6.21.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.22.0' : 'Controle de Execução em Campo v6.22.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -18461,7 +18730,11 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
   aplicativo = app;
   if (resumo.convertida) toast.info('Base do controle anterior convertida', `${resumo.aplicados} elemento(s) com registros foram trazidos para o novo controle.`);
   toast.info(`Bem-vindo, ${usuario ? usuario.nome : NOME_PERFIL[perfil]}`, perfil === 'visualizador' ? 'Acesso somente para visualização.' : 'Os registros ficam salvos neste tablet automaticamente.');
-  if (perfil !== 'visualizador') ofereceRecuperarCopia(base);
+  (async () => {   // v6.22.0: recupera a copia do tablet (se houver) e entra na versao compartilhada da obra
+    const recuperada = perfil !== 'visualizador' ? await ofereceRecuperarCopia(base) : false;
+    await iniciarCompartilhado(base, { recuperada });
+    iniciarPresenca(presencaEl, perfil);
+  })();
   window.ctcCampo = { app, sessao, elementos: () => elementos };
 }
 
@@ -18476,7 +18749,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.21.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.22.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
