@@ -2347,6 +2347,18 @@ img { max-width: 100%; display: block; }
 .ctc-ap-acao__dica { margin: 8px 0 0; font-size: 13.5px; color: #0c4a6e; }
 .ctc-ap-acao__trava b { color: #9a3412; font-size: 16px; }
 .ctc-ap-acao__trava ul { margin: 6px 0 0; padding-left: 20px; color: #7c2d12; font-size: 14px; display: grid; gap: 4px; }
+/* v6.25.0: e-mails de aviso */
+.ctc-avisos__incluir { display: flex; gap: 8px; flex-wrap: wrap; }
+.ctc-avisos__incluir .ctc-input { flex: 1 1 240px; min-width: 0; }
+.ctc-avisos__lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ctc-avisos__lista li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; overflow-wrap: anywhere; }
+.ctc-avisos__tirar { all: unset; cursor: pointer; color: #b91c1c; font-weight: 700; padding: 4px 10px; border-radius: 999px; border: 1px solid #fecaca; }
+.ctc-avisos__tirar:hover { background: #fef2f2; }
+.ctc-avisos__tirar:focus-visible { outline: 2px solid #b91c1c; outline-offset: 2px; }
+.ctc-avisos__vazio { color: #64748b; margin: 0; }
+.ctc-avisos__passos { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; line-height: 1.45; }
+.ctc-avisos__rotulo { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+.ctc-avisos__chave code { display: inline-block; padding: 4px 8px; background: #f1f5f9; border-radius: 6px; font-size: 13px; overflow-wrap: anywhere; }
 /* v6.24.0: retornar etapa + historico */
 .ctc-ap-retorno { display: flex; flex-wrap: wrap; gap: 10px; }
 .ctc-modal .ctc-ap-retorno__btn { all: unset; box-sizing: border-box; cursor: pointer; flex: 1 1 200px; display: flex; flex-direction: column; align-items: center; gap: 2px;
@@ -7779,7 +7791,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.24.0
+   Versao: 6.25.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7895,6 +7907,9 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
    6.24.0: Retornar etapa (botao vermelho no quadro, so o Controlador): apaga o ultimo registro do
           elemento com observacao obrigatoria. Botao Historico: quem retornou, a etapa, a observacao,
           o dia e o horario (sincroniza com a obra; cada retorno e um item). Prancha sem o carimbo.
+   6.25.0: E-mails de aviso (menu Sistema, so o Controlador): lista de quem recebe; ao retornar uma
+          etapa o controle envia o e-mail pela conta Google do Firebase (Google Apps Script publicado
+          como app da Web, com chave de seguranca). Passo a passo, copia do codigo e e-mail de teste na aba.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -9615,6 +9630,9 @@ function carregarDados(base) {
   });
   avancoCampo = dados.avancoCampo && typeof dados.avancoCampo === 'object' && !Array.isArray(dados.avancoCampo) ? { ...dados.avancoCampo } : {};
   cronogramaImportado = dados.cronograma && dados.cronograma.datas && typeof dados.cronograma.datas === 'object' ? dados.cronograma : null;   // v6.18.0
+  avisosEmail = dados.avisos && typeof dados.avisos === 'object'
+    ? { emails: Array.isArray(dados.avisos.emails) ? dados.avisos.emails : [], url: dados.avisos.url || '', chave: dados.avisos.chave || '' }
+    : { emails: [], url: '', chave: '' };   // v6.25.0
   reiniciarPrevisto();
   funcionarios = Array.isArray(dados.funcionarios) ? dados.funcionarios : [];
   apropriacoes = Array.isArray(dados.apropriacoes) ? dados.apropriacoes : [];
@@ -10223,6 +10241,9 @@ let avancoCampo = {};
 /** v6.18.0: cronograma importado do P6 na pagina Cronograma (substitui o CRONO_DATAS gravado no arquivo).
  *  { extrato: 'dd/mm/aaaa', importadoEm: ISO, arquivo, autor, datas: { [id]: [bi, bf, ai, af, marcas] } } */
 let cronogramaImportado = null;
+/** v6.25.0: e-mails de aviso (aba do Controlador): quem recebe o aviso de etapa retornada, endereco do
+ *  servico de envio (Google Apps Script da conta do Firebase) e a chave que o servico confere. */
+let avisosEmail = { emails: [], url: '', chave: '' };
 
 /** Data de corte da medicao (null = hoje): os registros depois dela nao contam. */
 let CORTE_AVANCO = null;
@@ -13124,6 +13145,7 @@ function obterBaseParaSalvar() {
       avancoCampo,
       funcionarios, apropriacoes,
       ...(cronogramaImportado ? { cronograma: cronogramaImportado } : {}),   // v6.18.0
+      ...(avisosEmail.emails.length || avisosEmail.url || avisosEmail.chave ? { avisos: avisosEmail } : {}),   // v6.25.0
     },
   };
 }
@@ -14751,6 +14773,7 @@ async function retornarEtapa(e) {
       modal.fechar();
       registrarAlteracao();
       toast.sucesso('Etapa retornada', `${e.rotulo}: ${etapa.texto}. Ficou no histórico.`);
+      enviarAvisoRetorno(e, e.retornos[e.retornos.length - 1]);   // v6.25.0: e-mail para a lista de aviso
     },
   });
   const modal = criarModal({
@@ -18445,6 +18468,7 @@ function itensDaBase(base) {
   (d.funcionarios || []).forEach((x) => m.set(`func|${(x && x.id) || JSON.stringify(x)}`, JSON.stringify(x)));
   (d.apropriacoes || []).forEach((x) => m.set(`apr|${(x && x.id) || JSON.stringify(x)}`, JSON.stringify(x)));
   if (d.cronograma) m.set('crono', JSON.stringify(d.cronograma));
+  if (d.avisos) m.set('avisos', JSON.stringify(d.avisos));   // v6.25.0
   if (base && base.identidade) m.set('ident', JSON.stringify(base.identidade));
   return m;
 }
@@ -18474,7 +18498,7 @@ function montarBaseDosItens(itens, baseLocal) {
   const registros = new Map();
   const reg = (id) => { if (!registros.has(id)) registros.set(id, { id, reg: {}, pendencia: false, descricaoPendencia: '', observacao: '' }); return registros.get(id); };
   const estoque = []; const avanco = {}; const func = []; const apr = [];
-  let crono = null; let ident = null;
+  let crono = null; let ident = null; let avisos = null;
   itens.forEach((v, k) => {
     const valor = JSON.parse(v);
     const tipo = k.slice(0, k.indexOf('|') < 0 ? k.length : k.indexOf('|'));
@@ -18487,11 +18511,13 @@ function montarBaseDosItens(itens, baseLocal) {
     else if (tipo === 'func') func.push(valor);
     else if (tipo === 'apr') apr.push(valor);
     else if (tipo === 'crono') crono = valor;
+    else if (tipo === 'avisos') avisos = valor;
     else if (tipo === 'ident') ident = valor;
   });
   estoque.sort((x, y) => String(x.data || '').localeCompare(String(y.data || '')) || String(x.id).localeCompare(String(y.id)));
   const dados = { ...((baseLocal && baseLocal.dados) || {}), registros: [...registros.values()], estoquePM: estoque, avancoCampo: avanco, funcionarios: func, apropriacoes: apr };
   if (crono) dados.cronograma = crono; else delete dados.cronograma;
+  if (avisos) dados.avisos = avisos; else delete dados.avisos;
   return { ...baseLocal, ...(ident ? { identidade: ident } : {}), dados };
 }
 
@@ -18752,6 +18778,126 @@ function abrirResumoSincronizacao() {
   modal.abrir();
 }
 
+/* ---- v6.25.0: e-mails de aviso (pela conta Google do Firebase, via Google Apps Script) ---- */
+const EMAIL_VALIDO = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+const avisosProntos = () => Boolean(avisosEmail.url && avisosEmail.chave && avisosEmail.emails.length);
+/** Envia ao servico (Apps Script). no-cors: o Google nao devolve a resposta ao navegador; falha so sem internet. */
+async function postarAviso(dados) {
+  await fetch(avisosEmail.url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ chave: avisosEmail.chave, para: avisosEmail.emails, ...dados }) });
+}
+async function enviarAvisoRetorno(e, ret) {
+  if (!avisosProntos() || !ret) return;
+  const oqueTexto = { inicio: 'início apagado (a etapa voltou para "a registrar")', termino: 'término apagado (a etapa voltou para em andamento)', tudo: 'registro apagado' };
+  try {
+    await postarAviso({
+      tipo: 'retorno', obra: `${MARCA.titulo} — Laje estaqueada OTF3 · TECON Salvador`, elemento: e.rotulo, tipoElemento: tipoDe(e).nome,
+      local: textoLocal(e), etapa: ret.etapaTexto, oque: oqueTexto[ret.oque] || '', quem: ret.quem, perfil: ret.perfil,
+      quando: `${new Date(ret.quando).toLocaleDateString('pt-BR')} às ${new Date(ret.quando).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+      obs: ret.obs, link: location.href.split('#')[0],
+    });
+    toast.info('E-mail de aviso enviado', `Para ${avisosEmail.emails.length} pessoa(s) da lista de aviso.`);
+  } catch (erro) {
+    toast.aviso('E-mail de aviso não enviado', 'Sem internet no momento. O retorno ficou salvo no histórico.');
+  }
+}
+/** Codigo do Google Apps Script (ja com a chave deste controle) para colar em script.google.com. */
+function codigoScriptAvisos(chave) {
+  return `// Controle de Execução em Campo — envio dos e-mails de aviso (v6.25.0)
+// Cole em script.google.com com a conta Google do Firebase e publique como "App da Web".
+const CHAVE = '${chave}';
+
+function doPost(e) {
+  const d = JSON.parse(e.postData.contents || '{}');
+  if (d.chave !== CHAVE) return ContentService.createTextOutput('negado');
+  const para = (d.para || []).map(String).filter((x) => /^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/.test(x)).slice(0, 40);
+  if (!para.length) return ContentService.createTextOutput('sem destinatários');
+  const t = (v) => String(v == null ? '' : v).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let assunto; let html;
+  if (d.tipo === 'teste') {
+    assunto = 'Teste — e-mails de aviso do Controle de Execução em Campo';
+    html = '<p>Este é um e-mail de teste. Se chegou, os avisos de etapa retornada estão funcionando.</p><p>Enviado por: <b>' + t(d.quem) + '</b></p>';
+  } else {
+    assunto = 'Etapa retornada: ' + String(d.elemento).slice(0, 40) + ' — ' + String(d.etapa).slice(0, 80);
+    html = '<div style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#1e293b">'
+      + '<div style="background:#b91c1c;color:#fff;padding:12px 16px;border-radius:10px 10px 0 0;font-size:16px"><b>↩ Etapa retornada</b></div>'
+      + '<table style="border-collapse:collapse;border:1px solid #fecaca;width:100%;max-width:620px">'
+      + [['Obra', d.obra], ['Elemento', d.elemento + ' (' + d.tipoElemento + ')'], ['Local', d.local], ['Etapa', d.etapa], ['O que mudou', d.oque],
+        ['Quem retornou', d.quem + (d.perfil ? ' (' + d.perfil + ')' : '')], ['Quando', d.quando], ['Observação', d.obs]]
+        .map((l) => '<tr><td style="padding:8px 12px;border-top:1px solid #fee2e2;color:#64748b;width:150px">' + t(l[0]) + '</td><td style="padding:8px 12px;border-top:1px solid #fee2e2"><b>' + t(l[1]) + '</b></td></tr>').join('')
+      + '</table>' + (d.link ? '<p><a href="' + t(d.link) + '">Abrir o controle</a></p>' : '') + '</div>';
+  }
+  MailApp.sendEmail({ to: para.join(','), subject: assunto, htmlBody: html, name: 'Controle de Execução em Campo' });
+  return ContentService.createTextOutput('ok');
+}
+
+// Rode esta função uma vez pelo editor para autorizar o envio de e-mails pela conta.
+function autorizar() {
+  MailApp.sendEmail(Session.getActiveUser().getEmail(), 'Autorização concluída', 'O script dos e-mails de aviso já pode enviar.');
+}
+`;
+}
+function paginaAvisos() {
+  if (!podeCorrigirRegistros()) return [criarAlerta({ tipo: 'warning', mensagem: 'Só o Controlador mexe nos e-mails de aviso.' })];
+  const salvar = () => { sessao.marcarAlteracao(); agendarSalvamentoLocal(); aplicativo.navegar('avisos'); };
+  const novaChave = () => Array.from(crypto.getRandomValues(new Uint8Array(18)), (b) => 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'[b % 56]).join('');
+  if (!avisosEmail.chave) { avisosEmail = { ...avisosEmail, chave: novaChave() }; sessao.marcarAlteracao(); agendarSalvamentoLocal(); }
+  const campoEmail = h('input', { type: 'email', class: 'ctc-input', placeholder: 'nome@empresa.com.br', 'aria-label': 'E-mail para incluir' });
+  const incluir = () => {
+    const v = campoEmail.value.trim().toLowerCase();
+    if (!EMAIL_VALIDO.test(v)) { toast.erro('E-mail inválido', 'Confira o endereço digitado.'); return; }
+    if (avisosEmail.emails.includes(v)) { toast.info('Já está na lista', v); return; }
+    avisosEmail = { ...avisosEmail, emails: [...avisosEmail.emails, v] };
+    salvar();
+  };
+  campoEmail.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') incluir(); });
+  const campoUrl = h('input', { type: 'url', class: 'ctc-input', value: avisosEmail.url, placeholder: 'https://script.google.com/macros/s/…/exec', 'aria-label': 'Endereço do serviço de envio' });
+  const copiar = async (texto, oque) => { try { await navigator.clipboard.writeText(texto); toast.sucesso('Copiado', oque); } catch { toast.erro('Não foi possível copiar', 'Selecione e copie manualmente.'); } };
+  const status = avisosProntos() ? criarAlerta({ tipo: 'success', titulo: 'Avisos ligados', mensagem: `Ao retornar uma etapa, o controle envia o e-mail para ${avisosEmail.emails.length} pessoa(s).` })
+    : criarAlerta({ tipo: 'warning', titulo: 'Avisos ainda desligados', mensagem: [!avisosEmail.emails.length ? 'inclua ao menos um e-mail' : '', !avisosEmail.url ? 'cole o endereço do serviço de envio (passo a passo abaixo)' : ''].filter(Boolean).join(' e ') + '.' });
+  return [
+    status,
+    criarPainel({
+      titulo: `Quem recebe o aviso de etapa retornada (${avisosEmail.emails.length})`, icone: 'info',
+      conteudo: h('div', { class: 'ctc-stack' },
+        h('div', { class: 'ctc-avisos__incluir' }, campoEmail, criarBotao({ texto: 'Incluir', icone: 'check', variante: 'primary', onClick: incluir })),
+        avisosEmail.emails.length
+          ? h('ul', { class: 'ctc-avisos__lista' }, avisosEmail.emails.map((em) => h('li', {}, h('span', {}, `📧 ${em}`),
+            h('button', { type: 'button', class: 'ctc-avisos__tirar', 'aria-label': `Tirar ${em}`, onClick: () => { avisosEmail = { ...avisosEmail, emails: avisosEmail.emails.filter((x) => x !== em) }; salvar(); } }, 'Tirar'))))
+          : h('p', { class: 'ctc-avisos__vazio' }, 'Nenhum e-mail na lista.')),
+    }).elemento,
+    criarPainel({
+      titulo: 'Serviço de envio (conta Google do Firebase)', icone: 'info',
+      conteudo: h('div', { class: 'ctc-stack' },
+        h('ol', { class: 'ctc-avisos__passos' },
+          h('li', {}, 'Entre em ', h('b', {}, 'script.google.com'), ' com a conta Google do Firebase e clique em ', h('b', {}, 'Novo projeto'), '.'),
+          h('li', {}, 'Apague o que estiver no editor, clique em ', h('b', {}, 'Copiar código do script'), ' (abaixo) e cole lá. Salve.'),
+          h('li', {}, 'No topo, escolha a função ', h('b', {}, 'autorizar'), ' e clique em ', h('b', {}, 'Executar'), '. Aceite as permissões (chega um e-mail "Autorização concluída").'),
+          h('li', {}, 'Clique em ', h('b', {}, 'Implantar > Nova implantação'), ', tipo ', h('b', {}, 'App da Web'), '. Executar como: ', h('b', {}, 'Eu'), '. Quem pode acessar: ', h('b', {}, 'Qualquer pessoa'), '. Implantar.'),
+          h('li', {}, 'Copie o ', h('b', {}, 'URL do app da Web'), ' (termina em /exec), cole no campo abaixo e clique em ', h('b', {}, 'Salvar endereço'), '.'),
+          h('li', {}, 'Clique em ', h('b', {}, 'Enviar e-mail de teste'), ' e confira a caixa de entrada da lista.')),
+        h('div', { class: 'ctc-cluster' },
+          criarBotao({ texto: 'Copiar código do script', icone: 'download', variante: 'outline', onClick: () => copiar(codigoScriptAvisos(avisosEmail.chave), 'Código do script (com a chave deste controle).') })),
+        h('label', { class: 'ctc-avisos__rotulo' }, 'Endereço do serviço de envio (URL do app da Web)', campoUrl),
+        h('div', { class: 'ctc-cluster' },
+          criarBotao({ texto: 'Salvar endereço', icone: 'check', variante: 'primary', onClick: () => {
+            const v = campoUrl.value.trim();
+            if (v && !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(v)) { toast.erro('Endereço inválido', 'Use o URL do app da Web do Google Apps Script (termina em /exec).'); return; }
+            avisosEmail = { ...avisosEmail, url: v }; salvar(); toast.sucesso('Endereço salvo', v ? 'Agora envie um e-mail de teste.' : 'Serviço desligado.');
+          } }),
+          criarBotao({ texto: 'Enviar e-mail de teste', icone: 'info', variante: 'outline', desabilitado: !avisosProntos(), onClick: async () => {
+            try { await postarAviso({ tipo: 'teste', quem: autorAtual() }); toast.sucesso('Teste enviado', `Confira a caixa de entrada de ${avisosEmail.emails.length} pessoa(s) (pode levar 1 minuto; veja também o spam).`); } catch { toast.erro('Não enviado', 'Sem internet no momento.'); }
+          } })),
+        h('details', { class: 'ctc-avisos__chave' }, h('summary', {}, 'Chave de segurança'),
+          h('p', {}, 'O script só envia quando recebe esta chave (ela já vai dentro do código copiado). Se gerar outra, copie o código de novo, cole no script e faça uma nova implantação.'),
+          h('code', {}, avisosEmail.chave),
+          h('div', { class: 'ctc-cluster' }, criarBotao({ texto: 'Gerar nova chave', icone: 'fechar', variante: 'ghost', onClick: async () => {
+            if (!(await confirmar({ titulo: 'Gerar nova chave?', mensagem: 'O script atual para de enviar até você colar o código novo e implantar de novo.', textoConfirmar: 'Gerar', perigo: true }))) return;
+            avisosEmail = { ...avisosEmail, chave: novaChave() }; salvar();
+          } })))),
+    }).elemento,
+  ];
+}
+
 function paginaSincronizacao() {
   const nuvem = armazenamento.usandoFirebase && armazenamento.usandoFirebase();
   return [
@@ -18904,9 +19050,9 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
             },
           ],
         },
-        { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
+        { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, ...(['controlador', 'administrador'].includes(perfil) ? [{ id: 'avisos', texto: 'E-mails de aviso', emoji: '📧' }] : []), { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.24.0' : 'Controle de Execução em Campo v6.24.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.25.0' : 'Controle de Execução em Campo v6.25.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -18918,6 +19064,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
       banco: { titulo: 'Banco de dados', caminho: ['Consulta'], acoes: [{ texto: 'Exportar banco completo (Excel)', icone: 'download', variante: 'primary', onClick: () => exportarBancoCsv() }], render: paginaBanco },
       pendencias: { titulo: 'Pendências', caminho: ['Consulta'], render: paginaPendencias },
       sincronizacao: { titulo: 'Sincronização', caminho: ['Sistema'], render: paginaSincronizacao },
+      avisos: { titulo: 'E-mails de aviso', caminho: ['Sistema'], render: paginaAvisos },   // v6.25.0
     },
     paginaInicial: 'campo',
     somenteLeitura: perfil === 'visualizador',
@@ -18945,7 +19092,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.24.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.25.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
