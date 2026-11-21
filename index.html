@@ -2172,6 +2172,7 @@ img { max-width: 100%; display: block; }
 .ctc-modal .ctc-btn--primary:not(.ctc-btn--icon):not(:disabled):hover { background: linear-gradient(180deg, rgba(26,136,255,.95), rgba(0,110,230,.90)); }
 .ctc-modal--danger .ctc-modal__footer .ctc-btn--danger { color: #fff; border-color: rgba(255,255,255,.45);
   background: linear-gradient(180deg, #ef4444, #dc2626); box-shadow: inset 0 1px 1px rgba(255,255,255,.45), 0 4px 14px rgba(220,38,38,.28); }
+.ctc-modal.ctc-modal--danger .ctc-modal__footer .ctc-btn--danger:not(.ctc-btn--icon):not(:disabled):hover { background: linear-gradient(180deg, #dc2626, #b91c1c); color: #fff; }   /* v6.24.0: texto nao some no hover */
 .ctc-modal .ctc-btn:disabled { opacity: .5; transform: none; }
 .ctc-modal .ctc-btn.is-loading::after { border-color: currentColor; border-right-color: transparent; }
 .ctc-modal__close {
@@ -2346,6 +2347,24 @@ img { max-width: 100%; display: block; }
 .ctc-ap-acao__dica { margin: 8px 0 0; font-size: 13.5px; color: #0c4a6e; }
 .ctc-ap-acao__trava b { color: #9a3412; font-size: 16px; }
 .ctc-ap-acao__trava ul { margin: 6px 0 0; padding-left: 20px; color: #7c2d12; font-size: 14px; display: grid; gap: 4px; }
+/* v6.24.0: retornar etapa + historico */
+.ctc-ap-retorno { display: flex; flex-wrap: wrap; gap: 10px; }
+.ctc-modal .ctc-ap-retorno__btn { all: unset; box-sizing: border-box; cursor: pointer; flex: 1 1 200px; display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 12px 16px; border-radius: 14px; font-weight: 800; font-size: 16px; text-align: center; }
+.ctc-modal .ctc-ap-retorno__btn small { font-weight: 600; font-size: 12px; opacity: .85; }
+.ctc-modal .ctc-ap-retorno__btn.is-retornar { background: #dc2626; color: #fff; box-shadow: 0 3px 10px rgba(220,38,38,.35); }
+.ctc-modal .ctc-ap-retorno__btn.is-retornar:hover { background: #b91c1c; }
+.ctc-modal .ctc-ap-retorno__btn.is-historico { background: #fff; color: #1e293b; border: 1px solid #cbd5e1; }
+.ctc-modal .ctc-ap-retorno__btn.is-historico:hover { background: #f1f5f9; }
+.ctc-modal .ctc-ap-retorno__btn:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 2px; }
+.ctc-hist-ret { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.ctc-hist-ret li { border: 1px solid #fecaca; border-left: 4px solid #dc2626; border-radius: 10px; padding: 10px 12px; background: #fff; }
+.ctc-hist-ret__topo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; }
+.ctc-hist-ret__topo time { margin-left: auto; color: #475569; font-size: 13px; }
+.ctc-hist-ret__perfil { font-size: 12px; background: #f1f5f9; border-radius: 999px; padding: 1px 8px; color: #334155; }
+.ctc-hist-ret__etapa { margin-top: 4px; font-weight: 600; color: #991b1b; }
+.ctc-hist-ret__etapa small { font-weight: 400; color: #64748b; }
+.ctc-hist-ret__obs { margin: 6px 0 0; white-space: pre-wrap; color: #1e293b; }
 .ctc-ap-acao__rodape { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 14px; }
 @media (max-width: 520px) { .ctc-ap-dia span { font-size: 22px; } .ctc-ap-acao__nome { font-size: 20px; } .ctc-ap-cab__id b { font-size: 24px; } }
 
@@ -7760,7 +7779,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.23.0
+   Versao: 6.24.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7873,6 +7892,9 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           de liberado no desenho. No 3D, o que passa da cota de arrasamento e a camisa (a armadura fica
           abaixo da cota). Ensaio de integridade chamado so de "Ensaio"; pinagem sem a cota do pino, so a
           metragem real.
+   6.24.0: Retornar etapa (botao vermelho no quadro, so o Controlador): apaga o ultimo registro do
+          elemento com observacao obrigatoria. Botao Historico: quem retornou, a etapa, a observacao,
+          o dia e o horario (sincroniza com a obra; cada retorno e um item). Prancha sem o carimbo.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -8373,7 +8395,7 @@ const IDS_SUBSTITUIDOS = {
 };
 
 function novoElemento({ id, seg, tipo, rotulo, sub = '', info = {}, geo = [], deps = [], grupo = '' }) {
-  return { id, seg, tipo, rotulo: rotulo || id, sub, info, geo, deps, grupo, reg: {}, pendencia: false, descricaoPendencia: '', observacao: '' };
+  return { id, seg, tipo, rotulo: rotulo || id, sub, info, geo, deps, grupo, reg: {}, pendencia: false, descricaoPendencia: '', observacao: '', retornos: [] };
 }
 
 /* ---- Estacas metalicas (DWG-00008, 00012, 00013, 00048 a 00050) ---- */
@@ -9584,6 +9606,7 @@ function carregarDados(base) {
     e.pendencia = Boolean(r.pendencia);
     e.descricaoPendencia = r.descricaoPendencia || '';
     e.observacao = r.observacao || '';
+    e.retornos = Array.isArray(r.retornos) ? r.retornos : [];   // v6.24.0: historico de etapas retornadas
     aplicados += 1;
   });
   chegadasAntigas.forEach((quantidade, k) => {
@@ -13084,7 +13107,7 @@ function erroEstoqueMontagem(e, data) {
   return `Sem ${tipo} em estoque em ${dataTexto(data)} (recebidas ${s.recebido}, montadas ${s.montado}). Registre o recebimento na aba Estoque de pré-moldados.`;
 }
 
-const temRegistro = (e) => Object.keys(e.reg).length || e.pendencia || e.observacao;
+const temRegistro = (e) => Object.keys(e.reg).length || e.pendencia || e.observacao || (e.retornos && e.retornos.length);
 
 function obterBaseParaSalvar() {
   const { base } = sessao.obter();
@@ -13094,7 +13117,7 @@ function obterBaseParaSalvar() {
     dados: {
       modelo: MODELO_DADOS,
       origem: 'Projetos OTF3 — pastas 01 (Central de concreto) e 07 (Projeto executivo)',
-      registros: elementos.filter(temRegistro).map((e) => ({ id: e.id, reg: e.reg, pendencia: e.pendencia, descricaoPendencia: e.descricaoPendencia, observacao: e.observacao })),
+      registros: elementos.filter(temRegistro).map((e) => ({ id: e.id, reg: e.reg, pendencia: e.pendencia, descricaoPendencia: e.descricaoPendencia, observacao: e.observacao, ...(e.retornos?.length ? { retornos: e.retornos } : {}) })),
       // banco de dados legivel: projeto + execucao + chegada + cura dos elementos com registro (so leitura; a fonte sao os "registros")
       bancoElementos: bancoParaBase(),
       estoquePM,
@@ -13795,7 +13818,7 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     ctx.strokeRect(10, 10, W - 20, H - 20);
     ctx.lineWidth = 0.6;
     ctx.strokeRect(16, 16, W - 32, H - 32);
-    if (folha.carimbo === false) { ctx.restore(); return; }
+    if (folha.carimbo !== true) { ctx.restore(); return; }   // v6.24.0: sem o carimbo na prancha
     // carimbo
     const cw = 360; const ch = 104; const cx0 = W - 16 - cw; const cy0 = H - 16 - ch;
     ctx.fillStyle = '#ffffff'; ctx.fillRect(cx0, cy0, cw, ch);
@@ -14314,7 +14337,7 @@ function misturar(hex, f) {
  */
 const CHAVE_CAMADAS = 'controle-campo:camadas-ocultas';
 const CAMADAS_STATUS = [['nao-iniciada', 'Não iniciado'], ['liberado', 'Liberado (azul)'], ['execucao', 'Em execução'], ['concluida', 'Concluído'], ['pendencia', 'Pendência']];
-const CAMADAS_DESENHO = [['eixos', 'Eixos e linhas'], ['cotas', 'Cotas'], ['nomes', 'Nomes dos elementos'], ['marcas', 'Números (sapatas / peças)'], ['carimbo', 'Carimbo e legenda']];
+const CAMADAS_DESENHO = [['eixos', 'Eixos e linhas'], ['cotas', 'Cotas'], ['nomes', 'Nomes dos elementos'], ['marcas', 'Números (sapatas / peças)']];
 function lerCamadasOcultas() {
   const vazio = { frentes: [], status: [], desenho: [] };
   try {
@@ -14470,7 +14493,7 @@ function cenaSegmento(seg) {
     eixos: g.eixos.map((n) => ({ x: geoX(n), texto: String(n) })),
     linhas: (seg === '01' ? LINHAS_TODAS : LINHAS).map((l) => ({ y: GEO_Y_TODAS[l], texto: l })),
   } : { eixos: [], linhas: [] };
-  const folha = { eixos: camadaVisivel('desenho', 'eixos'), cotas: camadaVisivel('desenho', 'cotas'), carimbo: camadaVisivel('desenho', 'carimbo') };
+  const folha = { eixos: camadaVisivel('desenho', 'eixos'), cotas: camadaVisivel('desenho', 'cotas'), carimbo: false };
   return { objetos, rotulos, grade, folha, carimbo: { titulo: g.titulo, desenho: g.desenho } };
 }
 
@@ -14683,36 +14706,80 @@ function registrarHoje(e, etapa, data = hojeIso()) {
 async function podeDesfazer() {
   const negar = (mensagem) => {
     criarModal({
-      titulo: 'Desfazer não liberado', tamanho: 'sm', destruirAoFechar: true,
+      titulo: 'Retorno não liberado', tamanho: 'sm', destruirAoFechar: true,
       conteudo: h('p', {}, mensagem),
       acoes: [{ texto: 'Entendi', variante: 'primary' }],
     }).abrir();
     return false;
   };
-  if (!podeCorrigirRegistros()) return negar('Só o Controlador pode desfazer um registro ou alterar datas já salvas. Peça ao Controlador da obra.');
+  if (!podeCorrigirRegistros()) return negar('Só o Controlador pode retornar uma etapa ou alterar datas já salvas. Peça ao Controlador da obra.');
   if (!usuarioKZ) return true;   // Controlador pelos controladores da base (sem Portal)
   try {
     const acesso = await acessoNoControle(obraNuvem);
     if (acesso.papel === 'admin') return true;
-    return negar('Seu acesso no Portal KZ mudou: só o Controlador (Admin no Portal) pode desfazer. Fale com o administrador da obra.');
+    return negar('Seu acesso no Portal KZ mudou: só o Controlador (Admin no Portal) pode retornar etapas. Fale com o administrador da obra.');
   } catch (erro) {
     return negar(`Não foi possível conferir seu acesso no Portal KZ (${erro.message}). Tente de novo com internet.`);
   }
 }
 
-async function desfazerUltima(e) {
+/**
+ * v6.24.0: retornar etapa (so o Controlador): apaga o ultimo registro do elemento com observacao
+ * obrigatoria e guarda no historico quem retornou, o que, a observacao, o dia e o horario.
+ */
+async function retornarEtapa(e) {
   const ultima = ultimaAcao(e);
   if (!ultima) return;
   if (!(await podeDesfazer())) return;
   const { etapa, oque } = ultima;
   const reg = e.reg[etapa.chave];
-  const descricao = oque === 'inicio' ? `o início de "${etapa.texto}" (${dataTexto(reg.inicio)})`
+  const descricao = oque === 'inicio' ? `o início de "${etapa.texto}" (${dataTexto(reg.inicio)}) — a etapa volta para "a registrar"`
     : (oque === 'termino' ? `o término de "${etapa.texto}" (${dataTexto(reg.data)}) — a etapa volta para em andamento` : `"${etapa.texto}" de ${dataTexto(reg.data)}`);
-  const ok = await confirmar({ titulo: 'Desfazer registro?', mensagem: `Apagar ${descricao} em ${e.rotulo}?`, textoConfirmar: 'Desfazer', perigo: true });
-  if (!ok) return;
-  if (oque === 'termino' && reg.inicio) e.reg[etapa.chave] = { inicio: reg.inicio };
-  else delete e.reg[etapa.chave];
-  registrarAlteracao();
+  const formulario = criarFormulario({
+    colunas: 1, semBotoes: true, valores: { obs: '' },
+    campos: [{ nome: 'obs', rotulo: 'Observação (obrigatória): por que está retornando?', tipo: 'textarea', obrigatorio: true, placeholder: 'Ex.: o apontador registrou na estaca errada', regras: { maxCaracteres: 500 } }],
+    onEnviar: (v) => {
+      const obs = String(v.obs || '').trim();
+      if (obs.length < 5) { formulario.definirErro('obs', 'Escreva o motivo do retorno.'); return; }
+      const { perfil } = sessao.obter();
+      e.retornos = (e.retornos || []).concat([{
+        quando: new Date().toISOString(), quem: autorAtual(), perfil: NOME_PERFIL[perfil] || perfil || '',
+        etapa: etapa.chave, etapaTexto: etapa.texto, oque, registro: JSON.parse(JSON.stringify(reg)), obs,
+      }]);
+      if (oque === 'termino' && reg.inicio) e.reg[etapa.chave] = { inicio: reg.inicio };
+      else delete e.reg[etapa.chave];
+      modal.fechar();
+      registrarAlteracao();
+      toast.sucesso('Etapa retornada', `${e.rotulo}: ${etapa.texto}. Ficou no histórico.`);
+    },
+  });
+  const modal = criarModal({
+    titulo: `Retornar etapa — ${e.rotulo}`, tamanho: 'md', perigo: true, destruirAoFechar: true,
+    conteudo: [criarAlerta({ tipo: 'danger', titulo: 'Vai apagar', mensagem: `${descricao}.` }), formulario.elemento],
+    acoes: [{ texto: 'Cancelar', variante: 'outline' }, { texto: 'Retornar etapa', variante: 'danger', fechar: false, onClick: () => formulario.enviar() }],
+  });
+  modal.abrir();
+}
+/** Botoes antigos de desfazer: todo retorno passa pela observacao obrigatoria e vai para o historico. */
+const desfazerUltima = (e) => retornarEtapa(e);
+
+/** v6.24.0: historico de etapas retornadas do elemento (quem, etapa, observacao, dia e horario). */
+function abrirHistoricoRetornos(e) {
+  const lista = [...(e.retornos || [])].reverse();
+  const quando = (iso) => { const d = new Date(iso); return `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`; };
+  const oqueTexto = { inicio: 'início apagado', termino: 'término apagado (voltou para em andamento)', tudo: 'registro apagado' };
+  const estava = (r) => [r.inicio ? `início ${dataTexto(r.inicio)}` : '', r.data ? `término ${dataTexto(r.data)}` : ''].filter(Boolean).join(' · ');
+  criarModal({
+    titulo: `Histórico de retornos — ${e.rotulo}`, tamanho: 'md', destruirAoFechar: true,
+    conteudo: lista.length
+      ? h('ol', { class: 'ctc-hist-ret' }, lista.map((x) => h('li', {},
+        h('div', { class: 'ctc-hist-ret__topo' }, h('b', {}, x.quem || '—'), x.perfil ? h('span', { class: 'ctc-hist-ret__perfil' }, x.perfil) : null, h('time', {}, quando(x.quando))),
+        h('div', { class: 'ctc-hist-ret__etapa' }, `↩ ${x.etapaTexto || x.etapa} · ${oqueTexto[x.oque] || ''}`,
+          x.registro && estava(x.registro) ? h('small', {}, ` (estava: ${estava(x.registro)})`) : null),
+        h('p', { class: 'ctc-hist-ret__obs' }, x.obs))))
+      : h('p', {}, 'Nenhuma etapa foi retornada neste elemento.'),
+    acoes: [{ texto: 'Fechar', variante: 'primary' }],
+  }).abrir();
 }
 
 function abrirPendencia(e) {
@@ -14786,8 +14853,8 @@ function criarFicha(e) {
       h('div', { class: 'ctc-grid ctc-grid--3' },
         criarBotao({ texto: 'Outra data / valores', icone: 'calendario', variante: 'outline', tamanho: 'lg', bloco: true, desabilitado: faltas.length > 0, onClick: () => abrirRegistroEtapa(e, proxima) }),
         criarBotao({ texto: e.pendencia ? 'Editar pendência' : 'Pendência / obs.', icone: 'info', variante: e.pendencia ? 'danger' : 'outline', tamanho: 'lg', bloco: true, onClick: () => abrirPendencia(e) }),
-        criarBotao({ texto: 'Desfazer última', icone: 'fechar', variante: 'ghost', tamanho: 'lg', bloco: true, desabilitado: !ultimaAcao(e), onClick: () => desfazerUltima(e) })))
-    : (podeEditar ? h('div', { class: 'ctc-cluster' }, criarBotao({ texto: 'Pendência / observação', icone: 'info', variante: 'outline', tamanho: 'lg', onClick: () => abrirPendencia(e) }), criarBotao({ texto: 'Desfazer última', icone: 'fechar', variante: 'ghost', tamanho: 'lg', onClick: () => desfazerUltima(e) })) : null);
+        criarBotao({ texto: 'Retornar etapa', icone: 'fechar', variante: 'ghost', tamanho: 'lg', bloco: true, desabilitado: !ultimaAcao(e), onClick: () => desfazerUltima(e) })))
+    : (podeEditar ? h('div', { class: 'ctc-cluster' }, criarBotao({ texto: 'Pendência / observação', icone: 'info', variante: 'outline', tamanho: 'lg', onClick: () => abrirPendencia(e) }), criarBotao({ texto: 'Retornar etapa', icone: 'fechar', variante: 'ghost', tamanho: 'lg', onClick: () => desfazerUltima(e) })) : null);
   const linhasEtapas = etapasDe(e).map((et) => ({
     etapa: `${et.texto}${et.opcional ? ' (opcional)' : ''}`,
     inicio: et.pontual ? null : (e.reg[et.chave]?.inicio || null),
@@ -15829,11 +15896,18 @@ function abrirFichaCompleta(e) {
           pedeValores ? h('p', { class: 'ctc-ap-acao__dica' }, '📏 Depois de escolher a data, informe as medidas pedidas.') : null),
       h('div', { class: 'ctc-ap-acao__rodape' },
         faltasProx.length ? null : h('button', { type: 'button', class: 'ctc-link', onClick: fecharE(() => abrirRegistroEtapa(e, proxima)) }, 'Registrar com valores / horário'),
-        ultimaAcao(e) ? h('button', { type: 'button', class: 'ctc-link', onClick: fecharE(() => desfazerUltima(e)) }, '↶ Desfazer o último registro') : null));
+        null));
   } else if (!proxima) {
     acao = h('section', { class: 'ctc-ap-acao is-pronta' }, h('b', {}, '✅ Todas as etapas deste elemento estão registradas'));
   }
 
+  // v6.24.0: retornar etapa (vermelho, so o Controlador) e historico dos retornos
+  const nRet = (e.retornos || []).length;
+  const retorno = h('div', { class: 'ctc-ap-retorno' },
+    podeCorrigirRegistros() && ultimaAcao(e)
+      ? h('button', { type: 'button', class: 'ctc-ap-retorno__btn is-retornar', onClick: fecharE(() => retornarEtapa(e)) }, '↩ Retornar etapa', h('small', {}, ultimaAcao(e).etapa.texto))
+      : null,
+    h('button', { type: 'button', class: 'ctc-ap-retorno__btn is-historico', onClick: () => abrirHistoricoRetornos(e) }, '🕘 Histórico', h('small', {}, nRet ? `${nRet} retorno(s)` : 'nenhum retorno')));
   const extrasQuadro = h('div', { class: 'ctc-stack' },
     h('button', { type: 'button', class: 'ctc-ficha__abrir', onClick: () => abrirFichaElemento(e) }, '📋 Ficha completa: previsto × real de todas as etapas, quantidades e dados'),
     h('details', { class: 'ctc-todas-etapas' }, h('summary', {}, '📐 Dados de projeto'),
@@ -15918,7 +15992,7 @@ function abrirFichaCompleta(e) {
 
   const modal = criarModal({
     titulo: e.rotulo, tamanho: 'xl', destruirAoFechar: true,
-    conteudo: [cabecalho, trilha, acao, extrasQuadro, todas],
+    conteudo: [cabecalho, trilha, acao, retorno, extrasQuadro, todas],
     acoes: podeEditar
       ? [
         { texto: e.pendencia ? 'Editar pendência' : 'Pendência / obs.', variante: e.pendencia ? 'danger' : 'outline', onClick: () => { abrirPendencia(e); } },
@@ -18364,6 +18438,7 @@ function itensDaBase(base) {
     Object.entries(r.reg || {}).forEach(([etapa, v]) => { if (v != null) m.set(`reg|${r.id}|${etapa}`, JSON.stringify(v)); });
     const meta = { pendencia: Boolean(r.pendencia), descricaoPendencia: r.descricaoPendencia || '', observacao: r.observacao || '' };
     if (meta.pendencia || meta.descricaoPendencia || meta.observacao) m.set(`meta|${r.id}`, JSON.stringify(meta));
+    (r.retornos || []).forEach((x) => m.set(`ret|${r.id}|${x.quando}|${x.etapa}`, JSON.stringify(x)));   // v6.24.0
   });
   (d.estoquePM || []).forEach((x) => m.set(`pm|${x.id}`, JSON.stringify(x)));
   Object.entries(d.avancoCampo || {}).forEach(([k, v]) => { if (v != null) m.set(`av|${k}`, JSON.stringify(v)); });
@@ -18406,6 +18481,7 @@ function montarBaseDosItens(itens, baseLocal) {
     const resto = k.slice(tipo.length + 1);
     if (tipo === 'reg') { const corte = resto.lastIndexOf('|'); reg(resto.slice(0, corte)).reg[resto.slice(corte + 1)] = valor; }
     else if (tipo === 'meta') Object.assign(reg(resto), valor);
+    else if (tipo === 'ret') { const r = reg(resto.slice(0, resto.indexOf('|'))); r.retornos = (r.retornos || []).concat([valor]).sort((x, y) => String(x.quando).localeCompare(String(y.quando))); }
     else if (tipo === 'pm') estoque.push(valor);
     else if (tipo === 'av') avanco[resto] = valor;
     else if (tipo === 'func') func.push(valor);
@@ -18701,7 +18777,7 @@ function abrirAjuda() {
     titulo: 'Como usar no campo',
     destruirAoFechar: true,
     conteudo: [
-      criarAlerta({ tipo: 'info', titulo: '1. Escolha o local e as camadas', mensagem: 'Em Campo, escolha a aba do local (Segmento 01A, 01B, Central, Provisórias, Canteiro de obras). No botão Camadas (à direita da prancha), ligue ou desligue os serviços, a situação e os itens do desenho (eixos, cotas, nomes, carimbo) e escolha uma área (eixo, linha ou quadrante): o desenho aproxima e fica travado nela até você escolher outra área ou "Ver tudo". Na planta e no 3D, o zoom é com Ctrl + roda do mouse no computador ou com a pinça de dois dedos no tablet. Ao tocar num elemento, abre o quadro com todas as etapas dele para preencher e salvar de uma vez. No desenho, use a roda do mouse, a pinça com dois dedos ou os botões Zoom + / Zoom − para aproximar, e arraste para mover a folha. A busca localiza um elemento pelo código.' }),
+      criarAlerta({ tipo: 'info', titulo: '1. Escolha o local e as camadas', mensagem: 'Em Campo, escolha a aba do local (Segmento 01A, 01B, Central, Provisórias, Canteiro de obras). No botão Camadas (à direita da prancha), ligue ou desligue os serviços, a situação e os itens do desenho (eixos, cotas, nomes) e escolha uma área (eixo, linha ou quadrante): o desenho aproxima e fica travado nela até você escolher outra área ou "Ver tudo". Na planta e no 3D, o zoom é com Ctrl + roda do mouse no computador ou com a pinça de dois dedos no tablet. Ao tocar num elemento, abre o quadro com todas as etapas dele para preencher e salvar de uma vez. No desenho, use a roda do mouse, a pinça com dois dedos ou os botões Zoom + / Zoom − para aproximar, e arraste para mover a folha. A busca localiza um elemento pelo código.' }),
       criarAlerta({ tipo: 'info', titulo: '2. Toque no elemento', mensagem: 'A tela abre como a prancha do projeto; "Vista 3D geral" passa para o 3D. Tocar no elemento só o seleciona (fica sólido no 3D e cheio na prancha) sem mexer no zoom, e a ficha mostra a próxima etapa; dois toques abrem o registro. 3D no computador, como no AutoCAD: Ctrl + roda = zoom, botão do meio = mover, Shift + botão do meio (ou arrastar) = orbitar, dois cliques no botão do meio = enquadrar. No tablet: pinça = zoom, um dedo orbita, dois dedos movem.' }),
       criarAlerta({ tipo: 'success', titulo: '3. Registre com um toque', mensagem: 'Pré-moldados: a chegada é registrada por tipo e quantidade em "Estoque de pré-moldados" (ex.: 10 peças PM-216); na peça, no 3D, só se informa a data da montagem — a montagem exige peça em estoque. Concreto moldado no local, blocos e viga do eixo −1: só o dia do lançamento da armadura e a data e o horário de início da concretagem. Demais serviços (estacas raiz e metálicas inclusive): cada etapa tem data de início e de término — o botão verde mostra "Iniciar hoje" e, depois, "Terminar hoje". Etapas com medida (cota, volume) abrem uma janela curta. "Outra data / valores" registra dias anteriores.' }),
       criarAlerta({ tipo: 'info', titulo: 'Cores', mensagem: 'Cinza: não iniciado. Azul: liberado para começar (o serviço anterior está pronto). Amarelo: em execução. Verde: concluído. Vermelho: pendência.' }),
@@ -18830,7 +18906,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.23.0' : 'Controle de Execução em Campo v6.23.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.24.0' : 'Controle de Execução em Campo v6.24.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -18869,7 +18945,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.23.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.24.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
