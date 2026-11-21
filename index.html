@@ -2283,7 +2283,7 @@ img { max-width: 100%; display: block; }
 .ctc-vista__legenda { position: absolute; left: 12px; top: 12px; z-index: 2; pointer-events: none; display: flex; flex-wrap: wrap; gap: 10px; max-width: calc(100% - 100px);
   padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.88); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border: 1px solid #e2e8f0; font-size: 12px; color: #334155; }
 .ctc-vista__legenda span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
-.ctc-vista__legenda i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.ctc-vista__legenda i { width: 13px; height: 13px; border-radius: 3px; display: inline-block; box-sizing: border-box; font-style: normal; font-weight: 700; }
 
 /* registro de um toque no topo do quadro */
 .ctc-rapido { display: grid; gap: 10px; }
@@ -7760,7 +7760,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.22.0
+   Versao: 6.23.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7864,6 +7864,15 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           alteracao so quando duas pessoas mexem na mesma etapa do mesmo elemento. A gravacao e
           feita numa transacao (ninguem envia no meio). A cada minuto o controle busca o que os
           outros lancaram; o Visualizador so recebe.
+   6.23.0: estaca construida de fora para dentro (planta e 3D com as mesmas cores): cravando so o anel
+          da camisa amarelo, cravada anel verde com miolo oco, pino e aco amarelos e depois verdes, concreto
+          azul, arrasada verde solida e com o ensaio verde solida com check. Arrasamento obrigatorio:
+          e ele que conclui a estaca (metalica e raiz) e libera o capitel / bloco.
+          Concretada: estaca azul solida (no 3D com a cabeca a arrasar cinza, meio transparente e
+          hachurada, que some no arrasamento). Legenda do campo pelos estados da execucao; sem o azul
+          de liberado no desenho. No 3D, o que passa da cota de arrasamento e a camisa (a armadura fica
+          abaixo da cota). Ensaio de integridade chamado so de "Ensaio"; pinagem sem a cota do pino, so a
+          metragem real.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -8107,7 +8116,7 @@ const CAMPO_HORA = { chave: 'hora', rotulo: 'Horário de início (HH:MM)', hora:
 const CAMPO_VOLUME_REAL = { chave: 'volume', rotulo: 'Volume real de concreto (m³)', minimo: 0 };
 /** Ensaio PIT (integridade): resultado e numero do relatorio. */
 const CAMPOS_PIT = [
-  { chave: 'resultado', rotulo: 'Resultado do PIT', opcoes: ['Sem anomalia', 'Com anomalia (ver relatório)'] },
+  { chave: 'resultado', rotulo: 'Resultado do ensaio', opcoes: ['Sem anomalia', 'Com anomalia (ver relatório)'] },
   { chave: 'relatorio', rotulo: 'Nº do relatório / laudo', texto: true },
 ];
 /**
@@ -8128,11 +8137,11 @@ const TIPOS = {
       // metragem sem limites: o campo registra o que foi executado (cota e comprimento reais)
       E('cravacao', 'Cravação da camisa metálica', { campos: [{ chave: 'comprimento', rotulo: 'Comprimento real cravado da camisa (m)' }] }),   // v6.9.3: sem a cota final da camisa
       // cota diferente da de projeto: o app pede a validacao do geologo (Sim = prossegue)
-      E('escavacao', 'Pinagem (escavação do pino)', { campos: [{ chave: 'cota', rotulo: 'Cota final do pino (EL. m)', obrigatorio: true }, { chave: 'comprimento', rotulo: 'Comprimento real do pino (m)' }] }),
+      E('escavacao', 'Pinagem (escavação do pino)', { campos: [{ chave: 'comprimento', rotulo: 'Comprimento real do pino (m)' }] }),   // v6.22.0: sem a cota do pino, so a metragem real
       E('armadura', 'Armadura instalada'),
-      E('concretagem', 'Concretagem', { conclui: true, campos: [CAMPO_VOLUME_REAL] }),
-      E('arrasamento', 'Arrasamento', { opcional: true }),
-      E('pit', 'Ensaio PIT (integridade)', { opcional: true, pontual: true, rotuloData: 'Data do ensaio PIT', campos: CAMPOS_PIT }),
+      E('concretagem', 'Concretagem', { campos: [CAMPO_VOLUME_REAL] }),
+      E('arrasamento', 'Arrasamento', { conclui: true }),   // v6.22.0: obrigatorio; e ele que conclui a estaca
+      E('pit', 'Ensaio (integridade)', { opcional: true, pontual: true, rotuloData: 'Data do ensaio', campos: CAMPOS_PIT }),
     ],
   },
   'estaca-raiz': {
@@ -8147,9 +8156,9 @@ const TIPOS = {
       }),
       E('camisa', 'Implantação da camisa Ø410'),
       // nota 22 do DWG-00008: pressao de injecao minima de 150 mca
-      E('concretagem', 'Concretagem / injeção', { conclui: true, campos: [{ chave: 'pressao', rotulo: 'Pressão de injeção (mca) — mínimo 150', minimo: 0, obrigatorio: true }, CAMPO_VOLUME_REAL] }),
-      E('arrasamento', 'Arrasamento e ensaios', { opcional: true }),
-      E('pit', 'Ensaio PIT (integridade)', { opcional: true, pontual: true, rotuloData: 'Data do ensaio PIT', campos: CAMPOS_PIT }),
+      E('concretagem', 'Concretagem / injeção', { campos: [{ chave: 'pressao', rotulo: 'Pressão de injeção (mca) — mínimo 150', minimo: 0, obrigatorio: true }, CAMPO_VOLUME_REAL] }),
+      E('arrasamento', 'Arrasamento e ensaios', { conclui: true }),   // v6.22.0: obrigatorio; conclui a estaca raiz
+      E('pit', 'Ensaio (integridade)', { opcional: true, pontual: true, rotuloData: 'Data do ensaio', campos: CAMPOS_PIT }),
     ],
   },
   bloco: {
@@ -8314,20 +8323,22 @@ function geoEstacaMetalica(x, y, diametro, arras, peCamisa, pePino) {
   const r = diametro / 2000;
   return [
     cilindro(x, y, r, peCamisa, arras, { parte: 'camisa', etapa: 'cravacao', casca: true, camada: 3 }),
-    cilindro(x, y, diametro === 1219 ? 0.55 : 0.45, pePino, peCamisa, { parte: 'pino', etapa: 'escavacao', clarear: 0.45, camada: 1 }),
+    cilindro(x, y, diametro === 1219 ? 0.55 : 0.45, pePino, peCamisa, { parte: 'pino', etapa: 'escavacao', clarear: 0.45, camada: 1, semPrancha: true }),
     cilindro(x, y, r * 0.9, peCamisa, arras - 0.15, { parte: 'concreto', etapa: 'concretagem', so3d: true, camada: 1 }),
-    { forma: 'gaiola', x, y, r: r * 0.72, z0: pePino + 0.3, z1: arras + 0.6, barras: 12, passo: 1.5, parte: 'armadura', etapa: 'armadura', so3d: true, camada: 2 },
+    { forma: 'gaiola', x, y, r: r * 0.72, z0: pePino + 0.3, z1: arras - 0.2, barras: 12, passo: 1.5, parte: 'armadura', etapa: 'armadura', so3d: true, camada: 2 },
     cilindro(x, y, r * 1.03, arras - 0.15, arras, { parte: 'arrasamento', etapa: 'arrasamento', so3d: true, camada: 4 }),
+    cilindro(x, y, r, arras, arras + 2.0, { parte: 'cabeça a arrasar', etapa: 'arrasamento', so3d: true, cabeca: true, hachura: true, camada: 5 }),
   ];
 }
 /** v6.21.0: estaca raiz: camisa Ø410 (implantacao), trecho Ø350 (perfuracao), injecao e armadura (concretagem) e arrasamento. */
 function geoEstacaRaiz(x, y, topo, l410, l350) {
   return [
     cilindro(x, y, 0.205, topo - l410, topo, { parte: 'camisa Ø410', etapa: 'camisa', casca: true, camada: 3 }),
-    cilindro(x, y, 0.175, topo - l410 - l350, topo - l410, { parte: 'perfuração Ø350', etapa: 'perfuracao', clarear: 0.45, camada: 1 }),
+    cilindro(x, y, 0.175, topo - l410 - l350, topo - l410, { parte: 'perfuração Ø350', etapa: 'perfuracao', clarear: 0.45, camada: 1, semPrancha: true }),
     cilindro(x, y, 0.185, topo - l410, topo - 0.1, { parte: 'injeção de argamassa', etapa: 'concretagem', so3d: true, camada: 1 }),
-    { forma: 'gaiola', x, y, r: 0.13, z0: topo - l410 - l350 + 0.3, z1: topo + 0.4, barras: 6, passo: 1.5, parte: 'armadura', etapa: 'concretagem', so3d: true, camada: 2 },
+    { forma: 'gaiola', x, y, r: 0.13, z0: topo - l410 - l350 + 0.3, z1: topo - 0.15, barras: 6, passo: 1.5, parte: 'armadura', etapa: 'concretagem', so3d: true, camada: 2 },
     cilindro(x, y, 0.215, topo - 0.1, topo, { parte: 'arrasamento', etapa: 'arrasamento', so3d: true, camada: 4 }),
+    cilindro(x, y, 0.205, topo, topo + 1.0, { parte: 'cabeça a arrasar', etapa: 'arrasamento', so3d: true, cabeca: true, hachura: true, camada: 5 }),
   ];
 }
 const cilindro = (x, y, r, z0, z1, extra = {}) => ({ forma: 'cilindro', x, y, r, z0, z1, ...extra });
@@ -8472,7 +8483,7 @@ function blocosERaiz() {
         ...faixaEixoMenos1(b.y0, b.y1, dxPerp(-0.585), dxPerp(1.915), b.fundo, b.topo1),
         ...faixaEixoMenos1(b.y0, b.y1, FAIXA_222[0], FAIXA_222[1], b.topo1, BLOCO_TOPO, { clarear: 0.2 }),
       ],
-      deps: [{ etapa: 'concretagem1', ids: idsRaiz, texto: 'estacas raiz do bloco concretadas' }],
+      deps: [{ etapa: 'concretagem1', ids: idsRaiz, texto: 'estacas raiz do bloco concluídas (arrasadas)' }],
     }));
   });
   // viga do eixo −1 (DWG-00047): 1a fase entre os blocos (EL +2,55 a +3,05) e 2a fase continua (EL +3,05 a +3,75),
@@ -8576,7 +8587,7 @@ function preMoldadosEstrutura() {
       id: `${tipo} (${estaca})`, seg, tipo: 'capitel', rotulo: tipo, grupo: `Capitéis eixo ${estaca.split('-')[0]}`,
       sub: `Capitel sobre a estaca ${estaca} · ${subPM(tipo)}`, info: { ...infoPM(tipo), estaca },
       geo: [caixa(x - 1.07, x + 1.07, y - 1.0, y + 1.0, z0, z0 + 0.45)],
-      deps: [{ etapa: 'montagem', ids: [estaca], texto: `estaca ${estaca} concretada` }],
+      deps: [{ etapa: 'montagem', ids: [estaca], texto: `estaca ${estaca} concluída (arrasada)` }],
     }));
   };
   MET_01A.forEach(([estaca, diametro, arras]) => {
@@ -9263,7 +9274,7 @@ function segmento04(todos) {
         ...faixaEixoMenos1(yc - 2, yc + 2, dxPerp(-0.585), dxPerp(1.915), 1.4, 2.15),
         ...faixaEixoMenos1(yc - 2, yc + 2, FAIXA_222[0], FAIXA_222[1], 2.15, BLOCO_TOPO, { clarear: 0.2 }),
       ],
-      deps: [{ etapa: 'concretagem1', ids: idsRaiz, texto: 'estacas raiz do bloco concretadas' }],
+      deps: [{ etapa: 'concretagem1', ids: idsRaiz, texto: 'estacas raiz do bloco concluídas (arrasadas)' }],
     }));
   });
   // capiteis PM-01 sobre cada estaca (eixos 2 a 11)
@@ -9274,7 +9285,7 @@ function segmento04(todos) {
       id: `PM-01 (${estaca})`, seg, tipo: 'capitel', rotulo: 'PM-01', grupo: `Capitéis eixo ${eixo} · seg. 04`,
       sub: `Capitel sobre a estaca ${estaca} · ${subPM('PM-01')}`, info: { ...infoPM('PM-01'), estaca },
       geo: [caixa(x - 1.07, x + 1.07, y - 1.0, y + 1.0, 1.70, 2.15)],
-      deps: [{ etapa: 'montagem', ids: [estaca], texto: `estaca ${estaca} concretada` }],
+      deps: [{ etapa: 'montagem', ids: [estaca], texto: `estaca ${estaca} concluída (arrasada)` }],
     }));
   }));
   // vigas U: PM-113/114/115 do bloco ate o eixo 2; PM-104 do eixo 2 ao 10; PM-103 do 10 ao 11
@@ -9364,7 +9375,7 @@ function segmentosBasico(todos) {
         id: `PM-01 (${id})`, seg, tipo: 'capitel', rotulo: 'PM-01', grupo: `Capitéis eixo ${eixo}`,
         sub: `Capitel sobre a estaca ${id} · ${subPM('PM-01')} · ${preliminar}`, info: { ...infoPM('PM-01'), estaca: id, esquematico: true },
         geo: [caixa(x - 1.07, x + 1.07, y - 1.0, y + 1.0, 1.7, 2.15)],
-        deps: [{ etapa: 'montagem', ids: [id], texto: `estaca ${id} concretada` }],
+        deps: [{ etapa: 'montagem', ids: [id], texto: `estaca ${id} concluída (arrasada)` }],
       }));
       (estacasLinha[linha] = estacasLinha[linha] || []).push({ id, eixo, x });
     }));
@@ -13514,6 +13525,19 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     ctx.closePath();
     ctx.fillStyle = lateral;
     ctx.fill();
+    if (o.hachura) {   // v6.22.0: cabeca a arrasar hachurada
+      ctx.save();
+      ctx.clip();
+      ctx.globalAlpha = Math.min(1, alfa * 2);
+      ctx.strokeStyle = tom3d(o.cor, -0.45);
+      ctx.lineWidth = Math.max(0.8, rx * 0.08);
+      const passo = Math.max(3, rx * 0.35);
+      for (let d = -rx * 2 - (T.y - B.y); d <= rx * 2 + Math.abs(B.y - T.y); d += passo) {
+        ctx.beginPath(); ctx.moveTo(T.x - rx + d, B.y + ry); ctx.lineTo(T.x - rx + d + (B.y - T.y + 2 * ry), T.y - ry); ctx.stroke();
+      }
+      ctx.restore();
+      ctx.globalAlpha = alfa;
+    }
     ctx.beginPath();
     ctx.ellipse(T.x, T.y, rx, ry, 0, 0, Math.PI * 2);
     ctx.fillStyle = tom3d(o.cor, 0.25);
@@ -13548,6 +13572,70 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
   }
 
   /** Elemento no estilo da prancha (planta): contorno preto e preenchimento claro na cor do status. */
+  /** v6.22.0: estaca na planta: anel da camisa (amarelo/verde), anel tracejado do pino, barras de aco, miolo oco/azul;
+   *  arrasada verde solida; com o ensaio PIT, ✓. Os detalhes aparecem conforme a estaca cresce na tela. */
+  function desenharEstacaPlanta(o, alfa) {
+    const pt = o.planta;
+    const c = projetar(o.x, o.y, o.z1);
+    const R = Math.max(o.r * est.cam.escala, 2.5);
+    const sel = o.id === est.selecionadoId;
+    const K = COR_ESTACA;
+    const corDe = (estado) => (estado === 'f' ? K.pronto : (estado === 'a' ? K.exec : K.cinza));
+    ctx.globalAlpha = alfa;
+    const circ = (r, fill, stroke, lw, dash) => {
+      ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+      if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+      if (stroke) { ctx.setLineDash(dash || []); ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); ctx.setLineDash([]); }
+    };
+    if (!pt.iniciou) {   // nao iniciada: como sempre
+      circ(R, tom3d(o.corPrancha || o.cor, sel ? 0 : 0.25), '#111827', sel ? 2.2 : 1.2);
+    } else if (pt.arr === 'f') {   // arrasada: verde solida (com ✓ se o PIT foi feito)
+      circ(R, K.arrasada, '#14532d', sel ? 2.4 : 1.4);
+      if (pt.pit === 'f' && R >= 6) {
+        ctx.font = fonte(Math.max(9, R * 1.1), true); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff'; ctx.fillText('✓', c.x, c.y + R * 0.05);
+      }
+    } else if (pt.conc === 'f') {   // concretada: azul solida ate o arrasamento (arrasando: hachura amarela)
+      circ(R, K.concreto, '#1e3a8a', sel ? 2.4 : 1.4);
+      if (pt.arr === 'a' && R >= 6) {
+        ctx.save(); ctx.beginPath(); ctx.arc(c.x, c.y, R, 0, Math.PI * 2); ctx.clip();
+        ctx.strokeStyle = K.exec; ctx.lineWidth = Math.max(1, R * 0.1);
+        for (let d = -R; d <= R; d += Math.max(3, R * 0.3)) { ctx.beginPath(); ctx.moveTo(c.x + d - R, c.y + R); ctx.lineTo(c.x + d + R, c.y - R); ctx.stroke(); }
+        ctx.restore();
+      }
+    } else {
+      // miolo: oco ate concretar; azul claro concretando
+      circ(R * 0.8, pt.conc === 'f' ? K.concreto : (pt.conc === 'a' ? K.concretando : K.oco), null);
+      if (pt.arr === 'a' && R >= 6) {   // arrasando: hachura amarela sobre o concreto
+        ctx.save(); ctx.beginPath(); ctx.arc(c.x, c.y, R * 0.8, 0, Math.PI * 2); ctx.clip();
+        ctx.strokeStyle = K.exec; ctx.lineWidth = Math.max(1, R * 0.08);
+        for (let d = -R; d <= R; d += Math.max(3, R * 0.28)) { ctx.beginPath(); ctx.moveTo(c.x + d - R, c.y + R); ctx.lineTo(c.x + d + R, c.y - R); ctx.stroke(); }
+        ctx.restore();
+      }
+      // anel da camisa
+      circ(R * 0.9, null, corDe(pt.cam), Math.max(1.5, R * 0.2));
+      circ(R, null, '#111827', sel ? 2.2 : Math.max(0.8, R * 0.03));
+      // pino (embaixo): anel tracejado fino
+      if (pt.pino !== '-' && R >= 7) circ(R * 0.7, null, corDe(pt.pino), Math.max(1, R * 0.07), [Math.max(2, R * 0.14), Math.max(1.5, R * 0.1)]);
+      // aco: estribo + barras
+      if (pt.aco !== '-' && R >= 9) {
+        const ca = corDe(pt.aco);
+        circ(R * 0.55, null, ca, Math.max(0.8, R * 0.04));
+        ctx.fillStyle = ca;
+        for (let k = 0; k < 12; k += 1) {
+          const a = (Math.PI * 2 * k) / 12;
+          ctx.beginPath(); ctx.arc(c.x + R * 0.55 * Math.cos(a), c.y + R * 0.55 * Math.sin(a), Math.max(1, R * 0.08), 0, Math.PI * 2); ctx.fill();
+        }
+      }
+    }
+    if (o.curto && R >= 14 && alfa >= 0.5 && !pt.iniciou) {
+      ctx.font = fonte(Math.min(13, R * 0.55), true); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#0f172a'; ctx.fillText(o.curto, c.x, c.y);
+    }
+    ctx.globalAlpha = 1;
+    return [[{ x: c.x - R, y: c.y - R }, { x: c.x + R, y: c.y - R }, { x: c.x + R, y: c.y + R }, { x: c.x - R, y: c.y + R }]];
+  }
+
   function desenharPrancha(o, alfa) {
     // selecionado: preenchimento cheio na cor do status (sem contorno de selecao)
     const sel = o.id === est.selecionadoId;
@@ -13833,11 +13921,11 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
         const a3d = alfa * (1 - P);
         // modo claro: pecas opacas em tom claro (linhas ocultas) — o que esta embaixo nao aparece atraves do que esta em cima
         const ob = solido || o.parteAtiva ? o : { ...o, cor: misturar(o.cor, 0.62) };
-        const aParte = o.casca ? a3d * 0.24 : a3d;   // camisa semitransparente: o aco aparece por dentro
+        const aParte = o.casca ? a3d * 0.24 : (o.cabeca ? a3d * 0.45 : a3d);   // camisa e cabeca a arrasar semitransparentes
         polis = ob.forma === 'gaiola' ? desenharGaiola(ob, aParte) : (ob.forma === 'prisma' ? desenharPrisma(ob, aParte) : (ob.forma === 'caixa' ? desenharCaixa(ob, aParte) : desenharCilindro(ob, aParte)));
       }
-      if (P > 0.01 && !o.so3d) {
-        const pp = desenharPrancha(o.corPrancha ? { ...o, cor: o.corPrancha } : o, alfa * P);
+      if (P > 0.01 && !o.so3d && !o.semPrancha) {
+        const pp = o.planta ? desenharEstacaPlanta(o, alfa * P) : desenharPrancha(o.corPrancha ? { ...o, cor: o.corPrancha } : o, alfa * P);
         if (P >= 0.5) polis = pp;
       }
       if (o.selecionavel !== false && alfa > 0.15 && polis) areas.push({ id: o.id, etapa: P >= 0.5 ? null : o.etapa, casca: Boolean(o.casca) && P < 0.5, dica: o.dica || o.rotulo, polis });
@@ -14245,13 +14333,21 @@ function definirCamada(grupo, chave, visivel) {
 }
 
 /** v6.8: peca nao iniciada ganha um tom neutro proprio do tipo (as cores de situacao continuam vivas por cima). */
+/** v6.22.0: cores das partes da estaca (3D e planta): amarelo em execucao, verde parte pronta (camisa, pino, aco),
+ *  azul concreto (claro enquanto concreta), verde solido arrasada, verde solido + ✓ com o ensaio PIT. */
+const COR_ESTACA = { exec: '#facc15', pronto: '#16a34a', concreto: '#2563eb', concretando: '#93c5fd', arrasada: '#16a34a', cinza: '#cbd5e1', oco: '#ffffff' };
+/** Situacao das partes da estaca: { cam, pino, aco, conc, arr, pit } com '-' a executar, 'a' em execucao, 'f' feita. */
+function partesEstaca(e) {
+  const est = (ch) => (!ch ? '-' : (feita(e, ch) ? 'f' : (emAndamento(e, ch) ? 'a' : '-')));
+  if (e.tipo === 'estaca-raiz') return { cam: est('perfuracao'), pino: est('camisa'), aco: '-', conc: est('concretagem'), arr: est('arrasamento'), pit: est('pit') };
+  return { cam: est('cravacao'), pino: est('escavacao'), aco: est('armadura'), conc: est('concretagem'), arr: est('arrasamento'), pit: est('pit') };
+}
 const TOM_TIPO = {
   'estaca-metalica': '#8b8f98', 'estaca-raiz': '#8b8f98', bloco: '#a1958a', 'viga-eixo': '#a1958a',
   capitel: '#bba98c', 'viga-transversal': '#ad9f86', 'viga-u': '#9fb2a7', laje: '#cdd4de',
   cip: '#b9b0cb', pavimento: '#d9d6cf',
 };
-const corElemento = (e) => (liberado(e) ? COR_LIBERADO
-  : (statusDe(e) === 'nao-iniciada' && TOM_TIPO[e.tipo] ? TOM_TIPO[e.tipo] : STATUS[statusDe(e)].cor));
+const corElemento = (e) => (statusDe(e) === 'nao-iniciada' && TOM_TIPO[e.tipo] ? TOM_TIPO[e.tipo] : STATUS[statusDe(e)].cor);   // v6.22.0: sem o azul de liberado
 const chaveStatusCamada = (e) => (liberado(e) ? 'liberado' : statusDe(e));
 const passaFrente = (e) => camadaVisivel('frentes', tipoDe(e).frente) && camadaVisivel('status', chaveStatusCamada(e));
 
@@ -14286,30 +14382,48 @@ function cenaSegmento(seg) {
     // v6.21.0: parte ligada a uma etapa (estacas): amarela com a etapa em execucao, verde com ela concluida;
     // na prancha continua a cor do elemento (corPrancha). "dica" = texto do balao ao passar o mouse.
     const base = (g) => (g.clarear ? misturar(cor, g.clarear) : cor);
-    // estaca cheia (sem as partes internas) ate a pinagem concluida: a camisa muda de cor com a cravacao e o pino com a
-    // pinagem; com a pinagem concluida abre em corte com a armacao por dentro. Raiz: perfuracao (trecho Ø350) e
-    // implantacao da camisa (Ø410); com a camisa concluida abre em corte.
-    const etapaCorte = e.tipo === 'estaca-metalica' ? 'escavacao' : 'camisa';
-    const emCorte = !e.geo.some((g) => g.casca) || feita(e, etapaCorte);
+    // v6.22.0: estaca construida de fora para dentro (3D e planta com as mesmas cores):
+    // cravando = camisa amarela (casca, miolo oco); cravada = camisa verde; pino e aco amarelos -> verdes; concreto azul
+    // (claro enquanto concreta); arrasada = verde solido; ensaio PIT feito = verde solido + ✓. Nao iniciada: como sempre.
+    const ehEstaca = ['estaca-metalica', 'estaca-raiz'].includes(e.tipo);
+    const pt = ehEstaca ? partesEstaca(e) : null;
+    const iniciou = ehEstaca && (pt.cam !== '-' || pt.pino !== '-');
+    const arrasada = ehEstaca && pt.arr === 'f';
+    const concretada = ehEstaca && pt.conc === 'f' && !arrasada;   // azul solida ate o arrasamento
+    const emCorte = iniciou && !arrasada && !concretada;
+    const corEtapa = (estado, parte) => (estado === 'f' ? (parte === 'concreto' ? COR_ESTACA.concreto : COR_ESTACA.pronto)
+      : (estado === 'a' ? (parte === 'concreto' ? COR_ESTACA.concretando : COR_ESTACA.exec) : COR_ESTACA.cinza));
     e.geo.forEach((g0, i) => {
-      if (!emCorte && g0.so3d) return;
-      const g = emCorte ? g0 : { ...g0, casca: false };
-      let corParte = base(g); let dica = `${tipoDe(e).nome.split(' (')[0]} ${e.rotulo} · ${liberado(e) ? 'Liberado' : textoStatus(e)}`;
-      if (g.etapa) {
-        const et = etapasDe(e).find((x) => x.chave === g.etapa);
-        const situacao = feita(e, g.etapa) ? 'concluída' : (emAndamento(e, g.etapa) ? 'em execução' : 'a executar');
-        if (feita(e, g.etapa)) corParte = STATUS.concluida.cor;
-        else if (emAndamento(e, g.etapa)) corParte = STATUS.execucao.cor;
-        else if (statusDe(e) !== 'nao-iniciada') {   // peca ja comecou mas esta parte nao: cinza de "nao iniciado"
-          const cinza = TOM_TIPO[e.tipo] || STATUS['nao-iniciada'].cor;
-          corParte = g.clarear ? misturar(cinza, g.clarear) : cinza;
+      let g = g0;
+      if (ehEstaca) {
+        // v6.22.0: o que passa da cota de arrasamento e a camisa (a armadura fica abaixo): durante a execucao a cabeca
+        // e o prolongamento da camisa (casca, mesma cor); concretada vira a cabeca cinza hachurada; arrasada some
+        if (g0.cabeca && emCorte) g = g0 = { ...g0, cabeca: false, hachura: false, so3d: false, semPrancha: true, casca: true, etapa: e.geo[0].etapa, parte: `${e.geo[0].parte} (acima da cota de arrasamento)` };
+        else if (g0.cabeca) { if (!concretada) return; }                  // cabeca a arrasar: so com a estaca concretada
+        else if (!emCorte && g0.so3d) return;                             // nao iniciada, concretada ou arrasada: sem as partes internas
+        if (!emCorte) g = { ...g0, casca: false };
+        if (emCorte && g0.so3d && !g0.cabeca) {                          // partes internas so depois que comecam
+          const parte = g0.parte === 'armadura' ? 'aco' : (/concreto|injeção/.test(g0.parte) ? 'conc' : (g0.parte === 'arrasamento' ? 'arr' : null));
+          const estadoParte = parte === 'aco' && e.tipo === 'estaca-raiz' ? pt.conc : (parte ? pt[parte] : '-');
+          if (estadoParte === '-') return;
         }
-        dica = `${tipoDe(e).nome.split(' (')[0]} ${e.rotulo} · ${g.parte || (et ? et.texto : g.etapa)}: ${situacao}`;
+      }
+      let corParte = base(g); let dica = `${tipoDe(e).nome.split(' (')[0]} ${e.rotulo} · ${liberado(e) ? 'Liberado' : textoStatus(e)}`;
+      if (ehEstaca && g.etapa) {
+        const et = etapasDe(e).find((x) => x.chave === g.etapa);
+        const estado = feita(e, g.etapa) ? 'f' : (emAndamento(e, g.etapa) ? 'a' : '-');
+        if (arrasada) corParte = COR_ESTACA.arrasada;
+        else if (concretada) corParte = g.cabeca ? (pt.arr === 'a' ? COR_ESTACA.exec : '#9ca3af') : COR_ESTACA.concreto;
+        else if (iniciou) corParte = corEtapa(estado, /concreto|injeção/.test(g.parte || '') ? 'concreto' : 'outra');
+        dica = `${tipoDe(e).nome.split(' (')[0]} ${e.rotulo} · ${arrasada ? (pt.pit === 'f' ? 'arrasada e ensaiada ✓' : 'arrasada')
+          : (concretada ? (g.cabeca ? `cabeça a arrasar${pt.arr === 'a' ? ' (arrasando)' : ''}` : 'concretada') : `${g.parte || (et ? et.texto : g.etapa)}: ${{ f: 'concluída', a: 'em execução', '-': 'a executar' }[estado]}`)}`;
       }
       objetos.push({
         id: e.id, ...g, cor: corParte, corPrancha: base(g), alfa: visivel ? cobertura : 0, rotulo, dica,
-        // cor cheia no "3D em tom claro": estaca em corte ou parte com a etapa ja iniciada
-        parteAtiva: Boolean(g.etapa) && (emCorte || feita(e, g.etapa) || emAndamento(e, g.etapa)),
+        // cor cheia no "3D em tom claro" para a estaca que ja comecou
+        parteAtiva: ehEstaca && iniciou,
+        // planta da estaca (anel da camisa, pino, aco, miolo oco/azul, verde solido, ✓ do PIT) desenhada pelo motor
+        ...(ehEstaca && i === 0 ? { planta: { ...pt, iniciou } } : {}),
         curto: i === 0 ? curto : '',
       });
     });
@@ -14640,7 +14754,7 @@ const valoresTexto = (reg) => Object.entries(reg?.valores || {}).map(([k, v]) =>
   if (k === 'altura') return `fixação ${formatarNumero(v, 0)} cm`;
   if (k === 'geologo') return `geólogo: ${v}`;
   if (k === 'comprimento') return `${formatarNumero(v, 2)} m`;
-  if (k === 'resultado') return `PIT: ${v}`;
+  if (k === 'resultado') return `Ensaio: ${v}`;
   if (k === 'relatorio') return `relatório ${v}`;
   return String(v);
 }).join(' · ');
@@ -15831,8 +15945,14 @@ function paginaCampo() {
   const larguraUtil = Math.max(320, (document.querySelector('.ctc-main')?.clientWidth || window.innerWidth) - 40);
   const alturaUtil = Math.max(300, window.innerHeight - 205);
   const legendaCores = h('div', { class: 'ctc-vista__legenda', 'aria-hidden': 'true' },
-    ...[['linear-gradient(90deg, #8b8f98, #bba98c, #9fb2a7, #cdd4de)', 'Não iniciado (tom do tipo)'], [COR_LIBERADO, 'Liberado'], [STATUS.execucao.cor, 'Em execução'], [STATUS.concluida.cor, 'Concluído'], [STATUS.pendencia.cor, 'Pendência']]
-      .map(([cor, txt]) => h('span', {}, h('i', { style: { background: cor } }), txt)));
+    // v6.22.0: legenda pelos estados da execucao (anel = parte da estaca; solido = estaca inteira)
+    ...[[{ background: '#fff', border: `3px solid ${COR_ESTACA.exec}`, borderRadius: '50%' }, 'Em execução'],
+      [{ background: '#fff', border: `3px solid ${COR_ESTACA.pronto}`, borderRadius: '50%' }, 'Executado'],
+      [{ background: COR_ESTACA.concreto, borderRadius: '50%' }, 'Concretado'],
+      [{ background: COR_ESTACA.arrasada, borderRadius: '50%' }, 'Concluído (arrasado)'],
+      [{ background: COR_ESTACA.arrasada, borderRadius: '50%', color: '#fff', fontSize: '10px', lineHeight: '12px', textAlign: 'center' }, 'Ensaio', '✓'],
+      [{ background: STATUS.pendencia.cor, borderRadius: '50%' }, 'Pendência']]
+      .map(([estilo, txt, marca]) => h('span', {}, h('i', { style: estilo }, marca || ''), txt)));
   const vista = criarVista3D({
     chave: `campo-${estadoCampo.seg}`, titulo: SEGMENTOS[estadoCampo.seg].texto,
     obterCena: () => cenaSegmento(estadoCampo.seg), escalaZ: estadoCampo.seg === '01' ? 0.4 : 1,
@@ -18710,7 +18830,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.22.0' : 'Controle de Execução em Campo v6.22.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.23.0' : 'Controle de Execução em Campo v6.23.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -18749,7 +18869,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.22.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.23.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
