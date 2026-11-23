@@ -7898,7 +7898,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.28.0
+   Versao: 6.29.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -8081,6 +8081,11 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           Ao abrir o controle, a primeira tela e Campo > Obra inteira.
           Aberto pelo Portal KZ (com login do Portal neste navegador): entra direto no perfil liberado pelo gestor
           (Leitor = Visualizador, Editor = Apontamento, Administrador = Controlador), sem escolher perfil nem senha.
+   6.29.0: Relatorio por blocos (aba Relatorios no Controlador e no Menu): PDF (A4 paisagem) e/ou PowerPoint
+          (16:9, textos editaveis), com periodo, etapas (nenhuma = tudo) e nome pedidos na exportacao. Entram os
+          elementos com Blocos preenchido e com a etapa concluida no periodo. Capa com resumo; por bloco, planta
+          com a "ameba" do bloco (eixos, vizinhos, mapa do local) e uma pagina por elemento com o esquema 3D grande
+          (partes nas cores da situacao, cotas, mare e fundo do mar) e as datas reais de cada etapa.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -18732,13 +18737,15 @@ const corPdf = (hex) => [1, 3, 5].map((i) => (parseInt(hex.slice(i, i + 2), 16) 
 const numPdf = (n) => Number(n).toFixed(2);
 
 /** Documento PDF com cursor vertical (coordenadas a partir do topo da pagina). */
-function criarDocumentoPdf() {
+function criarDocumentoPdf({ largura = PDF_LARGURA, altura = PDF_ALTURA } = {}) {   // v6.29.0: tamanho da pagina (paisagem)
   const paginas = [];
   const imagens = [];
   let atual = null;
   const doc = {
     paginas,
     imagens,
+    largura,
+    altura,
     y: 0,
     aoQuebrar: null,
     novaPagina() {
@@ -18751,15 +18758,15 @@ function criarDocumentoPdf() {
       if (preenchimento) atual.ops.push(`${corPdf(preenchimento)} rg`);
       if (contorno) atual.ops.push(`${corPdf(contorno)} RG ${numPdf(espessura)} w`);
       const op = preenchimento && contorno ? 'B' : (preenchimento ? 'f' : 'S');
-      atual.ops.push(`${numPdf(x)} ${numPdf(PDF_ALTURA - y - a)} ${numPdf(l)} ${numPdf(a)} re ${op}`);
+      atual.ops.push(`${numPdf(x)} ${numPdf(altura - y - a)} ${numPdf(l)} ${numPdf(a)} re ${op}`);
     },
     linha(x1, y1, x2, y2, cor = PDF_CORES.borda, espessura = 0.6) {
-      atual.ops.push(`${corPdf(cor)} RG ${numPdf(espessura)} w ${numPdf(x1)} ${numPdf(PDF_ALTURA - y1)} m ${numPdf(x2)} ${numPdf(PDF_ALTURA - y2)} l S`);
+      atual.ops.push(`${corPdf(cor)} RG ${numPdf(espessura)} w ${numPdf(x1)} ${numPdf(altura - y1)} m ${numPdf(x2)} ${numPdf(altura - y2)} l S`);
     },
     texto(x, y, conteudo, { tamanho = 9, negrito = false, cor = PDF_CORES.texto, alinhar = 'esquerda' } = {}) {
       const largura = larguraTextoPdf(conteudo, tamanho, negrito);
       const xFinal = alinhar === 'direita' ? x - largura : (alinhar === 'centro' ? x - largura / 2 : x);
-      atual.ops.push(`BT /${negrito ? 'F2' : 'F1'} ${tamanho} Tf ${corPdf(cor)} rg ${numPdf(xFinal)} ${numPdf(PDF_ALTURA - y)} Td ${literalPdf(conteudo)} Tj ET`);
+      atual.ops.push(`BT /${negrito ? 'F2' : 'F1'} ${tamanho} Tf ${corPdf(cor)} rg ${numPdf(xFinal)} ${numPdf(altura - y)} Td ${literalPdf(conteudo)} Tj ET`);
     },
     imagem(canvas, x, y, l, a) {
       const binario = atob(canvas.toDataURL('image/jpeg', 0.92).split(',')[1]);
@@ -18767,7 +18774,7 @@ function criarDocumentoPdf() {
       for (let i = 0; i < binario.length; i += 1) bytes[i] = binario.charCodeAt(i);
       const nome = `Im${imagens.length + 1}`;
       imagens.push({ nome, largura: canvas.width, altura: canvas.height, bytes });
-      atual.ops.push(`q ${numPdf(l)} 0 0 ${numPdf(a)} ${numPdf(x)} ${numPdf(PDF_ALTURA - y - a)} cm /${nome} Do Q`);
+      atual.ops.push(`q ${numPdf(l)} 0 0 ${numPdf(a)} ${numPdf(x)} ${numPdf(altura - y - a)} cm /${nome} Do Q`);
     },
     /** Garante espaco vertical; se faltar, abre nova pagina (com o cabecalho reduzido). Retorna true se quebrou. */
     garantir(altura) {
@@ -18780,7 +18787,7 @@ function criarDocumentoPdf() {
 }
 
 /** Monta os bytes do arquivo PDF a partir das paginas e imagens. */
-function montarBytesPdf({ paginas, imagens }) {
+function montarBytesPdf({ paginas, imagens, largura = PDF_LARGURA, altura = PDF_ALTURA }) {
   const codificador = new TextEncoder();
   const partes = [];
   const deslocamentos = [];
@@ -18815,7 +18822,7 @@ function montarBytesPdf({ paginas, imagens }) {
   paginas.forEach((pagina, i) => {
     const [idPagina, idConteudo] = idsPaginas[i];
     const conteudo = pagina.ops.join('\n');
-    objetos[idPagina - 1] = [`<< /Type /Page /Parent ${idPaginas} 0 R /MediaBox [0 0 ${PDF_LARGURA} ${PDF_ALTURA}] /Resources << /Font << /F1 ${idFonte} 0 R /F2 ${idFonteNegrito} 0 R >> /XObject << ${recursoImagens} >> >> /Contents ${idConteudo} 0 R >>`];
+    objetos[idPagina - 1] = [`<< /Type /Page /Parent ${idPaginas} 0 R /MediaBox [0 0 ${largura} ${altura}] /Resources << /Font << /F1 ${idFonte} 0 R /F2 ${idFonteNegrito} 0 R >> /XObject << ${recursoImagens} >> >> /Contents ${idConteudo} 0 R >>`];
     objetos[idConteudo - 1] = [`<< /Length ${codificador.encode(conteudo).length} >>\nstream\n${conteudo}\nendstream`];
   });
 
@@ -19890,6 +19897,624 @@ function abrirRelatorios() {
 
 
 /* =============================================================================
+   v6.29.0: RELATORIO POR BLOCOS (PDF e/ou PowerPoint)
+   Pede: formato, periodo (de / ate), etapas (vazio = tudo) e o nome do relatorio.
+   Entram os elementos com Blocos preenchido (Banco de dados) e com a etapa escolhida CONCLUIDA no periodo
+   (em "tudo": qualquer etapa com data real no periodo). Paginas: capa com resumo; por bloco, 1 planta 2D
+   com a "ameba" do bloco e 1 pagina por elemento (esquema 3D grande + datas reais das etapas + projeto).
+   PDF A4 paisagem (gerador proprio); PowerPoint 16:9 (.pptx montado aqui, textos editaveis).
+   ========================================================================== */
+const REL_COR = { marca: '#1e3a5f', marca2: '#2f5d8c', texto: '#0f172a', suave: '#64748b', borda: '#cbd5e1', fundo: '#f8fafc', destaque: '#dcfce7', branco: '#ffffff', ameba: '#1e3a5f' };
+const REL_STATUS_COR = { concluida: '#16a34a', execucao: '#eab308', pendencia: '#dc2626', 'nao-iniciada': '#94a3b8' };
+
+/** Etapas que podem ser escolhidas: dos tipos que tem elemento com bloco. valor = "tipo|chave". */
+function opcoesEtapasRelatorio() {
+  const tipos = [...new Set(elementos.filter((e) => blocoDe(e)).map((e) => e.tipo))];
+  return tipos.flatMap((tp) => {
+    const nomeTipo = TIPOS[tp].nome.split(' (')[0];
+    return TIPOS[tp].etapas.map((et) => ({ valor: `${tp}|${et.chave}`, texto: `${nomeTipo} — ${et.texto}` }));
+  });
+}
+const dentroPeriodo = (iso, de, ate) => Boolean(iso) && (!de || iso >= de) && (!ate || iso <= ate);
+/** Elemento entra no relatorio? etapas = ['tipo|chave'] (vazio = tudo). */
+function passaRelatorio(e, { de, ate, etapas }) {
+  if (!blocoDe(e)) return false;
+  if (!etapas.length) return etapasDe(e).some((et) => { const r = e.reg[et.chave]; return r && (dentroPeriodo(r.inicio, de, ate) || dentroPeriodo(r.data, de, ate)); });
+  return etapasDe(e).some((et) => etapas.includes(`${e.tipo}|${et.chave}`) && dentroPeriodo(e.reg[et.chave]?.data, de, ate));
+}
+const ordenarBlocos = (a, b) => a.localeCompare(b, 'pt-BR', { numeric: true });
+const ordenarCodigos = (a, b) => String(a.id).localeCompare(String(b.id), 'pt-BR', { numeric: true });
+
+/* ---- desenhos (canvas) ---- */
+/** Objetos de desenho de um local com todas as camadas ligadas (independe do que esta na tela). */
+function objetosDoLocal(seg) {
+  const ocultas = estadoCampo.ocultas; const periodo = estadoCampo.periodo; const segAtual = estadoCampo.seg;
+  estadoCampo.ocultas = { frentes: [], tipos: [], diametros: [], status: [], desenho: [], locais: [] }; estadoCampo.periodo = null; estadoCampo.seg = seg;
+  try { return cenaSegmento(seg).objetos; } finally { estadoCampo.ocultas = ocultas; estadoCampo.periodo = periodo; estadoCampo.seg = segAtual; }
+}
+/** Pontos em planta de uma forma (para enquadrar e para a ameba). */
+function pontosForma(g, folga = 0) {
+  if (g.forma === 'caixa') return [[g.x0 - folga, g.y0 - folga], [g.x1 + folga, g.y0 - folga], [g.x1 + folga, g.y1 + folga], [g.x0 - folga, g.y1 + folga]];
+  if (g.forma === 'prisma') {
+    const cx = g.pts.reduce((s, p) => s + p[0], 0) / g.pts.length; const cy = g.pts.reduce((s, p) => s + p[1], 0) / g.pts.length;
+    return g.pts.map(([x, y]) => { const d = Math.hypot(x - cx, y - cy) || 1; return [x + ((x - cx) / d) * folga, y + ((y - cy) / d) * folga]; });
+  }
+  if (g.x != null) { const r = (g.r || 0.4) + folga; return Array.from({ length: 12 }, (_, k) => [g.x + r * Math.cos((k / 12) * Math.PI * 2), g.y + r * Math.sin((k / 12) * Math.PI * 2)]); }
+  return [];
+}
+function cascoConvexoRel(p) {
+  const q = [...p].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lo = []; q.forEach((v) => { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], v) <= 0) lo.pop(); lo.push(v); });
+  const up = []; [...q].reverse().forEach((v) => { while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], v) <= 0) up.pop(); up.push(v); });
+  return lo.slice(0, -1).concat(up.slice(0, -1));
+}
+/** Curva fechada suave (Catmull-Rom) pelos pontos do casco: a "ameba". */
+function caminhoAmeba(ctx, pts) {
+  const n = pts.length; if (n < 3) return;
+  ctx.beginPath();
+  for (let i = 0; i < n; i += 1) {
+    const p0 = pts[(i - 1 + n) % n]; const p1 = pts[i]; const p2 = pts[(i + 1) % n]; const p3 = pts[(i + 2) % n];
+    if (i === 0) ctx.moveTo(p1[0], p1[1]);
+    ctx.bezierCurveTo(p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6, p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6, p2[0], p2[1]);
+  }
+  ctx.closePath();
+}
+const corStatusRel = (e) => REL_STATUS_COR[statusDe(e)] || REL_STATUS_COR['nao-iniciada'];
+/**
+ * Planta 2D do bloco: area em volta do bloco com eixos e linhas, elementos vizinhos claros, os do bloco nas
+ * cores da situacao (os que estao no relatorio fortes, os demais do bloco claros) e a ameba contornando o bloco.
+ */
+function canvasPlantaBloco(nomeBloco, doBloco, noRelatorio, W = 1700, H = 1150) {
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const c = cv.getContext('2d');
+  c.fillStyle = '#ffffff'; c.fillRect(0, 0, W, H);
+  const seg = doBloco[0].seg;
+  const pontosBloco = doBloco.flatMap((e) => e.geo.flatMap((g) => pontosForma(g, 0)));
+  const xs = pontosBloco.map((p) => p[0]); const ys = pontosBloco.map((p) => p[1]);
+  let x0 = Math.min(...xs); let x1 = Math.max(...xs); let y0 = Math.min(...ys); let y1 = Math.max(...ys);
+  const folga = Math.max(8, 0.45 * Math.max(x1 - x0, y1 - y0));
+  x0 -= folga; x1 += folga; y0 -= folga; y1 += folga;
+  const mE = 90; const mT = 90;   // margens para as bolhas de eixos / linhas
+  const esc = Math.min((W - mE - 40) / (x1 - x0), (H - mT - 60) / (y1 - y0));
+  const ox = mE + ((W - mE - 40) - (x1 - x0) * esc) / 2; const oy = mT + ((H - mT - 60) - (y1 - y0) * esc) / 2;
+  const P = (x, y) => [ox + (x - x0) * esc, oy + (y - y0) * esc];
+  // eixos e linhas do projeto (laje): traco-ponto com bolhas
+  const g = GRADES[seg];
+  c.save(); c.setLineDash([18, 6, 3, 6]); c.strokeStyle = '#ef4444'; c.lineWidth = 1.6; c.font = 'bold 22px Arial'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  const bolha = (x, y, txt) => { c.save(); c.setLineDash([]); c.fillStyle = '#fff'; c.strokeStyle = '#1f2937'; c.lineWidth = 2; c.beginPath(); c.arc(x, y, 22, 0, Math.PI * 2); c.fill(); c.stroke(); c.fillStyle = '#0f172a'; c.fillText(txt, x, y + 1); c.restore(); };
+  if (g && g.eixos.length) {
+    g.eixos.forEach((n) => { const x = geoX(n); if (x < x0 || x > x1) return; const [px] = P(x, 0); c.beginPath(); c.moveTo(px, mT - 10); c.lineTo(px, H - 30); c.stroke(); bolha(px, mT - 40, String(n)); });
+    (seg === '01' ? LINHAS_TODAS : LINHAS).forEach((l) => { const y = GEO_Y_TODAS[l]; if (y < y0 || y > y1) return; const [, py] = P(0, y); c.beginPath(); c.moveTo(mE - 10, py); c.lineTo(W - 20, py); c.stroke(); bolha(mE - 40, py, l); });
+  }
+  c.restore();
+  // ameba (atras dos elementos)
+  const casco = cascoConvexoRel(doBloco.flatMap((e) => e.geo.flatMap((gg) => pontosForma(gg, 1.6)))).map(([x, y]) => P(x, y));
+  // elementos do local dentro da area: vizinhos claros, os do bloco coloridos
+  const ids = new Set(doBloco.map((e) => e.id)); const rel = new Set(noRelatorio.map((e) => e.id));
+  const desenharForma = (gg, preencher, contorno, lw) => {
+    c.beginPath();
+    if (gg.x != null && gg.forma !== 'caixa' && gg.forma !== 'prisma') { const [px, py] = P(gg.x, gg.y); c.arc(px, py, Math.max(4, (gg.r || 0.4) * esc), 0, Math.PI * 2); }
+    else { pontosForma(gg, 0).forEach(([x, y], k) => { const [px, py] = P(x, y); if (k) c.lineTo(px, py); else c.moveTo(px, py); }); c.closePath(); }
+    if (preencher) { c.fillStyle = preencher; c.fill(); }
+    if (contorno) { c.strokeStyle = contorno; c.lineWidth = lw; c.stroke(); }
+  };
+  elementos.filter((e) => e.seg === seg && !ids.has(e.id)).forEach((e) => {
+    const gg = e.geo[0]; const pts = pontosForma(gg, 0); if (!pts.length) return;
+    if (pts.every(([x, y]) => x < x0 || x > x1 || y < y0 || y > y1)) return;
+    desenharForma(gg, 'rgba(241,245,249,0.6)', '#e2e8f0', 1);
+  });
+  c.save(); caminhoAmeba(c, casco); c.fillStyle = 'rgba(30,58,95,0.10)'; c.fill(); c.restore();
+  const ehCirculo = (e) => e.geo[0].x != null && e.geo[0].forma !== 'caixa' && e.geo[0].forma !== 'prisma';
+  [...doBloco.filter((e) => !ehCirculo(e)), ...doBloco.filter(ehCirculo)].forEach((e) => {
+    const forte = rel.has(e.id);
+    const cor = corStatusRel(e);
+    const circulo = ehCirculo(e);
+    desenharForma(e.geo[0], forte ? cor : misturar(cor, circulo ? 0.55 : 0.8), forte ? '#0f172a' : '#64748b', forte ? 2.6 : 1.6);
+  });
+  c.save(); caminhoAmeba(c, casco); c.lineWidth = 5; c.strokeStyle = REL_COR.ameba; c.setLineDash([22, 10]); c.stroke(); c.restore();
+  // codigos dos elementos do bloco
+  c.font = 'bold 19px Arial'; c.textAlign = 'center'; c.textBaseline = 'top';
+  doBloco.filter(ehCirculo).forEach((e) => {
+    const gg = e.geo[0]; const pts = pontosForma(gg, 0); const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length; const yMax = Math.max(...pts.map((p) => p[1]));
+    const [px, py] = P(cx, yMax);
+    const txt = String(e.rotulo || e.id);
+    c.lineWidth = 5; c.strokeStyle = '#ffffff'; c.strokeText(txt, px, py + 6); c.fillStyle = rel.has(e.id) ? '#0f172a' : '#64748b'; c.fillText(txt, px, py + 6);
+  });
+  // nome do bloco no topo da ameba
+  const topo = casco.reduce((m, p) => (p[1] < m[1] ? p : m), casco[0] || [W / 2, mT]);
+  const nome = nomeBloco.toUpperCase(); c.font = 'bold 30px Arial'; const lw = c.measureText(nome).width + 34;
+  c.fillStyle = REL_COR.ameba; c.beginPath(); c.roundRect(topo[0] - lw / 2, topo[1] - 58, lw, 44, 22); c.fill();
+  c.fillStyle = '#ffffff'; c.textBaseline = 'middle'; c.fillText(nome, topo[0], topo[1] - 36);
+  // escala grafica
+  const passo = esc * 5; c.fillStyle = '#0f172a'; c.fillRect(W - 40 - passo, H - 34, passo, 8); c.font = '18px Arial'; c.textAlign = 'center'; c.textBaseline = 'bottom';
+  c.fillText('5 m', W - 40 - passo / 2, H - 40);
+  return cv;
+}
+/** Mapa pequeno: o local inteiro em pontos e o retangulo do bloco. */
+function canvasMapaLocal(doBloco, W = 700, H = 360) {
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const c = cv.getContext('2d'); c.fillStyle = '#f8fafc'; c.fillRect(0, 0, W, H);
+  const seg = doBloco[0].seg;
+  const todos = elementos.filter((e) => e.seg === seg).map((e) => { const pts = pontosForma(e.geo[0], 0); return pts.length ? [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length] : null; }).filter(Boolean);
+  const xs = todos.map((p) => p[0]); const ys = todos.map((p) => p[1]);
+  const x0 = Math.min(...xs); const x1 = Math.max(...xs); const y0 = Math.min(...ys); const y1 = Math.max(...ys);
+  const esc = Math.min((W - 30) / (x1 - x0 || 1), (H - 30) / (y1 - y0 || 1));
+  const P = (x, y) => [15 + (x - x0) * esc, 15 + (y - y0) * esc];
+  c.fillStyle = '#94a3b8'; todos.forEach(([x, y]) => { const [px, py] = P(x, y); c.fillRect(px - 1.5, py - 1.5, 3, 3); });
+  const pb = doBloco.flatMap((e) => pontosForma(e.geo[0], 0)); const bx = pb.map((p) => p[0]); const by = pb.map((p) => p[1]);
+  const [a0, b0] = P(Math.min(...bx) - 3, Math.min(...by) - 3); const [a1, b1] = P(Math.max(...bx) + 3, Math.max(...by) + 3);
+  c.strokeStyle = '#dc2626'; c.lineWidth = 4; c.strokeRect(a0, b0, Math.max(8, a1 - a0), Math.max(8, b1 - b0));
+  return cv;
+}
+/** Fundo do mar (batimetria do 3D da obra) num ponto da laje, ou null. */
+function fundoMarEm(x, y) {
+  if (typeof FUNDO_MAR === 'undefined' || !FUNDO_MAR) return null;
+  const F = FUNDO_MAR;
+  if (!F._z) { const bin = atob(F.z); F._z = new Int16Array(new Uint8Array([...bin].map((ch) => ch.charCodeAt(0))).buffer); }
+  const k = Math.round((x - F.x0) / F.passo); const r = Math.round((y - F.y0) / F.passo);
+  if (k < 0 || r < 0 || k >= F.nx || r >= F.ny) return null;
+  const z = F._z[r * F.nx + k] / 10;
+  return z > 3 ? null : z;
+}
+/**
+ * Esquema 3D da estaca (ou do elemento) sozinha e grande: partes com as cores da situacao (camisa transparente,
+ * pino, concreto, gaiola de aco), cotas do projeto, mare media e fundo do mar. Largura ampliada, altura em escala.
+ */
+function canvasEsquemaElemento(e, W = 1100, H = 1500) {
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const c = cv.getContext('2d'); c.fillStyle = '#ffffff'; c.fillRect(0, 0, W, H);
+  const objs = objetosDoLocal(e.seg).filter((o) => o.id === e.id && (o.alfa ?? 1) > 0.001);
+  const cil = objs.filter((o) => o.forma === 'cilindro' || o.forma === 'gaiola');
+  if (!cil.length) {   // elemento que nao e estaca: 3D do proprio elemento pela vista antiga
+    const chave = `rel-${e.id}`;
+    ESTADO_VISTAS_3D[chave] = { cam: null, focoId: null, selecionadoId: null, fade: 0, translucido: false, prancha: 0 };
+    const v = criarVista3D({ chave, titulo: e.rotulo, obterCena: () => ({ objetos: objs, rotulos: [], grade: null, folha: { eixos: false, cotas: false, carimbo: false } }), escalaZ: 1, altura: 1100, semRodape: true });
+    const src = v.elemento.querySelector('canvas');
+    const k = Math.min(W / src.width, H / src.height);
+    c.drawImage(src, (W - src.width * k) / 2, (H - src.height * k) / 2, src.width * k, src.height * k);
+    delete ESTADO_VISTAS_3D[chave];
+    return cv;
+  }
+  let zTop = Math.max(...cil.map((o) => o.z1)); const zBot = Math.min(...cil.map((o) => o.z0));
+  if (fundoMarEm(cil[0].x, cil[0].y) != null && NIVEL_MAR > zTop && NIVEL_MAR - zTop < 6) zTop = NIVEL_MAR + 0.8;   // mostra a mare media logo acima (no mar)
+  const rMax = Math.max(...cil.map((o) => o.r || 0.4));
+  const nLeg = new Set(cil.map((o) => o.parte || '')).size;
+  const mTopo = 120; const mBase = 140 + nLeg * 34;
+  const ppm = (H - mTopo - mBase) / Math.max(1, zTop - zBot);
+  const Y = (z) => mTopo + (zTop - z) * ppm;
+  const cx = W * 0.46; const R = W * 0.12; const ry = R * 0.22;
+  const rx = (o) => ((o.r || 0.4) / rMax) * R;
+  // agua e solo (referencia)
+  const base0 = cil[0];
+  const fundo = fundoMarEm(base0.x, base0.y);
+  if (fundo != null && NIVEL_MAR <= zTop && NIVEL_MAR >= zBot) {   // so onde a batimetria indica mar
+    c.fillStyle = 'rgba(147,197,253,0.18)'; c.fillRect(0, Y(NIVEL_MAR), W, (fundo != null ? Y(fundo) : H - mBase) - Y(NIVEL_MAR));
+    c.strokeStyle = '#3b82f6'; c.lineWidth = 3; c.setLineDash([16, 10]); c.beginPath(); c.moveTo(30, Y(NIVEL_MAR)); c.lineTo(W - 30, Y(NIVEL_MAR)); c.stroke(); c.setLineDash([]);
+  }
+  if (fundo != null && fundo >= zBot) {
+    c.fillStyle = 'rgba(180,160,120,0.20)'; c.fillRect(0, Y(fundo), W, H - mBase - Y(fundo) + 40);
+    c.strokeStyle = '#92400e'; c.lineWidth = 3; c.setLineDash([10, 8]); c.beginPath(); c.moveTo(30, Y(fundo)); c.lineTo(W - 30, Y(fundo)); c.stroke(); c.setLineDash([]);
+  }
+  // partes: de dentro para fora (camada), cilindros com sombreado
+  const cilindroDesenho = (o) => {
+    const w = rx(o); const yt = Y(o.z1); const yb = Y(o.z0);
+    const casca = Boolean(o.casca); const cab = Boolean(o.cabeca);
+    c.save();
+    c.globalAlpha = casca ? 0.32 : (cab ? 0.55 : 1);
+    const gr = c.createLinearGradient(cx - w, 0, cx + w, 0);
+    gr.addColorStop(0, misturar(o.cor, -0.35)); gr.addColorStop(0.45, misturar(o.cor, 0.35)); gr.addColorStop(1, misturar(o.cor, -0.3));
+    c.fillStyle = gr;
+    c.beginPath(); c.moveTo(cx - w, yt); c.lineTo(cx - w, yb); c.ellipse(cx, yb, w, ry * (w / R), 0, Math.PI, 0, true); c.lineTo(cx + w, yt); c.closePath(); c.fill();
+    c.globalAlpha = casca ? 0.5 : 1;
+    c.fillStyle = misturar(o.cor, 0.45); c.beginPath(); c.ellipse(cx, yt, w, ry * (w / R), 0, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = misturar(o.cor, -0.45); c.lineWidth = casca ? 3 : 2; c.stroke();
+    c.beginPath(); c.moveTo(cx - w, yt); c.lineTo(cx - w, yb); c.moveTo(cx + w, yt); c.lineTo(cx + w, yb); c.stroke();
+    if (o.hachura) {   // cabeca a arrasar
+      c.save(); c.beginPath(); c.rect(cx - w, yt, 2 * w, yb - yt); c.clip(); c.strokeStyle = 'rgba(55,65,81,0.6)'; c.lineWidth = 2;
+      for (let k = -2 * w; k < (yb - yt) + 2 * w; k += 14) { c.beginPath(); c.moveTo(cx - w, yt + k); c.lineTo(cx + w, yt + k - 2 * w); c.stroke(); }
+      c.restore();
+    }
+    c.restore();
+  };
+  const gaiolaDesenho = (o) => {
+    const w = rx(o); const yt = Y(o.z1); const yb = Y(o.z0); const n = o.barras || 8;
+    c.save(); c.strokeStyle = misturar(o.cor, -0.4); c.lineWidth = 2.4;
+    for (let k = 0; k < n; k += 1) { const a = (k / n) * Math.PI * 2; if (Math.sin(a) < -0.05) continue; const px = cx + w * Math.cos(a); c.beginPath(); c.moveTo(px, yt); c.lineTo(px, yb); c.stroke(); }
+    c.lineWidth = 1.8; const passo = (o.passo || 1.5) * ppm;
+    for (let y = yt; y <= yb + 0.5; y += Math.max(passo, 10)) { c.beginPath(); c.ellipse(cx, y, w, ry * (w / R), 0, 0, Math.PI); c.stroke(); }
+    c.restore();
+  };
+  [...cil].sort((a, b) => (a.camada ?? 0) - (b.camada ?? 0)).forEach((o) => (o.forma === 'gaiola' ? gaiolaDesenho(o) : cilindroDesenho(o)));
+  // mare e fundo do mar: textos por cima do desenho, do lado direito
+  const textoFaixa = (txt, y, cor) => { c.font = 'bold 22px Arial'; c.textAlign = 'right'; c.lineWidth = 6; c.strokeStyle = '#ffffff'; c.strokeText(txt, W - 34, y); c.fillStyle = cor; c.fillText(txt, W - 34, y); };
+  if (fundo != null && NIVEL_MAR <= zTop && NIVEL_MAR >= zBot) textoFaixa(`Maré média EL ${formatarNumero(NIVEL_MAR, 2)}`, Y(NIVEL_MAR) - 10, '#1d4ed8');
+  if (fundo != null && fundo >= zBot) textoFaixa(`Fundo do mar ≈ EL ${formatarNumero(fundo, 1)} (batimetria)`, Y(fundo) + 30, '#92400e');
+  // cotas (EL) a direita
+  const cotas = [...new Set(cil.flatMap((o) => [o.z0, o.z1]).map((z) => Math.round(z * 100) / 100))].sort((a, b) => b - a);
+  c.font = 'bold 24px Arial'; c.textAlign = 'left'; c.fillStyle = '#0f172a'; c.strokeStyle = '#334155'; c.lineWidth = 2;
+  let ultimoY = -100;
+  cotas.forEach((z) => {
+    const y = Y(z); const xl = cx + R + 30;
+    c.beginPath(); c.moveTo(cx + R + 6, y); c.lineTo(xl + 30, y); c.stroke();
+    c.beginPath(); c.moveTo(xl + 30, y - 9); c.lineTo(xl + 30, y + 9); c.stroke();
+    const ty = Math.max(y + 8, ultimoY + 30); ultimoY = ty;
+    c.fillText(`EL ${z >= 0 ? '+' : ''}${formatarNumero(z, 2)}`, xl + 40, ty);
+  });
+  // nomes das partes a esquerda (no meio de cada parte)
+  c.font = '22px Arial'; c.textAlign = 'right';
+  let ultimoN = -100;
+  [...cil].sort((a, b) => b.z1 - a.z1).forEach((o) => {
+    const nome = String(o.parte || '').replace(/\s*\(acima da cota de arrasamento\)/, ' (cabeça)'); if (!nome) return;
+    const y = Math.max((Y(o.z1) + Y(o.z0)) / 2, ultimoN + 30); ultimoN = y;
+    c.strokeStyle = '#94a3b8'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(cx - rx(o) - 6, (Y(o.z1) + Y(o.z0)) / 2); c.lineTo(cx - R - 40, y); c.stroke();
+    c.fillStyle = '#334155'; c.fillText(nome.length > 22 ? `${nome.slice(0, 21)}…` : nome, cx - R - 46, y + 8);
+  });
+  // titulo e nota
+  c.textAlign = 'center'; c.fillStyle = '#0f172a'; c.font = 'bold 40px Arial'; c.fillText(String(e.rotulo || e.id), cx, 56);
+  c.font = '20px Arial'; c.fillStyle = '#64748b'; c.fillText('Altura em escala · largura ampliada para mostrar os detalhes', W / 2, H - 30);
+  // legenda: parte e situacao (texto do balao do 3D, sem o nome do elemento)
+  c.textAlign = 'left'; c.font = '22px Arial'; let yl = H - 60 - nLeg * 34; const vistos = new Set();
+  [...cil].sort((a, b) => b.z1 - a.z1).forEach((o) => {
+    const chave = o.parte || ''; if (vistos.has(chave)) return; vistos.add(chave);
+    c.fillStyle = o.cor; c.globalAlpha = o.casca ? 0.5 : 1; c.fillRect(40, yl - 18, 26, 22); c.globalAlpha = 1; c.strokeStyle = '#334155'; c.lineWidth = 1; c.strokeRect(40, yl - 18, 26, 22);
+    const txt = String(o.dica || o.parte || '').replace(/^.*?·\s*/, '');
+    c.fillStyle = '#0f172a'; c.fillText(`${o.parte ? `${o.parte}: ` : ''}${txt.replace(`${o.parte}: `, '')}`.slice(0, 70), 78, yl);
+    yl += 34;
+  });
+  return cv;
+}
+
+/* ---- composicao das paginas (mesmo desenho para PDF e PowerPoint) ---- */
+/** Carrega a logo da base (imagem) como canvas; texto (ex.: 'CTC') volta como texto. */
+async function logoRelatorio() {
+  const logo = identidade.logo || MARCA.logo;
+  if (/^(data:image\/|https?:\/\/)/i.test(String(logo || ''))) {
+    try {
+      const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = logo; });
+      const cv = document.createElement('canvas'); cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+      const c = cv.getContext('2d'); c.fillStyle = '#fff'; c.fillRect(0, 0, cv.width, cv.height); c.drawImage(img, 0, 0);
+      return { canvas: cv };
+    } catch (erro) { return { texto: 'CTC' }; }
+  }
+  return { texto: String(logo || 'CTC') };
+}
+/** Linhas de etapas de um elemento: [{ texto, inicio, termino, noPeriodo }]. */
+function etapasRelatorio(e, de, ate) {
+  return etapasDe(e).map((et) => {
+    const r = e.reg[et.chave] || {};
+    const inicio = et.pontual ? '' : (r.inicio || '');
+    const termino = r.data || '';
+    return { texto: et.texto, inicio, termino, pontual: Boolean(et.pontual), noPeriodo: dentroPeriodo(inicio, de, ate) || dentroPeriodo(termino, de, ate) };
+  });
+}
+/**
+ * Monta a lista de paginas (dados) do relatorio. Cada pagina: { tipo: 'capa' | 'planta' | 'elemento', ... }.
+ */
+function paginasRelatorioBlocos({ de, ate, etapas }) {
+  const noRel = elementos.filter((e) => passaRelatorio(e, { de, ate, etapas }));
+  const semBloco = elementos.filter((e) => !blocoDe(e) && (etapas.length
+    ? etapasDe(e).some((et) => etapas.includes(`${e.tipo}|${et.chave}`) && dentroPeriodo(e.reg[et.chave]?.data, de, ate))
+    : etapasDe(e).some((et) => { const r = e.reg[et.chave]; return r && (dentroPeriodo(r.inicio, de, ate) || dentroPeriodo(r.data, de, ate)); }))).length;
+  const blocos = [...new Set(noRel.map(blocoDe))].sort(ordenarBlocos);
+  const paginas = [{ tipo: 'capa', blocos: blocos.map((b) => ({ bloco: b, lista: noRel.filter((e) => blocoDe(e) === b) })), semBloco, total: noRel.length }];
+  blocos.forEach((b) => {
+    const doBloco = elementos.filter((e) => blocoDe(e) === b).sort(ordenarCodigos);
+    const rel = noRel.filter((e) => blocoDe(e) === b).sort(ordenarCodigos);
+    paginas.push({ tipo: 'planta', bloco: b, doBloco, rel });
+    rel.forEach((e) => paginas.push({ tipo: 'elemento', bloco: b, e }));
+  });
+  return paginas;
+}
+/**
+ * Desenha uma pagina numa "saida" generica: { ret, txt, img, lin } em pontos (origem no topo).
+ * W x H: tamanho da pagina (PDF A4 paisagem 841,89 x 595,28; PowerPoint 960 x 540).
+ */
+function comporPaginaRelatorio(out, pg, ctx, W, H) {
+  const M = 28;
+  const { nome, de, ate, textoEtapas, emissao, emissor, obra, logo, numero, total } = ctx;
+  const periodoTxt = `${de ? dataTexto(de) : 'início'} a ${ate ? dataTexto(ate) : 'hoje'}`;
+  const cabecalho = (titulo, direita) => {
+    out.ret(0, 0, W, 44, { fill: REL_COR.marca });
+    out.ret(0, 44, W, 3, { fill: '#16a34a' });
+    out.txt(M, 28, titulo, { tam: 15, neg: true, cor: REL_COR.branco });
+    if (direita) out.txt(W - M, 28, direita, { tam: 10.5, cor: '#cbd5e1', alinhar: 'direita' });
+  };
+  const rodape = () => {
+    out.lin(M, H - 26, W - M, H - 26, REL_COR.borda, 0.6);
+    out.txt(M, H - 12, ajustarTextoPdf(`${nome} · ${obra} · emitido em ${emissao}`, W * 0.7, 8), { tam: 8, cor: REL_COR.suave });
+    out.txt(W - M, H - 12, `Página ${numero} de ${total}`, { tam: 8, cor: REL_COR.suave, alinhar: 'direita' });
+  };
+  if (pg.tipo === 'capa') {
+    out.ret(0, 0, W, H * 0.36, { fill: REL_COR.marca });
+    out.ret(0, H * 0.36, W, 5, { fill: '#16a34a' });
+    // logo
+    out.ret(M, 34, 92, 92, { fill: REL_COR.branco });
+    if (logo.canvas) { const k = Math.min(80 / logo.canvas.width, 80 / logo.canvas.height); out.img(logo.canvas, M + 46 - (logo.canvas.width * k) / 2, 80 - (logo.canvas.height * k) / 2, logo.canvas.width * k, logo.canvas.height * k); }
+    else out.txt(M + 46, 90, logo.texto, { tam: 26, neg: true, cor: REL_COR.marca, alinhar: 'centro' });
+    const tamT = Math.min(26, (26 * (W - M * 2 - 140)) / Math.max(1, larguraTextoPdf(nome, 26, true)));
+    out.txt(M + 120, 70, nome, { tam: tamT, neg: true, cor: REL_COR.branco });
+    out.txt(M + 120, 96, obra, { tam: 12, cor: '#cbd5e1' });
+    out.txt(M + 120, 118, 'Relatório por blocos · datas reais de execução', { tam: 10.5, cor: '#cbd5e1' });
+    let y = H * 0.36 + 34;
+    const linhaInfo = (rot, val) => { out.txt(M, y, rot, { tam: 10, neg: true, cor: REL_COR.suave }); out.txt(M + 110, y, ajustarTextoPdf(val, W * 0.42 - 110, 10.5), { tam: 10.5, cor: REL_COR.texto }); y += 20; };
+    linhaInfo('Período', periodoTxt);
+    linhaInfo('Etapas', textoEtapas);
+    linhaInfo('Elementos', `${pg.total} em ${pg.blocos.length} bloco(s)`);
+    linhaInfo('Emitido em', emissao);
+    linhaInfo('Por', emissor);
+    if (pg.semBloco) {
+      y += 6; out.ret(M, y - 13, W * 0.42, 34, { fill: '#fef9c3', stroke: '#eab308', lw: 0.8 });
+      out.txt(M + 8, y + 1, `${pg.semBloco} elemento(s) do filtro sem bloco ficaram fora.`, { tam: 9.5, neg: true, cor: '#713f12' });
+      out.txt(M + 8, y + 15, 'Preencha a coluna Blocos no Banco de dados para incluí-los.', { tam: 8.5, cor: '#713f12' });
+    }
+    // resumo por bloco
+    const x0 = W * 0.5; const larg = W - M - x0; let ty = H * 0.36 + 22;
+    out.txt(x0, ty, 'Resumo por bloco', { tam: 12, neg: true, cor: REL_COR.marca }); ty += 10;
+    const cols = [['Bloco', 0.3], ['Elementos', 0.17], ['Concluídos', 0.18], ['Em execução', 0.2], ['Pendência', 0.15]];
+    out.ret(x0, ty, larg, 18, { fill: REL_COR.marca });
+    let cx = x0; cols.forEach(([t, f]) => { out.txt(cx + 5, ty + 12.5, t, { tam: 8.5, neg: true, cor: REL_COR.branco }); cx += larg * f; });
+    ty += 18;
+    const maxLinhas = Math.floor((H - 40 - ty) / 15);
+    pg.blocos.slice(0, maxLinhas).forEach((b, i) => {
+      if (i % 2) out.ret(x0, ty, larg, 15, { fill: REL_COR.fundo });
+      const cont = (st) => b.lista.filter((e) => statusDe(e) === st).length;
+      const vals = [b.bloco, String(b.lista.length), String(cont('concluida')), String(cont('execucao')), String(cont('pendencia'))];
+      cx = x0; cols.forEach(([, f], k) => { out.txt(cx + 5, ty + 11, vals[k], { tam: 8.5, neg: k === 0, cor: REL_COR.texto }); cx += larg * f; });
+      ty += 15;
+    });
+    if (pg.blocos.length > maxLinhas) out.txt(x0, ty + 12, `… e mais ${pg.blocos.length - maxLinhas} bloco(s)`, { tam: 8.5, cor: REL_COR.suave });
+    if (!pg.blocos.length) out.txt(x0, ty + 16, 'Nenhum elemento com bloco no filtro escolhido.', { tam: 10, cor: REL_COR.suave });
+    rodape();
+    return;
+  }
+  if (pg.tipo === 'planta') {
+    cabecalho(`${pg.bloco} — planta`, `${nome} · ${periodoTxt}`);
+    const top = 60; const areaW = W * 0.68 - M; const areaH = H - top - 36;
+    const cvP = pg.canvasPlanta; const k = Math.min(areaW / cvP.width, areaH / cvP.height);
+    out.ret(M, top, areaW, areaH, { stroke: REL_COR.borda, lw: 0.6 });
+    out.img(cvP, M + (areaW - cvP.width * k) / 2, top + (areaH - cvP.height * k) / 2, cvP.width * k, cvP.height * k);
+    const xr = W * 0.68 + 10; const lr = W - M - xr; let y = top;
+    out.txt(xr, y + 10, 'Onde fica o bloco', { tam: 10, neg: true, cor: REL_COR.marca }); y += 16;
+    const cvM = pg.canvasMapa; const km = lr / cvM.width; out.img(cvM, xr, y, lr, cvM.height * km); y += cvM.height * km + 16;
+    out.txt(xr, y, 'Situação', { tam: 10, neg: true, cor: REL_COR.marca }); y += 12;
+    [['concluida', 'Concluído'], ['execucao', 'Em execução'], ['pendencia', 'Pendência'], ['nao-iniciada', 'Não iniciado']].forEach(([st, t]) => { out.ret(xr, y, 9, 9, { fill: REL_STATUS_COR[st] }); out.txt(xr + 14, y + 8, t, { tam: 8.5, cor: REL_COR.texto }); y += 13; });
+    out.txt(xr, y + 4, 'Cor forte = no relatório · clara = demais do bloco', { tam: 7.5, cor: REL_COR.suave }); y += 22;
+    out.txt(xr, y, `No relatório (${pg.rel.length})`, { tam: 10, neg: true, cor: REL_COR.marca }); y += 6;
+    const cabe = Math.floor((H - 40 - y) / 13);
+    pg.rel.slice(0, cabe).forEach((e) => { y += 13; out.ret(xr, y - 8, 8, 8, { fill: corStatusRel(e) }); out.txt(xr + 13, y, ajustarTextoPdf(`${e.rotulo} · ${textoStatus(e)}`, lr - 14, 8.5), { tam: 8.5, cor: REL_COR.texto }); });
+    if (pg.rel.length > cabe) out.txt(xr, y + 14, `… e mais ${pg.rel.length - cabe}`, { tam: 8, cor: REL_COR.suave });
+    rodape();
+    return;
+  }
+  // pagina de um elemento
+  const e = pg.e;
+  cabecalho(`${pg.bloco} — ${e.rotulo}`, `${TIPOS[e.tipo].nome.split(' (')[0]} · ${textoStatus(e)}`);
+  const top = 58; const areaW = W * 0.46 - M; const areaH = H - top - 34;
+  const cvE = pg.canvasEsquema; const k = Math.min(areaW / cvE.width, areaH / cvE.height);
+  out.img(cvE, M + (areaW - cvE.width * k) / 2, top, cvE.width * k, cvE.height * k);
+  const xr = W * 0.46 + 8; const lr = W - M - xr; let y = top + 6;
+  out.txt(xr, y + 8, 'Execução — datas reais', { tam: 12, neg: true, cor: REL_COR.marca }); y += 16;
+  const c1 = lr * 0.5; const c2 = lr * 0.25;
+  out.ret(xr, y, lr, 18, { fill: REL_COR.marca });
+  out.txt(xr + 6, y + 12.5, 'Etapa', { tam: 8.5, neg: true, cor: REL_COR.branco });
+  out.txt(xr + c1 + 6, y + 12.5, 'Início', { tam: 8.5, neg: true, cor: REL_COR.branco });
+  out.txt(xr + c1 + c2 + 6, y + 12.5, 'Término', { tam: 8.5, neg: true, cor: REL_COR.branco });
+  y += 18;
+  etapasRelatorio(e, de, ate).forEach((l, i) => {
+    out.ret(xr, y, lr, 17, { fill: l.noPeriodo ? REL_COR.destaque : (i % 2 ? REL_COR.fundo : REL_COR.branco) });
+    out.txt(xr + 6, y + 12, ajustarTextoPdf(l.texto, c1 - 10, 8.5), { tam: 8.5, neg: l.noPeriodo, cor: REL_COR.texto });
+    out.txt(xr + c1 + 6, y + 12, l.pontual ? '—' : (l.inicio ? dataTexto(l.inicio) : '—'), { tam: 8.5, neg: l.noPeriodo, cor: REL_COR.texto });
+    out.txt(xr + c1 + c2 + 6, y + 12, l.termino ? dataTexto(l.termino) : '—', { tam: 8.5, neg: l.noPeriodo, cor: REL_COR.texto });
+    y += 17;
+  });
+  out.lin(xr, y, xr + lr, y, REL_COR.borda, 0.6);
+  out.txt(xr, y + 12, 'Verde: data dentro do período do relatório · "—": sem registro', { tam: 7.5, cor: REL_COR.suave });
+  y += 30;
+  out.txt(xr, y, 'Dados do projeto', { tam: 12, neg: true, cor: REL_COR.marca }); y += 8;
+  const dados = [['Bloco', pg.bloco], ['Local', textoLocal(e)], ['Tipo', TIPOS[e.tipo].nome], ...dadosProjeto(e).map(([r, v]) => [r, valorBanco(v)])];
+  const cabeDados = Math.max(3, Math.floor((H - 40 - y - (e.pendencia || e.observacao ? 50 : 0)) / 14));
+  dados.slice(0, cabeDados).forEach(([r, v]) => {
+    y += 14;
+    out.txt(xr, y, ajustarTextoPdf(r, lr * 0.45, 8.5), { tam: 8.5, cor: REL_COR.suave });
+    out.txt(xr + lr * 0.47, y, ajustarTextoPdf(v || '—', lr * 0.53, 8.5), { tam: 8.5, neg: true, cor: REL_COR.texto });
+  });
+  if (e.pendencia || e.observacao) {
+    y += 14;
+    if (e.pendencia) { y += 14; out.txt(xr, y, ajustarTextoPdf(`Pendência: ${e.descricaoPendencia || 'sim'}`, lr, 8.5), { tam: 8.5, neg: true, cor: '#b91c1c' }); }
+    if (e.observacao) { y += 14; out.txt(xr, y, ajustarTextoPdf(`Observação: ${e.observacao}`, lr, 8.5), { tam: 8.5, cor: REL_COR.texto }); }
+  }
+  rodape();
+}
+
+/* ---- saida PDF ---- */
+function saidaPdf(doc) {
+  return {
+    ret: (x, y, w, h0, { fill, stroke, lw = 0.6 } = {}) => doc.retangulo(x, y, w, h0, { preenchimento: fill, contorno: stroke, espessura: lw }),
+    txt: (x, y, texto, { tam = 9, neg = false, cor = REL_COR.texto, alinhar = 'esquerda' } = {}) => doc.texto(x, y, String(texto ?? ''), { tamanho: tam, negrito: neg, cor, alinhar }),
+    img: (cv, x, y, w, h0) => doc.imagem(cv, x, y, w, h0),
+    lin: (x1, y1, x2, y2, cor = REL_COR.borda, lw = 0.6) => doc.linha(x1, y1, x2, y2, cor, lw),
+  };
+}
+
+/* ---- saida PowerPoint (.pptx): zip sem compressao com slides, mestre, layout e tema minimos ---- */
+const xmlEsc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const EMU = (pt) => Math.round(pt * 12700);
+function saidaPptx(slide) {
+  let id = 2;
+  const forma = (x, y, w, h0, { fill, stroke, lw }) => `<p:sp><p:nvSpPr><p:cNvPr id="${id++}" name="Forma ${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${EMU(x)}" y="${EMU(y)}"/><a:ext cx="${EMU(Math.max(w, 0.1))}" cy="${EMU(Math.max(h0, 0.1))}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>${fill ? `<a:solidFill><a:srgbClr val="${fill.slice(1)}"/></a:solidFill>` : '<a:noFill/>'}${stroke ? `<a:ln w="${EMU(lw || 0.6)}"><a:solidFill><a:srgbClr val="${stroke.slice(1)}"/></a:solidFill></a:ln>` : '<a:ln><a:noFill/></a:ln>'}</p:spPr></p:sp>`;
+  return {
+    ret: (x, y, w, h0, op = {}) => slide.formas.push(forma(x, y, w, h0, op)),
+    txt: (x, y, texto, { tam = 9, neg = false, cor = REL_COR.texto, alinhar = 'esquerda' } = {}) => {
+      const t = String(texto ?? ''); const larg = larguraTextoPdf(t, tam, neg) + 6; const alt = tam * 1.35;
+      const x0 = alinhar === 'direita' ? x - larg : (alinhar === 'centro' ? x - larg / 2 : x);
+      const algn = alinhar === 'direita' ? 'r' : (alinhar === 'centro' ? 'ctr' : 'l');
+      slide.formas.push(`<p:sp><p:nvSpPr><p:cNvPr id="${id++}" name="Texto ${id}"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${EMU(x0)}" y="${EMU(y - tam * 1.02)}"/><a:ext cx="${EMU(larg)}" cy="${EMU(alt)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr><p:txBody><a:bodyPr wrap="none" lIns="0" tIns="0" rIns="0" bIns="0" anchor="t"><a:noAutofit/></a:bodyPr><a:lstStyle/><a:p><a:pPr algn="${algn}"/><a:r><a:rPr lang="pt-BR" sz="${Math.round(tam * 100)}"${neg ? ' b="1"' : ''} dirty="0"><a:solidFill><a:srgbClr val="${cor.slice(1)}"/></a:solidFill><a:latin typeface="Arial"/><a:cs typeface="Arial"/></a:rPr><a:t>${xmlEsc(t)}</a:t></a:r></a:p></p:txBody></p:sp>`);
+    },
+    img: (cv, x, y, w, h0) => {
+      const rid = `rId${slide.imagens.length + 2}`;
+      slide.imagens.push({ rid, canvas: cv });
+      slide.formas.push(`<p:pic><p:nvPicPr><p:cNvPr id="${id++}" name="Imagem ${id}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="${rid}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm><a:off x="${EMU(x)}" y="${EMU(y)}"/><a:ext cx="${EMU(w)}" cy="${EMU(h0)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>`);
+    },
+    lin: (x1, y1, x2, y2, cor = REL_COR.borda, lw = 0.6) => {
+      const x = Math.min(x1, x2); const y = Math.min(y1, y2); const flip = (x2 - x1) * (y2 - y1) < 0 ? ' flipV="1"' : '';
+      slide.formas.push(`<p:cxnSp><p:nvCxnSpPr><p:cNvPr id="${id++}" name="Linha ${id}"/><p:cNvCxnSpPr/><p:nvPr/></p:nvCxnSpPr><p:spPr><a:xfrm${flip}><a:off x="${EMU(x)}" y="${EMU(y)}"/><a:ext cx="${EMU(Math.abs(x2 - x1))}" cy="${EMU(Math.abs(y2 - y1))}"/></a:xfrm><a:prstGeom prst="line"><a:avLst/></a:prstGeom><a:ln w="${EMU(lw)}"><a:solidFill><a:srgbClr val="${cor.slice(1)}"/></a:solidFill></a:ln></p:spPr></p:cxnSp>`);
+    },
+  };
+}
+/** CRC-32 (zip). */
+const TABELA_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n += 1) { let c = n; for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(bytes) { let c = 0xffffffff; for (let i = 0; i < bytes.length; i += 1) c = TABELA_CRC[(c ^ bytes[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
+/** Zip "store" (sem compressao): arquivos = [{ nome, bytes }]. */
+function montarZip(arquivos) {
+  const enc = new TextEncoder(); const partes = []; const centrais = []; let pos = 0;
+  const u16 = (v) => [v & 0xff, (v >>> 8) & 0xff]; const u32 = (v) => [v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, (v >>> 24) & 0xff];
+  arquivos.forEach(({ nome, bytes }) => {
+    const n = enc.encode(nome); const crc = crc32(bytes);
+    const local = new Uint8Array([...u32(0x04034b50), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(bytes.length), ...u32(bytes.length), ...u16(n.length), ...u16(0)]);
+    partes.push(local, n, bytes);
+    centrais.push(new Uint8Array([...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(bytes.length), ...u32(bytes.length), ...u16(n.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(pos)]), n);
+    pos += local.length + n.length + bytes.length;
+  });
+  const tamCentral = centrais.reduce((s, b) => s + b.length, 0);
+  const fim = new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(arquivos.length), ...u16(arquivos.length), ...u32(tamCentral), ...u32(pos), ...u16(0)]);
+  return new Blob([...partes, ...centrais, fim], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+}
+const bytesJpeg = (cv) => { const b = atob(cv.toDataURL('image/jpeg', 0.9).split(',')[1]); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i += 1) u[i] = b.charCodeAt(i); return u; };
+function montarPptx(slides) {
+  const enc = (s) => new TextEncoder().encode(s);
+  const NS = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"';
+  const grupo = '<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>';
+  const REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const arquivos = [];
+  const add = (nome, txt) => arquivos.push({ nome, bytes: typeof txt === 'string' ? enc(txt) : txt });
+  let nImg = 0;
+  const midias = [];
+  slides.forEach((s, i) => {
+    add(`ppt/slides/slide${i + 1}.xml`, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:sld ${NS}><p:cSld><p:spTree>${grupo}${s.formas.join('')}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`);
+    const rels = [`<Relationship Id="rId1" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>`];
+    s.imagens.forEach((im) => { nImg += 1; const nome = `image${nImg}.jpeg`; midias.push({ nome, canvas: im.canvas }); rels.push(`<Relationship Id="${im.rid}" Type="${REL}/image" Target="../media/${nome}"/>`); });
+    add(`ppt/slides/_rels/slide${i + 1}.xml.rels`, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${rels.join('')}</Relationships>`);
+  });
+  midias.forEach((m) => add(`ppt/media/${m.nome}`, bytesJpeg(m.canvas)));
+  add('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>${slides.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join('')}</Types>`);
+  add('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${REL}/officeDocument" Target="ppt/presentation.xml"/></Relationships>`);
+  add('ppt/presentation.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:presentation ${NS}><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst><p:sldIdLst>${slides.map((_, i) => `<p:sldId id="${256 + i}" r:id="rId${i + 3}"/>`).join('')}</p:sldIdLst><p:sldSz cx="12192000" cy="6858000"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>`);
+  add('ppt/_rels/presentation.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${REL}/slideMaster" Target="slideMasters/slideMaster1.xml"/><Relationship Id="rId2" Type="${REL}/theme" Target="theme/theme1.xml"/>${slides.map((_, i) => `<Relationship Id="rId${i + 3}" Type="${REL}/slide" Target="slides/slide${i + 1}.xml"/>`).join('')}</Relationships>`);
+  add('ppt/slideMasters/slideMaster1.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:sldMaster ${NS}><p:cSld><p:bg><p:bgRef idx="1001"><a:schemeClr val="bg1"/></p:bgRef></p:bg><p:spTree>${grupo}</p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/><p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst><p:txStyles><p:titleStyle><a:lvl1pPr><a:defRPr sz="3200"/></a:lvl1pPr></p:titleStyle><p:bodyStyle><a:lvl1pPr><a:defRPr sz="1800"/></a:lvl1pPr></p:bodyStyle><p:otherStyle><a:lvl1pPr><a:defRPr sz="1800"/></a:lvl1pPr></p:otherStyle></p:txStyles></p:sldMaster>`);
+  add('ppt/slideMasters/_rels/slideMaster1.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/><Relationship Id="rId2" Type="${REL}/theme" Target="../theme/theme1.xml"/></Relationships>`);
+  add('ppt/slideLayouts/slideLayout1.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:sldLayout ${NS} type="blank" preserve="1"><p:cSld name="Em branco"><p:spTree>${grupo}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>`);
+  add('ppt/slideLayouts/_rels/slideLayout1.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${REL}/slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>`);
+  const cor = (n, v) => `<a:${n}><a:srgbClr val="${v}"/></a:${n}>`;
+  const fill = '<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>';
+  add('ppt/theme/theme1.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="CTC"><a:themeElements><a:clrScheme name="CTC"><a:dk1><a:srgbClr val="0F172A"/></a:dk1><a:lt1><a:srgbClr val="FFFFFF"/></a:lt1>${cor('dk2', '1E3A5F')}${cor('lt2', 'F1F5F9')}${cor('accent1', '1E3A5F')}${cor('accent2', '16A34A')}${cor('accent3', 'EAB308')}${cor('accent4', 'DC2626')}${cor('accent5', '2F5D8C')}${cor('accent6', '64748B')}${cor('hlink', '2563EB')}${cor('folHlink', '7C3AED')}</a:clrScheme><a:fontScheme name="CTC"><a:majorFont><a:latin typeface="Arial"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont><a:minorFont><a:latin typeface="Arial"/><a:ea typeface=""/><a:cs typeface=""/></a:minorFont></a:fontScheme><a:fmtScheme name="CTC"><a:fillStyleLst>${fill}${fill}${fill}</a:fillStyleLst><a:lnStyleLst><a:ln w="6350"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="12700"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="19050"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst>${fill}${fill}${fill}</a:bgFillStyleLst></a:fmtScheme></a:themeElements><a:objectDefaults/><a:extraClrSchemeLst/></a:theme>`);
+  return montarZip(arquivos);
+}
+
+/* ---- geracao ---- */
+const nomeArquivoSeguro = (s) => String(s || 'Relatorio').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 120) || 'Relatorio';
+function baixarArquivo(blob, nome) {
+  const url = URL.createObjectURL(blob); const link = h('a', { href: url, download: nome });
+  document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+async function gerarRelatorioBlocos({ formato, de, ate, etapas, nome, aoProgresso }) {
+  const paginas = paginasRelatorioBlocos({ de, ate, etapas });
+  if (paginas.length <= 1) throw new Error('Nenhum elemento com bloco no período e nas etapas escolhidas.');
+  const opcoes = opcoesEtapasRelatorio();
+  const textoEtapas = etapas.length ? etapas.map((v) => (opcoes.find((o) => o.valor === v) || { texto: v }).texto).join(' · ') : 'Todas (qualquer etapa executada no período)';
+  const { usuario, perfil } = sessao.obter();
+  const ctxBase = {
+    nome, de, ate, textoEtapas, emissao: formatarData(new Date(), 'data-hora'), emissor: usuario ? usuario.nome : (NOME_PERFIL[perfil] || '—'),
+    obra: [identidade.titulo, identidade.subtitulo].filter(Boolean).join(' · '), logo: await logoRelatorio(), total: paginas.length,
+  };
+  // desenhos (uma vez; servem ao PDF e ao PowerPoint)
+  for (let i = 0; i < paginas.length; i += 1) {
+    const pg = paginas[i];
+    if (pg.tipo === 'planta') { pg.canvasPlanta = canvasPlantaBloco(pg.bloco, pg.doBloco, pg.rel); pg.canvasMapa = canvasMapaLocal(pg.doBloco); }
+    if (pg.tipo === 'elemento') pg.canvasEsquema = canvasEsquemaElemento(pg.e);
+    if (aoProgresso) aoProgresso(i + 1, paginas.length);
+    await new Promise((r) => { setTimeout(r, 0); });
+  }
+  const base = nomeArquivoSeguro(nome);
+  if (formato !== 'pptx') {
+    const W = PDF_ALTURA; const H = PDF_LARGURA;   // A4 paisagem
+    const doc = criarDocumentoPdf({ largura: W, altura: H });
+    const out = saidaPdf(doc);
+    paginas.forEach((pg, i) => { doc.novaPagina(); comporPaginaRelatorio(out, pg, { ...ctxBase, numero: i + 1 }, W, H); });
+    baixarArquivo(montarBytesPdf(doc), `${base}.pdf`);
+  }
+  if (formato !== 'pdf') {
+    const slides = paginas.map((pg, i) => { const s = { formas: [], imagens: [] }; comporPaginaRelatorio(saidaPptx(s), pg, { ...ctxBase, numero: i + 1 }, 960, 540); return s; });
+    baixarArquivo(montarPptx(slides), `${base}.pptx`);
+  }
+  return { paginas: paginas.length, elementos: paginas.filter((p) => p.tipo === 'elemento').length, blocos: paginas.filter((p) => p.tipo === 'planta').length };
+}
+
+/** Janela "Exportar relatório": formato, periodo, etapas e nome. */
+function abrirExportarRelatorioBlocos() {
+  const opcoes = opcoesEtapasRelatorio();
+  if (!opcoes.length) { toast.aviso('Nenhum bloco preenchido', 'Preencha a coluna Blocos no Banco de dados (ou importe pelo Excel) antes de gerar o relatório.'); return; }
+  const hoje = hojeIso(); const inicioMes = `${hoje.slice(0, 8)}01`;
+  const sugestao = (de, ate) => `Relatório por blocos — ${de ? dataTexto(de) : 'início'} a ${ate ? dataTexto(ate) : dataTexto(hoje)}`;
+  let nomeEditado = false;
+  const selEtapas = criarSeletorMultiplo({ rotulo: 'Etapas', opcoes, selecionados: [], semFiltroVazio: true });
+  const formulario = criarFormulario({
+    colunas: 2, semBotoes: true,
+    valores: { formato: 'ambos', de: inicioMes, ate: hoje, nome: sugestao(inicioMes, hoje) },
+    campos: [
+      { nome: 'formato', rotulo: 'Formato', tipo: 'radio', larguraTotal: true, opcoes: [{ valor: 'pdf', texto: 'PDF' }, { valor: 'pptx', texto: 'PowerPoint' }, { valor: 'ambos', texto: 'Ambos' }] },
+      { nome: 'de', rotulo: 'Período: de', tipo: 'data', obrigatorio: true },
+      { nome: 'ate', rotulo: 'até', tipo: 'data', obrigatorio: true },
+      { nome: 'nome', rotulo: 'Nome do relatório', larguraTotal: true, obrigatorio: true, regras: { maxCaracteres: 120 } },
+    ],
+    onEnviar: async (v) => {
+      if (v.de && v.ate && v.de > v.ate) { formulario.definirErro('ate', 'A data final é antes da inicial.'); return; }
+      const etapas = selEtapas.obterSelecionados();
+      const aviso = toast.info('Gerando relatório', 'Montando as páginas…');
+      try {
+        const r = await gerarRelatorioBlocos({ formato: v.formato, de: v.de, ate: v.ate, etapas: etapas.length === opcoes.length ? [] : etapas, nome: v.nome.trim() });
+        modal.fechar();
+        toast.sucesso('Relatório gerado', `${r.blocos} bloco(s), ${r.elementos} elemento(s), ${r.paginas} página(s).`);
+      } catch (erro) {
+        console.error(erro);
+        toast.erro('Relatório não gerado', erro.message);
+      } finally { if (aviso && aviso.fechar) aviso.fechar(); }
+    },
+  });
+  // nome acompanha o periodo ate a pessoa editar
+  formulario.elemento.addEventListener('input', (ev) => {
+    if (ev.target.name === 'nome') { nomeEditado = true; return; }
+    if (!nomeEditado && (ev.target.name === 'de' || ev.target.name === 'ate')) { const vals = formulario.obterValores(); const campo = formulario.elemento.querySelector('[name="nome"]'); if (campo) campo.value = sugestao(vals.de, vals.ate); }
+  });
+  const modal = criarModal({
+    titulo: 'Exportar relatório por blocos', tamanho: 'md', destruirAoFechar: true,
+    conteudo: [
+      h('p', { class: 'ctc-text-sm ctc-text-muted' }, 'Entram os elementos com bloco preenchido (Banco de dados) e com a etapa escolhida concluída no período. Sem etapa escolhida: tudo o que teve alguma etapa executada no período. Por bloco: planta com o contorno do bloco e uma página por elemento, com o esquema 3D e as datas reais.'),
+      h('div', { class: 'ctc-cluster' }, h('strong', {}, 'Etapas (nenhuma = tudo):'), selEtapas.elemento),
+      formulario.elemento,
+    ],
+    acoes: [{ texto: 'Cancelar', variante: 'outline' }, { texto: 'Gerar relatório', variante: 'primary', fechar: false, onClick: () => formulario.enviar() }],
+  });
+  modal.abrir();
+}
+/** Aba "Relatórios" (janela do Controlador) e pagina "Relatórios" do menu. */
+function abaRelatoriosBlocos() {
+  return h('div', { class: 'ctc-stack' },
+    criarPainel({
+      titulo: 'Relatório por blocos', icone: 'download',
+      conteudo: h('div', { class: 'ctc-stack' },
+        h('p', { class: 'ctc-text-sm ctc-text-muted' }, 'PDF e/ou PowerPoint com capa e resumo; por bloco, a planta com o contorno do bloco e uma página por elemento com o esquema 3D e as datas reais de cada etapa. Escolha o período, as etapas e o nome do relatório.'),
+        h('div', { class: 'ctc-cluster' }, criarBotao({ texto: '🧾 Exportar relatório', variante: 'primary', onClick: abrirExportarRelatorioBlocos }))),
+    }).elemento,
+    criarPainel({
+      titulo: 'Outros relatórios em PDF', icone: 'download',
+      conteudo: h('div', { class: 'ctc-cluster' }, criarBotao({ texto: 'Avanço, medição e estoque', variante: 'outline', onClick: abrirRelatorios })),
+    }).elemento);
+}
+const paginaRelatoriosBlocos = () => [abaRelatoriosBlocos()];
+
+
+/* =============================================================================
    09. SALVAMENTO NO TABLET E SINCRONIZACAO
    Cada alteracao grava uma copia neste tablet (IndexedDB, sem internet).
    "Sincronizar" envia a base para a nuvem (Firebase configurado pelo
@@ -20502,7 +21127,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
       }),
       onSair: sair,
-      abasExtras: [{ id: 'memorias', texto: 'Memórias', conteudo: abaMemorias }],   // v6.17.0
+      abasExtras: [{ id: 'relatorios', texto: 'Relatórios', conteudo: abaRelatoriosBlocos }, { id: 'memorias', texto: 'Memórias', conteudo: abaMemorias }],   // v6.17.0 · v6.29.0: Relatórios
     }),
   });
   const app = montarAplicativo({
@@ -20534,6 +21159,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
             { id: 'estoque', texto: 'Estoque de pré-moldados', emoji: '📦' },
             { id: 'avanco', texto: 'Avanço físico (cronograma)', emoji: '📈' },
             { id: 'cronograma', texto: 'Cronograma', emoji: '🗓️' },
+            { id: 'relatorios', texto: 'Relatórios', emoji: '🧾' },   // v6.29.0
           ],
         },
         {
@@ -20551,7 +21177,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, ...(['controlador', 'administrador'].includes(perfil) ? [{ id: 'avisos', texto: 'E-mails de aviso', emoji: '📧' }] : []), { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.28.0' : 'Controle de Execução em Campo v6.28.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.29.0' : 'Controle de Execução em Campo v6.29.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -20560,6 +21186,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
       cronograma: { titulo: 'Cronograma', caminho: ['Execução'], render: paginaCronograma },   // v6.18.0
       avanco: { titulo: 'Avanço físico (cronograma)', caminho: ['Execução'], acoes: [{ texto: 'Exportar avanço (Excel)', icone: 'download', variante: 'primary', onClick: exportarAvancoCsv }], render: paginaAvanco },
       elementos: { titulo: 'Elementos', caminho: ['Consulta'], render: paginaElementos },
+      relatorios: { titulo: 'Relatórios', caminho: ['Execução'], acoes: [{ texto: 'Exportar relatório', icone: 'download', variante: 'primary', onClick: abrirExportarRelatorioBlocos }], render: paginaRelatoriosBlocos },   // v6.29.0
       banco: { titulo: 'Banco de dados', caminho: ['Consulta'], acoes: [{ texto: 'Exportar banco completo (Excel)', icone: 'download', variante: 'primary', onClick: () => exportarBancoCsv() }], render: paginaBanco },
       pendencias: { titulo: 'Pendências', caminho: ['Consulta'], render: paginaPendencias },
       sincronizacao: { titulo: 'Sincronização', caminho: ['Sistema'], render: paginaSincronizacao },
@@ -20591,7 +21218,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.28.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.29.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
