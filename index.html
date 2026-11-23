@@ -2537,6 +2537,84 @@ img { max-width: 100%; display: block; }
 .ctc-faixa-eixos .ctc-select { width: 58px; min-width: 0; flex: 0 0 auto; padding-left: 8px; padding-right: 22px; background-position: right 6px center; }
 .ctc-faixa-eixos__rotulo { min-width: 46px; font-weight: 600; }
 .ctc-faixa-eixos__acoes { justify-content: flex-end; }
+/* v6.26.0: painel de Camadas compacto (abas + chips) */
+.ctc-vista .ctc-vista__flutua .ctc-dropdown__panel.ctc-cpainel { width: min(350px, calc(100vw - 96px)); padding: 8px; background: rgba(248,250,252,.96); }
+.ctc-cpainel__tabs--2 { grid-template-columns: repeat(2, 1fr) !important; }
+.ctc-fsec { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 8px 10px; box-shadow: 0 1px 2px rgba(15,23,42,.05); }
+.ctc-fsec__cab { display: flex; align-items: center; gap: 7px; font-size: 13.5px; color: #1e293b; padding: 2px 0 6px; border-bottom: 1px solid #f1f5f9; margin-bottom: 4px; }
+.ctc-fsec__ico { font-size: 15px; }
+.ctc-fsec__ativo { font-size: 11.5px; font-weight: 700; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 999px; padding: 1px 8px; }
+.ctc-fsec__corpo { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+.ctc-fsec__lista { display: flex; flex-direction: column; }
+.ctc-fsec__dica { margin: 0; font-size: 12px; color: #64748b; }
+.ctc-flinha { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 2px; font-size: 13.5px; color: #1e293b; border-radius: 8px; }
+.ctc-flinha:hover { background: rgba(15,23,42,.04); }
+.ctc-flinha:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 1px; }
+.ctc-flinha + .ctc-flinha, .ctc-fserv + .ctc-fserv { border-top: 1px solid #f1f5f9; }
+.ctc-flinha__txt { flex: 1; min-width: 0; }
+.ctc-flinha__ico { width: 20px; text-align: center; }
+.ctc-flinha__cor { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(15,23,42,.2); margin: 0 4px; }
+.ctc-flinha__n { font-size: 11px; color: #475569; background: rgba(15,23,42,.07); border-radius: 999px; padding: 1px 7px; }
+.ctc-flinha--sub { font-size: 13px; color: #334155; padding-left: 4px; }
+.ctc-flinha > svg { flex: 0 0 auto; }
+.ctc-fserv__linha { display: flex; align-items: center; gap: 2px; }
+.ctc-fserv__seta { all: unset; cursor: pointer; width: 20px; height: 24px; display: grid; place-items: center; color: #64748b; flex: 0 0 auto; transition: transform .15s; border-radius: 6px; }
+.ctc-fserv__seta[aria-expanded="true"] { transform: rotate(90deg); }
+.ctc-fserv__seta:focus-visible { outline: 2px solid #1d4ed8; }
+.ctc-fserv__seta--vazia { cursor: default; }
+.ctc-fserv__subs { margin: 0 0 6px 22px; padding-left: 10px; border-left: 2px solid #e2e8f0; display: flex; flex-direction: column; }
+.ctc-fserv__subs[hidden] { display: none; }
+.ctc-cpainel__tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 3px; background: rgba(15,23,42,.06); border-radius: 12px; }
+.ctc-cpainel__tab { all: unset; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 7px 4px; border-radius: 9px; font-size: 13px; font-weight: 600; color: #475569; }
+.ctc-cpainel__tab[aria-selected="true"] { background: #fff; color: #1e3a8a; box-shadow: 0 1px 4px rgba(15,23,42,.15); }
+.ctc-cpainel__tab:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 1px; }
+.ctc-cpainel__ponto, .ctc-fbtn__ponto { position: absolute; top: 4px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 0 2px #fff; }
+.ctc-vista .ctc-fbtn { position: relative; }
+.ctc-cpainel__resumo { margin: 8px 2px 0; font-size: 12px; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 4px 8px; }
+.ctc-cpainel__corpo { padding: 10px 2px 2px; }
+.ctc-cpainel__aba { display: flex; flex-direction: column; gap: 10px; }
+.ctc-cpainel__faixas { display: flex; flex-direction: column; gap: 6px; }
+.ctc-cpainel__faixa { display: grid; grid-template-columns: 70px 1fr auto 1fr; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #334155; }
+.ctc-cpainel__faixa .ctc-select { width: 100%; min-width: 0; padding-left: 8px; padding-right: 22px; background-position: right 6px center; }
+.ctc-cpainel__datas { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; font-size: 13px; color: #475569; }
+.ctc-cpainel__datas .ctc-input { min-width: 0; padding-left: 6px; padding-right: 4px; }
+.ctc-cpainel__acoes { display: flex; justify-content: flex-end; gap: 8px; }
+.ctc-cpainel__vazio { margin: 0; color: #64748b; font-size: 13px; }
+.ctc-cpainel__grupo { display: flex; flex-direction: column; gap: 6px; }
+.ctc-cpainel__rot { display: flex; align-items: baseline; justify-content: space-between; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #64748b; }
+.ctc-cpainel__links { display: flex; gap: 10px; text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 12px; }
+.ctc-cpainel__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ctc-cpainel__chips--rolar { max-height: 150px; overflow-y: auto; }
+.ctc-cchip { all: unset; box-sizing: border-box; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-size: 12.5px; line-height: 1.3;
+  border: 1px solid #cbd5e1; background: #fff; color: #94a3b8; transition: background .15s, color .15s, border-color .15s; }
+.ctc-cchip[aria-pressed="true"] { background: #eff6ff; border-color: #93c5fd; color: #1e293b; }
+.ctc-cchip:hover { border-color: #64748b; }
+.ctc-cchip:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 2px; }
+.ctc-cchip__cor { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 auto; box-shadow: inset 0 0 0 1px rgba(15,23,42,.2); }
+.ctc-cchip[aria-pressed="false"] .ctc-cchip__cor, .ctc-cchip[aria-pressed="false"] .ctc-cchip__ico { opacity: .4; filter: grayscale(1); }
+.ctc-cchip__n { font-size: 11px; font-weight: 700; color: #475569; background: rgba(15,23,42,.07); border-radius: 999px; padding: 0 6px; }
+.ctc-cchip--atalho { color: #1e3a8a; border-style: dashed; }
+.ctc-pgrupos { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+.ctc-pgrupo { border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; }
+.ctc-pgrupo__linha { display: flex; align-items: center; gap: 8px; padding: 4px 6px 4px 8px; }
+.ctc-pgrupo__marca { all: unset; cursor: pointer; box-sizing: border-box; width: 20px; height: 20px; flex: 0 0 auto; border-radius: 6px; border: 2px solid #94a3b8; display: grid; place-items: center; font-size: 13px; font-weight: 800; color: #fff; }
+.ctc-pgrupo__marca[data-estado="todas"], .ctc-pgrupo__marca[data-estado="parte"] { background: #1e3a8a; border-color: #1e3a8a; }
+.ctc-pgrupo__marca:focus-visible, .ctc-pgrupo__cab:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 2px; }
+.ctc-pgrupo__cab { all: unset; cursor: pointer; flex: 1; display: flex; align-items: center; gap: 8px; padding: 6px 2px; font-size: 13.5px; font-weight: 600; color: #1e293b; }
+.ctc-pgrupo__nome { flex: 1; }
+.ctc-pgrupo__n { font-size: 11px; color: #475569; background: rgba(15,23,42,.07); border-radius: 999px; padding: 1px 7px; }
+.ctc-pgrupo__seta { color: #64748b; transition: transform .15s; }
+.ctc-pgrupo__cab[aria-expanded="true"] .ctc-pgrupo__seta { transform: rotate(90deg); }
+.ctc-pgrupo__chips { padding: 2px 10px 10px 36px; }
+.ctc-pgrupo__chips[hidden] { display: none; }
+.ctc-pgrupo__sub { flex: 0 0 100%; font-size: 11.5px; font-weight: 700; color: #64748b; margin-top: 4px; }
+/* v6.26.0: periodo e etapas */
+.ctc-periodo__datas { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+.ctc-periodo__datas .ctc-input { flex: 1 1 0; min-width: 0; padding-left: 6px; padding-right: 4px; }
+.ctc-periodo__topo { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.ctc-periodo__lista { display: flex; flex-direction: column; gap: 2px; max-height: 180px; overflow-y: auto; padding: 0 12px 4px; }
+.ctc-periodo__etapa { display: flex; align-items: center; gap: 8px; padding: 4px 2px; font-size: 13.5px; cursor: pointer; }
+.ctc-periodo__etapa input { width: 17px; height: 17px; flex: 0 0 auto; accent-color: #1e3a8a; }
 /* =============================================================================
    22. VIDRO TRANSLUCIDO NO DESENHO (v6.9.2): legenda, botoes flutuantes e Camadas,
    no estilo dos controles do iPhone (fundo meio transparente com desfoque)
@@ -7791,7 +7869,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.25.0
+   Versao: 6.26.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -7910,6 +7988,23 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
    6.25.0: E-mails de aviso (menu Sistema, so o Controlador): lista de quem recebe; ao retornar uma
           etapa o controle envia o e-mail pela conta Google do Firebase (Google Apps Script publicado
           como app da Web, com chave de seguranca). Passo a passo, copia do codigo e e-mail de teste na aba.
+   6.26.0: Camadas > Periodo: datas de / ate e as etapas (todas ou so as escolhidas); o desenho mostra
+          so os elementos em que alguma dessas etapas aconteceu no periodo (do inicio ao termino;
+          em andamento conta ate hoje). Busca de um elemento fora do periodo limpa o filtro.
+          Painel de Camadas compacto: abas Area / Periodo / Mostrar, chips coloridos com contagem,
+          atalhos de periodo (hoje, 7 dias, este mes, mes passado) e ponto laranja com filtro ativo.
+          Etapas do periodo agrupadas por servico (fundacoes, lajes...): toca no servico e abrem as etapas.
+          Camadas com 2 abas: Filtros gerais (data, servicos com os tipos, situacao e desenho, com
+          interruptores) e Filtro avancado (area de eixos / linhas e etapas por servico).
+          Estaca metalica com mais um nivel nos Servicos: Ø1016 e Ø1219.
+          Conferencia com os projetos: segmentos 02 e 03 com vigas U, lajes, L e pestanas na posicao do
+          arranjo do basico TSV (DWG-200016 / 200019), inclusive as juntas dos eixos 24-25 e 48-49; lajes do
+          03 de 1,78 m; 01B de eixo 3 - 1,00 ate a junta (24 + 2,00) e PM-112 ate a junta.
+          Vigas U da linha A do 01A: PM-101, PM-102, PM-102 (DWG-00016 rev. A e quadro de quantitativos).
+          Capiteis PM-02 nas 10 estacas dos pares do 01A, sob as vigas PM-04 (DWG-00015: 13x PM-02).
+          Nome do elemento no maior pedaco do desenho (vigas da junta divididas no capitel); nome sem o
+          prefixo do segmento: no desenho so o PM e o numero (ex.: PM-104, PM-201, PM-01), sem linha, vao ou
+          sequencial (continuam no balao e no quadro da peca).
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -8406,6 +8501,8 @@ function faixaEixoMenos1(y0, y1, dx0, dx1, z0, z1, extra = {}) {
 }
 /** Ids que foram divididos em mais de um elemento (registros antigos sao copiados para todos). */
 const IDS_SUBSTITUIDOS = {
+  // v6.26.0: vigas U da linha A do 01A com o nome do projeto (os registros feitos com o nome antigo continuam valendo)
+  'PM-103 (A1)': ['PM-101 (A1)'], 'PM-104 (A2)': ['PM-102 (A2)'], 'PM-104 (A3)': ['PM-102 (A3)'],
   'Bases do transportador': ['Base do transportador · sapatas 09-10', 'Base do transportador · sapatas 07-08', 'Base do transportador · sapatas 05-06'],
 };
 
@@ -8595,6 +8692,18 @@ const PM_TIPOS = {
   'PM-226': { tipo: 'laje', a: 2.03, b: 5.12, volume: null, peso: null, forma: null, aco: null, incerto: true },
   'PM-227': { tipo: 'laje', a: 1.84, b: 1.55, volume: null, peso: null, forma: null, aco: null, incerto: true },
   'PM-220': { tipo: 'laje', a: 3.05, b: 5.12, volume: 5.88, peso: 14.12, forma: 28.81, aco: null, incerto: true },
+  // v6.26.0: pecas do projeto basico TSV (WS-F3-CON-TSV-GEN-CIV-DWG-200014 a 200019, rev. R00-B) dos segmentos 02 e 03
+  // sem equivalente no executivo do 01B; medidas do arranjo, quantitativos aguardam o executivo destes segmentos
+  ...Object.fromEntries([
+    ['PM-U 04', 'viga-u', 10.59], ['PM-U 05', 'viga-u', 9.24], ['PM-U 08', 'viga-u', 8.18], ['PM-U 10', 'viga-u', 10.19], ['PM-U 11', 'viga-u', 8.18],
+    ['PM-U 34', 'viga-u', 8.18], ['PM-U 35', 'viga-u', 10.19], ['PM-36', 'viga-u', 10.59], ['PM-04B', 'viga-u', 10.59],
+    ['PM-U 06', 'viga-u', 9.19], ['PM-U 07', 'viga-u', 7.18], ['PM-U 37', 'viga-u', 9.19], ['PM-U 38', 'viga-u', 7.18],
+    ['PM-LAJE 04', 'laje', 1.365, 5.12], ['PM-LAJE 09', 'laje', 3.715, 5.12], ['PM-LAJE 10', 'laje', 1.365, 5.12], ['PM-LAJE 11', 'laje', 1.365, 3.25],
+    ['PM-LAJE 13', 'laje', 1.78, 5.12], ['PM-LAJE 14', 'laje', 1.09, 5.12], ['PM-LAJE 16', 'laje', 1.79, 5.12], ['PM-LAJE 18', 'laje', 1.78, 3.25], ['PM-LAJE 19', 'laje', 1.09, 3.25],
+    ['PM-L 10', 'laje', 1.78, 1.625], ['PM-L 11', 'laje', 1.09, 1.625], ['PM-L 12', 'laje', 1.09, 1.625],
+    ['PM-PEST 01', 'laje', 8.18, 1.326], ['PM-PEST 03', 'laje', 10.19, 1.326], ['PM-PEST 04', 'laje', 10.59, 1.326], ['PM-PEST 05', 'laje', 9.19, 1.326], ['PM-PEST 06', 'laje', 7.18, 1.326],
+  ].map(([nome, tipo, a, b]) => [nome, tipo === 'viga-u' ? { tipo, comp: a, volume: null, peso: null, forma: null, aco: null, incerto: true, basico: true }
+    : { tipo, a, b, volume: null, peso: null, forma: null, aco: null, incerto: true, basico: true }])),
 };
 const infoPM = (tipo) => {
   const t = PM_TIPOS[tipo];
@@ -8605,10 +8714,11 @@ const subPM = (tipo) => {
   return [t.volume != null ? `${formatarNumero(t.volume, 2)} m³` : null, t.peso != null ? `${formatarNumero(t.peso, 2)} t` : null, t.aco ? `aço ${formatarNumero(t.aco, 0)} kg` : null].filter(Boolean).join(' · ') || 'quantitativos não constam nos desenhos';
 };
 
-/** Vigas U do 01A por linha, da borda (eixo −1) ate o eixo 3 (DWG-00016 rev. A, conferido peca a peca em 18/11/2026;
- *  a linha A passou de PM-101/102/102 para PM-103/104/104 nesta revisao). */
+/** Vigas U do 01A por linha, da borda (eixo −1) ate o eixo 3 (DWG-00016 rev. A).
+ *  v6.26.0: reconferido no DWG e no quadro de quantitativos (1x PM-101, 2x PM-102, 1x PM-103, 5x PM-104...):
+ *  a linha A e PM-101 / PM-102 / PM-102; a linha B e PM-103 / PM-104 / PM-104. */
 const FASE2_01A = {
-  A: ['PM-103', 'PM-104', 'PM-104'], B: ['PM-103', 'PM-104', 'PM-104'],
+  A: ['PM-101', 'PM-102', 'PM-102'], B: ['PM-103', 'PM-104', 'PM-104'],
   C: ['PM-105', 'PM-107', 'PM-108', 'PM-104'], D: ['PM-105', 'PM-109', 'PM-104'],
   E: ['PM-105', 'PM-110', 'PM-104'], F: ['PM-105', 'PM-107', 'PM-108'],
   G: ['PM-106', 'PM-107', 'PM-108'], H: ['PM-111', 'PM-108', 'PM-108'],
@@ -8627,9 +8737,10 @@ function preMoldadosEstrutura() {
       deps: [{ etapa: 'montagem', ids: [estaca], texto: `estaca ${estaca} concluída (arrasada)` }],
     }));
   };
+  // v6.26.0: as estacas dos pares (C1/C2, D1/D2, E1/E2...) tambem recebem capitel PM-02, e a viga transversal PM-04
+  // apoia sobre eles (DWG-00015: 9x PM-01, 13x PM-02, 2x PM-03, 5x PM-04)
   MET_01A.forEach(([estaca, diametro, arras]) => {
-    if (arras < 1) return;   // estacas dos pares (C1/C2, D1/D2, E1/E2...) recebem a viga transversal PM-04
-    capitel('01A', estaca, diametro === 1219 ? 'PM-01' : (['0-A', '0-B'].includes(estaca) ? 'PM-03' : 'PM-02'));
+    capitel('01A', estaca, arras < 1 ? 'PM-02' : (diametro === 1219 ? 'PM-01' : (['0-A', '0-B'].includes(estaca) ? 'PM-03' : 'PM-02')));
   });
   ['0-C', '0-D', '1-E', '1-F', '1-G'].forEach((par) => {
     const a = geoEstaca(`${par}1`);
@@ -8638,7 +8749,7 @@ function preMoldadosEstrutura() {
       id: `PM-04 (${par})`, seg: '01A', tipo: 'viga-transversal', rotulo: 'PM-04', grupo: 'Vigas transversais',
       sub: `Viga transversal sobre ${par}1 e ${par}2 · ${subPM('PM-04')}`, info: { ...infoPM('PM-04'), par },
       geo: [caixaPar(a, b, 1.0, 1.0, 0.80, 2.65)],
-      deps: [{ etapa: 'montagem', ids: [`${par}1`, `${par}2`], texto: `estacas ${par}1 e ${par}2 concretadas` }],
+      deps: [{ etapa: 'montagem', ids: [`PM-02 (${par}1)`, `PM-02 (${par}2)`], texto: `capitéis PM-02 de ${par}1 e ${par}2 montados` }],
     }));
   });
   // vigas U do 01A
@@ -8674,7 +8785,10 @@ function preMoldadosEstrutura() {
       lista.push(novoElemento({
         id: `${tipo} (${linha} ${eixo}-${eixo + 1})`, seg: '01B', tipo: 'viga-u', rotulo: tipo, grupo: `Vigas linha ${linha}`,
         sub: `Viga U · linha ${linha}, eixos ${eixo}–${eixo + 1} · ${subPM(tipo)}`, info: { ...infoPM(tipo), linha },
-        geo: [caixa(geoX(eixo) + 1.1, geoX(eixo + 1) - 1.1, y - 1.15, y + 1.15, 2.15, 3.05)],
+        // v6.26.0: a PM-112 (10,19 m) vai ate a junta, 2,00 m depois do eixo 24
+        geo: eixo === 23
+          ? [caixa(geoX(23) + 1.1, geoX(24) - 1.1, y - 1.15, y + 1.15, 2.15, 3.05), caixa(geoX(24) + 1.1, geoX(24) + 2.0, y - 1.15, y + 1.15, 2.15, 3.05)]
+          : [caixa(geoX(eixo) + 1.1, geoX(eixo + 1) - 1.1, y - 1.15, y + 1.15, 2.15, 3.05)],
         deps: [{ etapa: 'montagem', ids: [`PM-01 (${eixo}-${linha})`, `PM-01 (${eixo + 1}-${linha})`], texto: 'capitéis das duas pontas montados' }],
       }));
     }
@@ -8829,7 +8943,9 @@ function lajes() {
   // faixa G-H (PM-210 + PM-219); borda da linha H (33 PM-212, 51 PM-216 + PM-217).
   // Corrente de cotas da folha: tabuleiro de 1,90 m antes da A a 2,00 m depois da H (190 + 6 x 662,5 + 475 + 200 = 4840);
   // pecas de borda encostadas nas vigas: centro em -1,08 m (linha A) e +46,11 m (1,61 m depois da H).
-  const X0 = geoX(3);
+  // v6.26.0: o arranjo comeca 1,00 m antes do eixo 3 (encosta nas lajes do 01A) e termina na junta, 2,00 m depois
+  // do eixo 24 (projeto basico TSV DWG-200013: ultima peca de 3,015 m de 24 - 1,00 a 24 + 2,02)
+  const X0 = geoX(3) - 1.0;
   const vaoDe = (x) => Math.min(Math.max(Math.floor(x / 8.2), 3), 23);
   const vigaU = (linha, eixo) => `${eixo === 23 ? 'PM-112' : 'PM-104'} (${linha} ${eixo}-${eixo + 1})`;
   const faixa = (l1, l2) => ({ y0: GEO_LINHA_Y[l1] + 1.15, y1: GEO_LINHA_Y[l2] - 1.15, linhas: [l1, l2], texto: `faixa ${l1}-${l2}`, z1: 3.40 });
@@ -9383,8 +9499,8 @@ function segmento04(todos) {
    o executivo destes segmentos (DWG-00009 a 00011, 00020 a 00023, 00028 a 00031, 00051 a 00056) esta pendente.
    ========================================================================== */
 const SEGMENTOS_BASICO = {
-  '02': { eixos: Array.from({ length: 24 }, (_, i) => i + 25), desenho: 'BSC-CIV-DWG-00007', viga: 'PM-104', semA: (eixo) => eixo >= 44 },
-  '03': { eixos: [49, 50, 51, 52, 53, 54], desenho: 'BSC-CIV-DWG-00008', viga: 'VU-720', semA: () => true },
+  '02': { seg: '02', eixos: Array.from({ length: 24 }, (_, i) => i + 25), desenho: 'BSC-CIV-DWG-00007', viga: 'PM-104', semA: (eixo) => eixo >= 44 },
+  '03': { seg: '03', eixos: [49, 50, 51, 52, 53, 54], desenho: 'BSC-CIV-DWG-00008', viga: 'VU-720', semA: () => true },
 };
 
 function segmentosBasico(todos) {
@@ -9416,53 +9532,78 @@ function segmentosBasico(todos) {
       }));
       (estacasLinha[linha] = estacasLinha[linha] || []).push({ id, eixo, x });
     }));
-    // vigas U entre estacas vizinhas da mesma linha
+    // v6.26.0: vigas U, lajes, L e pestanas na posicao do arranjo do projeto basico TSV (DWG-200016 / 200019),
+    // inclusive as pecas das juntas (eixos 24-25 e 48-49). Mesmos nomes do executivo onde a peca e igual.
+    const NOME_EXEC = { 'PM-U 01': 'PM-104', 'PM-U 03': 'PM-112', 'PM-LAJE 01': 'PM-201', 'PM-LAJE 07': 'PM-210', 'PM-LAJE 03': 'PM-218', 'PM-LAJE 08': 'PM-220', 'PM-LAJE 06': 'PM-219' };
+    const tsv = cfg.seg === '02' ? 'WS-F3-CON-TSV-GEN-CIV-DWG-200016' : 'WS-F3-CON-TSV-GEN-CIV-DWG-200019';
+    const xEixos = cfg.eixos.map((e) => [e, geoX(e)]);
+    const linhaDe = (y) => LINHAS.reduce((m, l) => (Math.abs(GEO_LINHA_Y[l] - y) < Math.abs(GEO_LINHA_Y[m] - y) ? l : m), 'A');
+    const vaoDe = (cx) => {
+      for (let i = 0; i < xEixos.length - 1; i += 1) if (cx < xEixos[i + 1][1]) return [xEixos[i][0], xEixos[i + 1][0]];
+      return [xEixos[xEixos.length - 2][0], xEixos[xEixos.length - 1][0]];
+    };
+    const temCapitel = (eixo, linha) => lista.some((el) => el.id === `PM-01 (${eixo}-${linha})`);
     const vigasSeg = [];
-    Object.entries(estacasLinha).forEach(([linha, ests]) => {
-      const y = GEO_LINHA_Y[linha];
-      for (let i = 0; i < ests.length - 1; i += 1) {
-        const a = ests[i]; const b = ests[i + 1];
+    const contagem = {};
+    const ehViga = (pc) => PM_TIPOS[NOME_EXEC[pc[0]] || pc[0]]?.tipo === 'viga-u';
+    [...(PECAS_BASICO[cfg.seg] || [])].sort((pa, pb) => ehViga(pb) - ehViga(pa)).forEach(([nomeTsv, x0r, x1r, y0, y1]) => {   // vigas antes das lajes
+      const rotulo = NOME_EXEC[nomeTsv] || nomeTsv;
+      const t = PM_TIPOS[rotulo];
+      if (!t) return;
+      if (t.tipo === 'viga-u') {
+        const linha = linhaDe((y0 + y1) / 2);
+        const [a, b] = vaoDe((x0r + x1r) / 2);
+        // no desenho, a viga fica entre os capiteis (a ponta que cai num eixo com capitel recua 1,10 m); a ponta da junta fica inteira
+        const naPonta = (x) => xEixos.find(([e, xe]) => Math.abs(xe - x) < 0.4 && temCapitel(e, linha));
+        let x0 = x0r; let x1 = x1r;
+        const p0 = naPonta(x0r); const p1 = naPonta(x1r);
+        if (p0) x0 = p0[1] + 1.1;
+        if (p1) x1 = p1[1] - 1.1;
+        // capitel no meio da viga (viga da junta passa por cima dele): o desenho abre um vao para o capitel aparecer
+        const meio = xEixos.filter(([e, xe]) => xe > x0 + 0.4 && xe < x1 - 0.4 && temCapitel(e, linha)).map(([, xe]) => xe);
+        const trechos = [];
+        let ini = x0;
+        meio.forEach((xe) => { trechos.push([ini, xe - 1.1]); ini = xe + 1.1; });
+        trechos.push([ini, x1]);
         const v = novoElemento({
-          id: `${cfg.viga} (${linha} ${a.eixo}-${b.eixo})`, seg, tipo: 'viga-u', rotulo: cfg.viga, grupo: `Vigas linha ${linha}`,
-          sub: `Viga U · linha ${linha}, eixos ${a.eixo}–${b.eixo} · ${subPM(cfg.viga) || 'volume a confirmar'} · ${preliminar}`,
-          info: { ...infoPM(cfg.viga), linha, esquematico: true },
-          geo: [caixa(a.x + 1.1, b.x - 1.1, y - 1.15, y + 1.15, 2.15, 3.05)],
-          deps: [{ etapa: 'montagem', ids: [`PM-01 (${a.id})`, `PM-01 (${b.id})`], texto: 'capitéis das duas pontas montados' }],
+          id: `${rotulo} (${linha} ${a}-${b})`, seg, tipo: 'viga-u', rotulo, grupo: `Vigas linha ${linha}`,
+          sub: `Viga U · linha ${linha}, eixos ${a}–${b} · ${formatarNumero(t.comp, 2)} m · ${subPM(rotulo)} · ${tsv} (básico)`,
+          info: { ...infoPM(rotulo), linha, esquematico: true },
+          geo: trechos.filter(([u, w]) => w - u > 0.05).map(([u, w]) => caixa(u, w, y0, y1, 2.15, 3.05)),
+          deps: [{ etapa: 'montagem', ids: [a, b].filter((e) => temCapitel(e, linha)).map((e) => `PM-01 (${e}-${linha})`), texto: 'capitéis das pontas montados' }],
         });
         lista.push(v); vigasSeg.push(v);
+        return;
       }
-    });
-    // lajes no padrao do 01B: bordas A e H, faixas com PM-201 e faixa G-H com PM-210 (pecas de 2,05 m)
-    const fileiras = [
-      { linhas: ['A'], tipo: 'PM-214', yc: -1.08, z1: 3.82, texto: 'borda da linha A' },
-      ...['A', 'B', 'C', 'D', 'E', 'F', 'G'].map((l, i) => ({ linhas: [l, LINHAS[i + 1]], tipo: l === 'G' ? 'PM-210' : 'PM-201', y0: GEO_LINHA_Y[l] + 1.15, y1: GEO_LINHA_Y[LINHAS[i + 1]] - 1.15, z1: 3.40, texto: `faixa ${l}-${LINHAS[i + 1]}` })),
-      { linhas: ['H'], tipo: 'PM-216', yc: 46.11, z1: 3.82, texto: 'borda da linha H' },
-    ];
-    const contagem = {};
-    fileiras.forEach((f) => {
-      const ext = f.linhas.map((l) => estacasLinha[l] || []);
-      if (ext.some((e) => !e.length)) return;
-      const xIni = Math.max(...ext.map((e) => e[0].x));
-      const xFim = Math.min(...ext.map((e) => e[e.length - 1].x));
-      const t = PM_TIPOS[f.tipo];
-      const y0 = f.yc != null ? f.yc - t.b / 2 : f.y0;
-      const y1 = f.yc != null ? f.yc + t.b / 2 : f.y1;
-      for (let x = xIni; x + 2.0 <= xFim + 0.01; x += 2.05) {
-        const n = (contagem[f.tipo] = (contagem[f.tipo] || 0) + 1);
-        // peca sobre o capitel (entre duas vigas): depende das vigas vizinhas (folga de 1,2 m)
-        const apoios = vigasSeg.filter((v) => f.linhas.includes(v.info.linha) && xs(v).x1 + 1.2 > x && xs(v).x0 - 1.2 < x + 2.0).map((v) => v.id);
-        lista.push(novoElemento({
-          id: `${seg} · ${f.tipo} #${String(n).padStart(3, '0')}`, seg, tipo: 'laje', rotulo: f.tipo, grupo: `Lajes ${f.tipo}`,
-          sub: `Pré-laje · ${f.texto} · ${subPM(f.tipo)} · posição pelo padrão do 01B · ${preliminar}`,
-          info: { ...infoPM(f.tipo), faixa: f.texto, esquematico: true },
-          geo: [caixa(x, x + 2.0, y0, y1, 3.05, f.z1)],
-          deps: apoios.length ? [{ etapa: 'montagem', ids: apoios, texto: `vigas U de apoio (${f.texto}) montadas` }] : [],
-        }));
-      }
+      // lajes: faixa entre duas linhas; L e pestanas: borda (fora da ultima linha)
+      const cy = (y0 + y1) / 2;
+      const i = LINHAS.findIndex((L, k) => k < LINHAS.length - 1 && cy > GEO_LINHA_Y[L] && cy < GEO_LINHA_Y[LINHAS[k + 1]]);
+      const borda = /^PM-(L|PEST) /.test(nomeTsv) || i < 0;
+      const linhas = borda ? [linhaDe(cy)] : [LINHAS[i], LINHAS[i + 1]];
+      const texto = borda ? `borda da linha ${linhas[0]}` : `faixa ${linhas[0]}-${linhas[1]}`;
+      const n = (contagem[rotulo] = (contagem[rotulo] || 0) + 1);
+      const apoios = vigasSeg.filter((v) => linhas.includes(v.info.linha) && xs(v).x1 + 1.2 > x0r && xs(v).x0 - 1.2 < x1r).map((v) => v.id);
+      const [a] = vaoDe((x0r + x1r) / 2);
+      const limite = cfg.seg === '02' ? geoX(24) + 2.05 : geoX(48) + 2.45;   // fim do segmento anterior + 5 cm de junta
+      const dente = x0r < limite - 0.05;
+      const x0d = dente ? limite : x0r;
+      lista.push(novoElemento({
+        id: `${seg} · ${rotulo} #${String(n).padStart(3, '0')}`, seg, tipo: 'laje', rotulo, grupo: `Lajes ${rotulo}`,
+        sub: `${/PEST/.test(rotulo) ? 'Pestana' : (/^PM-L /.test(rotulo) ? 'Peça L' : 'Pré-laje')} · ${texto} · ${formatarNumero(t.a, 2)} × ${formatarNumero(t.b, 2)} m${dente ? ' (com dente de encaixe na junta)' : ''} · ${subPM(rotulo)} · ${tsv} (básico)`,
+        info: { ...infoPM(rotulo), faixa: texto, vao: `${a}`, esquematico: true },
+        geo: [caixa(x0d, x1r, y0, y1, 3.05, borda ? 3.82 : 3.40)],   // com dente de encaixe: desenhada sem o dente
+        deps: apoios.length ? [{ etapa: 'montagem', ids: apoios, texto: `vigas U de apoio (${texto}) montadas` }] : [],
+      }));
     });
   });
   return lista;
 }
+/** v6.26.0: pecas dos arranjos do projeto basico TSV R00-B (seg. 02: DWG-200016; seg. 03: DWG-200019), em metros
+ *  no sistema do controle: [nome no basico, x0, x1, y0, y1]. Gerado dos DWG pelo conversor ODA + ezdxf. */
+const PECAS_BASICO = {
+  '02': [["PM-U 10",198.872,209.062,-1.995,1.105],["PM-U 08",209.082,217.262,-1.995,1.105],["PM-U 08",217.282,225.462,-1.995,1.105],["PM-U 08",225.482,233.662,-1.995,1.105],["PM-U 08",233.682,241.862,-1.995,1.105],["PM-U 08",241.882,250.062,-1.995,1.105],["PM-U 08",250.082,258.262,-1.995,1.105],["PM-U 08",258.282,266.462,-1.995,1.105],["PM-U 08",266.482,274.662,-1.995,1.105],["PM-U 08",274.682,282.862,-1.995,1.105],["PM-U 08",282.882,291.062,-1.995,1.105],["PM-U 08",291.082,299.262,-1.995,1.105],["PM-U 08",299.282,307.462,-1.995,1.105],["PM-U 08",307.482,315.662,-1.995,1.105],["PM-U 08",315.682,323.862,-1.995,1.105],["PM-U 08",323.882,332.062,-1.995,1.105],["PM-U 08",332.082,340.262,-1.995,1.105],["PM-U 05",340.282,349.521,-1.995,1.105],["PM-LAJE 03",198.872,201.887,0.708,5.828],["PM-LAJE 01",201.907,203.937,0.708,5.828],["PM-LAJE 01",203.957,205.987,0.708,5.828],["PM-LAJE 01",206.007,208.037,0.708,5.828],["PM-LAJE 01",208.057,210.087,0.708,5.828],["PM-LAJE 01",210.107,212.137,0.708,5.828],["PM-LAJE 01",212.157,214.187,0.708,5.828],["PM-LAJE 01",214.207,216.237,0.708,5.828],["PM-LAJE 01",216.257,218.287,0.708,5.828],["PM-LAJE 01",218.307,220.337,0.708,5.828],["PM-LAJE 01",220.357,222.387,0.708,5.828],["PM-LAJE 01",222.407,224.437,0.708,5.828],["PM-LAJE 01",224.457,226.487,0.708,5.828],["PM-LAJE 01",226.507,228.537,0.708,5.828],["PM-LAJE 01",228.557,230.587,0.708,5.828],["PM-LAJE 01",230.607,232.637,0.708,5.828],["PM-LAJE 01",232.657,234.687,0.708,5.828],["PM-LAJE 01",234.707,236.737,0.708,5.828],["PM-LAJE 01",236.757,238.787,0.708,5.828],["PM-LAJE 01",238.807,240.837,0.708,5.828],["PM-LAJE 01",240.857,242.887,0.708,5.828],["PM-LAJE 01",242.907,244.937,0.708,5.828],["PM-LAJE 01",244.957,246.987,0.708,5.828],["PM-LAJE 01",247.007,249.037,0.708,5.828],["PM-LAJE 01",249.057,251.087,0.708,5.828],["PM-LAJE 01",251.107,253.137,0.708,5.828],["PM-LAJE 01",253.157,255.187,0.708,5.828],["PM-LAJE 01",255.207,257.237,0.708,5.828],["PM-LAJE 01",257.257,259.287,0.708,5.828],["PM-LAJE 01",259.307,261.337,0.708,5.828],["PM-LAJE 01",261.357,263.387,0.708,5.828],["PM-LAJE 01",263.407,265.437,0.708,5.828],["PM-LAJE 01",265.457,267.487,0.708,5.828],["PM-LAJE 01",267.507,269.537,0.708,5.828],["PM-LAJE 01",269.557,271.587,0.708,5.828],["PM-LAJE 01",271.607,273.637,0.708,5.828],["PM-LAJE 01",273.657,275.687,0.708,5.828],["PM-LAJE 01",275.707,277.737,0.708,5.828],["PM-LAJE 01",277.757,279.787,0.708,5.828],["PM-LAJE 01",279.807,281.837,0.708,5.828],["PM-LAJE 01",281.857,283.887,0.708,5.828],["PM-LAJE 01",283.907,285.937,0.708,5.828],["PM-LAJE 01",285.957,287.987,0.708,5.828],["PM-LAJE 01",288.007,290.037,0.708,5.828],["PM-LAJE 01",290.057,292.087,0.708,5.828],["PM-LAJE 01",292.107,294.137,0.708,5.828],["PM-LAJE 01",294.157,296.187,0.708,5.828],["PM-LAJE 01",296.207,298.237,0.708,5.828],["PM-LAJE 01",298.257,300.287,0.708,5.828],["PM-LAJE 01",300.307,302.337,0.708,5.828],["PM-LAJE 01",302.357,304.387,0.708,5.828],["PM-LAJE 01",304.407,306.437,0.708,5.828],["PM-LAJE 01",306.457,308.487,0.708,5.828],["PM-LAJE 01",308.507,310.537,0.708,5.828],["PM-LAJE 01",310.557,312.587,0.708,5.828],["PM-LAJE 01",312.607,314.637,0.708,5.828],["PM-LAJE 01",314.657,316.687,0.708,5.828],["PM-LAJE 01",316.707,318.737,0.708,5.828],["PM-LAJE 01",318.757,320.787,0.708,5.828],["PM-LAJE 01",320.807,322.837,0.708,5.828],["PM-LAJE 01",322.857,324.887,0.708,5.828],["PM-LAJE 01",324.907,326.937,0.708,5.828],["PM-LAJE 01",326.957,328.987,0.708,5.828],["PM-LAJE 01",329.007,331.037,0.708,5.828],["PM-LAJE 01",331.057,333.087,0.708,5.828],["PM-LAJE 01",333.107,335.137,0.708,5.828],["PM-LAJE 01",335.157,337.187,0.708,5.828],["PM-LAJE 01",337.207,339.237,0.708,5.828],["PM-LAJE 01",339.257,341.287,0.708,5.828],["PM-LAJE 01",341.307,343.337,0.708,5.828],["PM-LAJE 01",343.357,345.387,0.708,5.828],["PM-LAJE 01",345.407,347.437,0.708,5.828],["PM-U 11",348.482,356.662,4.205,7.73],["PM-U 11",356.682,364.862,4.205,7.73],["PM-U 11",364.882,373.062,4.205,7.73],["PM-U 11",373.082,381.262,4.205,7.73],["PM-04B",381.282,391.872,4.205,7.73],["PM-U 03",198.872,209.062,5.43,7.73],["PM-U 01",209.082,217.262,5.43,7.73],["PM-U 01",217.282,225.462,5.43,7.73],["PM-U 01",225.482,233.662,5.43,7.73],["PM-U 01",233.682,241.862,5.43,7.73],["PM-U 01",241.882,250.062,5.43,7.73],["PM-U 01",250.082,258.262,5.43,7.73],["PM-U 01",258.282,266.462,5.43,7.73],["PM-U 01",266.482,274.662,5.43,7.73],["PM-U 01",274.682,282.862,5.43,7.73],["PM-U 01",282.882,291.062,5.43,7.73],["PM-U 01",291.082,299.262,5.43,7.73],["PM-U 01",299.282,307.462,5.43,7.73],["PM-U 01",307.482,315.662,5.43,7.73],["PM-U 01",315.682,323.862,5.43,7.73],["PM-U 01",323.882,332.062,5.43,7.73],["PM-U 01",332.082,340.262,5.43,7.73],["PM-U 01",340.282,348.462,5.43,7.73],["PM-LAJE 03",198.872,201.887,7.333,12.453],["PM-LAJE 01",201.907,203.937,7.333,12.453],["PM-LAJE 01",203.957,205.987,7.333,12.453],["PM-LAJE 01",206.007,208.037,7.333,12.453],["PM-LAJE 01",208.057,210.087,7.333,12.453],["PM-LAJE 01",210.107,212.137,7.333,12.453],["PM-LAJE 01",212.157,214.187,7.333,12.453],["PM-LAJE 01",214.207,216.237,7.333,12.453],["PM-LAJE 01",216.257,218.287,7.333,12.453],["PM-LAJE 01",218.307,220.337,7.333,12.453],["PM-LAJE 01",220.357,222.387,7.333,12.453],["PM-LAJE 01",222.407,224.437,7.333,12.453],["PM-LAJE 01",224.457,226.487,7.333,12.453],["PM-LAJE 01",226.507,228.537,7.333,12.453],["PM-LAJE 01",228.557,230.587,7.333,12.453],["PM-LAJE 01",230.607,232.637,7.333,12.453],["PM-LAJE 01",232.657,234.687,7.333,12.453],["PM-LAJE 01",234.707,236.737,7.333,12.453],["PM-LAJE 01",236.757,238.787,7.333,12.453],["PM-LAJE 01",238.807,240.837,7.333,12.453],["PM-LAJE 01",240.857,242.887,7.333,12.453],["PM-LAJE 01",242.907,244.937,7.333,12.453],["PM-LAJE 01",244.957,246.987,7.333,12.453],["PM-LAJE 01",247.007,249.037,7.333,12.453],["PM-LAJE 01",249.057,251.087,7.333,12.453],["PM-LAJE 01",251.107,253.137,7.333,12.453],["PM-LAJE 01",253.157,255.187,7.333,12.453],["PM-LAJE 01",255.207,257.237,7.333,12.453],["PM-LAJE 01",257.257,259.287,7.333,12.453],["PM-LAJE 01",259.307,261.337,7.333,12.453],["PM-LAJE 01",261.357,263.387,7.333,12.453],["PM-LAJE 01",263.407,265.437,7.333,12.453],["PM-LAJE 01",265.457,267.487,7.333,12.453],["PM-LAJE 01",267.507,269.537,7.333,12.453],["PM-LAJE 01",269.557,271.587,7.333,12.453],["PM-LAJE 01",271.607,273.637,7.333,12.453],["PM-LAJE 01",273.657,275.687,7.333,12.453],["PM-LAJE 01",275.707,277.737,7.333,12.453],["PM-LAJE 01",277.757,279.787,7.333,12.453],["PM-LAJE 01",279.807,281.837,7.333,12.453],["PM-LAJE 01",281.857,283.887,7.333,12.453],["PM-LAJE 01",283.907,285.937,7.333,12.453],["PM-LAJE 01",285.957,287.987,7.333,12.453],["PM-LAJE 01",288.007,290.037,7.333,12.453],["PM-LAJE 01",290.057,292.087,7.333,12.453],["PM-LAJE 01",292.107,294.137,7.333,12.453],["PM-LAJE 01",294.157,296.187,7.333,12.453],["PM-LAJE 01",296.207,298.237,7.333,12.453],["PM-LAJE 01",298.257,300.287,7.333,12.453],["PM-LAJE 01",300.307,302.337,7.333,12.453],["PM-LAJE 01",302.357,304.387,7.333,12.453],["PM-LAJE 01",304.407,306.437,7.333,12.453],["PM-LAJE 01",306.457,308.487,7.333,12.453],["PM-LAJE 01",308.507,310.537,7.333,12.453],["PM-LAJE 01",310.557,312.587,7.333,12.453],["PM-LAJE 01",312.607,314.637,7.333,12.453],["PM-LAJE 01",314.657,316.687,7.333,12.453],["PM-LAJE 01",316.707,318.737,7.333,12.453],["PM-LAJE 01",318.757,320.787,7.333,12.453],["PM-LAJE 01",320.807,322.837,7.333,12.453],["PM-LAJE 01",322.857,324.887,7.333,12.453],["PM-LAJE 01",324.907,326.937,7.333,12.453],["PM-LAJE 01",326.957,328.987,7.333,12.453],["PM-LAJE 01",329.007,331.037,7.333,12.453],["PM-LAJE 01",331.057,333.087,7.333,12.453],["PM-LAJE 01",333.107,335.137,7.333,12.453],["PM-LAJE 01",335.157,337.187,7.333,12.453],["PM-LAJE 01",337.207,339.237,7.333,12.453],["PM-LAJE 01",339.257,341.287,7.333,12.453],["PM-LAJE 01",341.307,343.337,7.333,12.453],["PM-LAJE 01",343.357,345.387,7.333,12.453],["PM-LAJE 01",345.407,347.437,7.333,12.453],["PM-LAJE 01",347.457,349.487,7.333,12.453],["PM-LAJE 01",349.507,351.537,7.333,12.453],["PM-LAJE 01",351.557,353.587,7.333,12.453],["PM-LAJE 01",353.607,355.637,7.333,12.453],["PM-LAJE 01",355.657,357.687,7.333,12.453],["PM-LAJE 01",357.707,359.737,7.333,12.453],["PM-LAJE 01",359.757,361.787,7.333,12.453],["PM-LAJE 01",361.807,363.837,7.333,12.453],["PM-LAJE 01",363.857,365.887,7.333,12.453],["PM-LAJE 01",365.907,367.937,7.333,12.453],["PM-LAJE 01",367.957,369.987,7.333,12.453],["PM-LAJE 01",370.007,372.037,7.333,12.453],["PM-LAJE 01",372.057,374.087,7.333,12.453],["PM-LAJE 01",374.107,376.137,7.333,12.453],["PM-LAJE 01",376.157,378.187,7.333,12.453],["PM-LAJE 01",378.207,380.237,7.333,12.453],["PM-LAJE 01",380.257,382.287,7.333,12.453],["PM-LAJE 01",382.307,384.337,7.333,12.453],["PM-LAJE 01",384.357,386.387,7.333,12.453],["PM-LAJE 01",386.407,388.437,7.333,12.453],["PM-LAJE 01",388.457,390.487,7.333,12.453],["PM-LAJE 04",390.507,391.872,7.332,12.453],["PM-U 03",198.872,209.062,12.055,14.355],["PM-U 01",209.082,217.262,12.055,14.355],["PM-U 01",217.282,225.462,12.055,14.355],["PM-U 01",225.482,233.662,12.055,14.355],["PM-U 01",233.682,241.862,12.055,14.355],["PM-U 01",241.882,250.062,12.055,14.355],["PM-U 01",250.082,258.262,12.055,14.355],["PM-U 01",258.282,266.462,12.055,14.355],["PM-U 01",266.482,274.662,12.055,14.355],["PM-U 01",274.682,282.862,12.055,14.355],["PM-U 01",282.882,291.062,12.055,14.355],["PM-U 01",291.082,299.262,12.055,14.355],["PM-U 01",299.282,307.462,12.055,14.355],["PM-U 01",307.482,315.662,12.055,14.355],["PM-U 01",315.682,323.862,12.055,14.355],["PM-U 01",323.882,332.062,12.055,14.355],["PM-U 01",332.082,340.262,12.055,14.355],["PM-U 01",340.282,348.462,12.055,14.355],["PM-U 01",348.482,356.662,12.055,14.355],["PM-U 01",356.682,364.862,12.055,14.355],["PM-U 01",364.882,373.062,12.055,14.355],["PM-U 01",373.082,381.262,12.055,14.355],["PM-U 04",381.282,391.872,12.055,14.355],["PM-LAJE 09",198.172,201.887,13.958,19.078],["PM-LAJE 01",201.907,203.937,13.958,19.078],["PM-LAJE 01",203.957,205.987,13.958,19.078],["PM-LAJE 01",206.007,208.037,13.958,19.078],["PM-LAJE 01",208.057,210.087,13.958,19.078],["PM-LAJE 01",210.107,212.137,13.958,19.078],["PM-LAJE 01",212.157,214.187,13.958,19.078],["PM-LAJE 01",214.207,216.237,13.958,19.078],["PM-LAJE 01",216.257,218.287,13.958,19.078],["PM-LAJE 01",218.307,220.337,13.958,19.078],["PM-LAJE 01",220.357,222.387,13.958,19.078],["PM-LAJE 01",222.407,224.437,13.958,19.078],["PM-LAJE 01",224.457,226.487,13.958,19.078],["PM-LAJE 01",226.507,228.537,13.958,19.078],["PM-LAJE 01",228.557,230.587,13.958,19.078],["PM-LAJE 01",230.607,232.637,13.958,19.078],["PM-LAJE 01",232.657,234.687,13.958,19.078],["PM-LAJE 01",234.707,236.737,13.958,19.078],["PM-LAJE 01",236.757,238.787,13.958,19.078],["PM-LAJE 01",238.807,240.837,13.958,19.078],["PM-LAJE 01",240.857,242.887,13.958,19.078],["PM-LAJE 01",242.907,244.937,13.958,19.078],["PM-LAJE 01",244.957,246.987,13.958,19.078],["PM-LAJE 01",247.007,249.037,13.958,19.078],["PM-LAJE 01",249.057,251.087,13.958,19.078],["PM-LAJE 01",251.107,253.137,13.958,19.078],["PM-LAJE 01",253.157,255.187,13.958,19.078],["PM-LAJE 01",255.207,257.237,13.958,19.078],["PM-LAJE 01",257.257,259.287,13.958,19.078],["PM-LAJE 01",259.307,261.337,13.958,19.078],["PM-LAJE 01",261.357,263.387,13.958,19.078],["PM-LAJE 01",263.407,265.437,13.958,19.078],["PM-LAJE 01",265.457,267.487,13.958,19.078],["PM-LAJE 01",267.507,269.537,13.958,19.078],["PM-LAJE 01",269.557,271.587,13.958,19.078],["PM-LAJE 01",271.607,273.637,13.958,19.078],["PM-LAJE 01",273.657,275.687,13.958,19.078],["PM-LAJE 01",275.707,277.737,13.958,19.078],["PM-LAJE 01",277.757,279.787,13.958,19.078],["PM-LAJE 01",279.807,281.837,13.958,19.078],["PM-LAJE 01",281.857,283.887,13.958,19.078],["PM-LAJE 01",283.907,285.937,13.958,19.078],["PM-LAJE 01",285.957,287.987,13.958,19.078],["PM-LAJE 01",288.007,290.037,13.958,19.078],["PM-LAJE 01",290.057,292.087,13.958,19.078],["PM-LAJE 01",292.107,294.137,13.958,19.078],["PM-LAJE 01",294.157,296.187,13.958,19.078],["PM-LAJE 01",296.207,298.237,13.958,19.078],["PM-LAJE 01",298.257,300.287,13.958,19.078],["PM-LAJE 01",300.307,302.337,13.958,19.078],["PM-LAJE 01",302.357,304.387,13.958,19.078],["PM-LAJE 01",304.407,306.437,13.958,19.078],["PM-LAJE 01",306.457,308.487,13.958,19.078],["PM-LAJE 01",308.507,310.537,13.958,19.078],["PM-LAJE 01",310.557,312.587,13.958,19.078],["PM-LAJE 01",312.607,314.637,13.958,19.078],["PM-LAJE 01",314.657,316.687,13.958,19.078],["PM-LAJE 01",316.707,318.737,13.958,19.078],["PM-LAJE 01",318.757,320.787,13.958,19.078],["PM-LAJE 01",320.807,322.837,13.958,19.078],["PM-LAJE 01",322.857,324.887,13.958,19.078],["PM-LAJE 01",324.907,326.937,13.958,19.078],["PM-LAJE 01",326.957,328.987,13.958,19.078],["PM-LAJE 01",329.007,331.037,13.958,19.078],["PM-LAJE 01",331.057,333.087,13.958,19.078],["PM-LAJE 01",333.107,335.137,13.958,19.078],["PM-LAJE 01",335.157,337.187,13.958,19.078],["PM-LAJE 01",337.207,339.237,13.958,19.078],["PM-LAJE 01",339.257,341.287,13.958,19.078],["PM-LAJE 01",341.307,343.337,13.958,19.078],["PM-LAJE 01",343.357,345.387,13.958,19.078],["PM-LAJE 01",345.407,347.437,13.958,19.078],["PM-LAJE 01",347.457,349.487,13.958,19.078],["PM-LAJE 01",349.507,351.537,13.958,19.078],["PM-LAJE 01",351.557,353.587,13.958,19.078],["PM-LAJE 01",353.607,355.637,13.958,19.078],["PM-LAJE 01",355.657,357.687,13.958,19.078],["PM-LAJE 01",357.707,359.737,13.958,19.078],["PM-LAJE 01",359.757,361.787,13.958,19.078],["PM-LAJE 01",361.807,363.837,13.958,19.078],["PM-LAJE 01",363.857,365.887,13.958,19.078],["PM-LAJE 01",365.907,367.937,13.958,19.078],["PM-LAJE 01",367.957,369.987,13.958,19.078],["PM-LAJE 01",370.007,372.037,13.958,19.078],["PM-LAJE 01",372.057,374.087,13.958,19.078],["PM-LAJE 01",374.107,376.137,13.958,19.078],["PM-LAJE 01",376.157,378.187,13.958,19.078],["PM-LAJE 01",378.207,380.237,13.958,19.078],["PM-LAJE 01",380.257,382.287,13.958,19.078],["PM-LAJE 01",382.307,384.337,13.958,19.078],["PM-LAJE 01",384.357,386.387,13.958,19.078],["PM-LAJE 01",386.407,388.437,13.958,19.078],["PM-LAJE 01",388.457,390.487,13.958,19.078],["PM-LAJE 10",390.507,391.872,13.957,19.078],["PM-U 03",198.872,209.062,18.68,20.98],["PM-U 01",209.082,217.262,18.68,20.98],["PM-U 01",217.282,225.462,18.68,20.98],["PM-U 01",225.482,233.662,18.68,20.98],["PM-U 01",233.682,241.862,18.68,20.98],["PM-U 01",241.882,250.062,18.68,20.98],["PM-U 01",250.082,258.262,18.68,20.98],["PM-U 01",258.282,266.462,18.68,20.98],["PM-U 01",266.482,274.662,18.68,20.98],["PM-U 01",274.682,282.862,18.68,20.98],["PM-U 01",282.882,291.062,18.68,20.98],["PM-U 01",291.082,299.262,18.68,20.98],["PM-U 01",299.282,307.462,18.68,20.98],["PM-U 01",307.482,315.662,18.68,20.98],["PM-U 01",315.682,323.862,18.68,20.98],["PM-U 01",323.882,332.062,18.68,20.98],["PM-U 01",332.082,340.262,18.68,20.98],["PM-U 01",340.282,348.462,18.68,20.98],["PM-U 01",348.482,356.662,18.68,20.98],["PM-U 01",356.682,364.862,18.68,20.98],["PM-U 01",364.882,373.062,18.68,20.98],["PM-U 01",373.082,381.262,18.68,20.98],["PM-U 04",381.282,391.872,18.68,20.98],["PM-LAJE 03",198.872,201.887,20.582,25.702],["PM-LAJE 01",201.907,203.937,20.583,25.703],["PM-LAJE 01",203.957,205.987,20.583,25.703],["PM-LAJE 01",206.007,208.037,20.583,25.703],["PM-LAJE 01",208.057,210.087,20.583,25.703],["PM-LAJE 01",210.107,212.137,20.583,25.703],["PM-LAJE 01",212.157,214.187,20.583,25.703],["PM-LAJE 01",214.207,216.237,20.583,25.703],["PM-LAJE 01",216.257,218.287,20.583,25.703],["PM-LAJE 01",218.307,220.337,20.583,25.703],["PM-LAJE 01",220.357,222.387,20.583,25.703],["PM-LAJE 01",222.407,224.437,20.583,25.703],["PM-LAJE 01",224.457,226.487,20.583,25.703],["PM-LAJE 01",226.507,228.537,20.583,25.703],["PM-LAJE 01",228.557,230.587,20.583,25.703],["PM-LAJE 01",230.607,232.637,20.583,25.703],["PM-LAJE 01",232.657,234.687,20.583,25.703],["PM-LAJE 01",234.707,236.737,20.583,25.703],["PM-LAJE 01",236.757,238.787,20.583,25.703],["PM-LAJE 01",238.807,240.837,20.583,25.703],["PM-LAJE 01",240.857,242.887,20.583,25.703],["PM-LAJE 01",242.907,244.937,20.583,25.703],["PM-LAJE 01",244.957,246.987,20.583,25.703],["PM-LAJE 01",247.007,249.037,20.583,25.703],["PM-LAJE 01",249.057,251.087,20.583,25.703],["PM-LAJE 01",251.107,253.137,20.583,25.703],["PM-LAJE 01",253.157,255.187,20.583,25.703],["PM-LAJE 01",255.207,257.237,20.583,25.703],["PM-LAJE 01",257.257,259.287,20.583,25.703],["PM-LAJE 01",259.307,261.337,20.583,25.703],["PM-LAJE 01",261.357,263.387,20.583,25.703],["PM-LAJE 01",263.407,265.437,20.583,25.703],["PM-LAJE 01",265.457,267.487,20.583,25.703],["PM-LAJE 01",267.507,269.537,20.583,25.703],["PM-LAJE 01",269.557,271.587,20.583,25.703],["PM-LAJE 01",271.607,273.637,20.583,25.703],["PM-LAJE 01",273.657,275.687,20.583,25.703],["PM-LAJE 01",275.707,277.737,20.583,25.703],["PM-LAJE 01",277.757,279.787,20.583,25.703],["PM-LAJE 01",279.807,281.837,20.583,25.703],["PM-LAJE 01",281.857,283.887,20.583,25.703],["PM-LAJE 01",283.907,285.937,20.583,25.703],["PM-LAJE 01",285.957,287.987,20.583,25.703],["PM-LAJE 01",288.007,290.037,20.583,25.703],["PM-LAJE 01",290.057,292.087,20.583,25.703],["PM-LAJE 01",292.107,294.137,20.583,25.703],["PM-LAJE 01",294.157,296.187,20.583,25.703],["PM-LAJE 01",296.207,298.237,20.583,25.703],["PM-LAJE 01",298.257,300.287,20.583,25.703],["PM-LAJE 01",300.307,302.337,20.583,25.703],["PM-LAJE 01",302.357,304.387,20.583,25.703],["PM-LAJE 01",304.407,306.437,20.583,25.703],["PM-LAJE 01",306.457,308.487,20.583,25.703],["PM-LAJE 01",308.507,310.537,20.583,25.703],["PM-LAJE 01",310.557,312.587,20.583,25.703],["PM-LAJE 01",312.607,314.637,20.583,25.703],["PM-LAJE 01",314.657,316.687,20.583,25.703],["PM-LAJE 01",316.707,318.737,20.583,25.703],["PM-LAJE 01",318.757,320.787,20.583,25.703],["PM-LAJE 01",320.807,322.837,20.583,25.703],["PM-LAJE 01",322.857,324.887,20.583,25.703],["PM-LAJE 01",324.907,326.937,20.583,25.703],["PM-LAJE 01",326.957,328.987,20.583,25.703],["PM-LAJE 01",329.007,331.037,20.583,25.703],["PM-LAJE 01",331.057,333.087,20.583,25.703],["PM-LAJE 01",333.107,335.137,20.583,25.703],["PM-LAJE 01",335.157,337.187,20.583,25.703],["PM-LAJE 01",337.207,339.237,20.583,25.703],["PM-LAJE 01",339.257,341.287,20.583,25.703],["PM-LAJE 01",341.307,343.337,20.583,25.703],["PM-LAJE 01",343.357,345.387,20.583,25.703],["PM-LAJE 01",345.407,347.437,20.583,25.703],["PM-LAJE 01",347.457,349.487,20.583,25.703],["PM-LAJE 01",349.507,351.537,20.583,25.703],["PM-LAJE 01",351.557,353.587,20.583,25.703],["PM-LAJE 01",353.607,355.637,20.583,25.703],["PM-LAJE 01",355.657,357.687,20.583,25.703],["PM-LAJE 01",357.707,359.737,20.583,25.703],["PM-LAJE 01",359.757,361.787,20.583,25.703],["PM-LAJE 01",361.807,363.837,20.583,25.703],["PM-LAJE 01",363.857,365.887,20.583,25.703],["PM-LAJE 01",365.907,367.937,20.583,25.703],["PM-LAJE 01",367.957,369.987,20.583,25.703],["PM-LAJE 01",370.007,372.037,20.583,25.703],["PM-LAJE 01",372.057,374.087,20.583,25.703],["PM-LAJE 01",374.107,376.137,20.583,25.703],["PM-LAJE 01",376.157,378.187,20.583,25.703],["PM-LAJE 01",378.207,380.237,20.583,25.703],["PM-LAJE 01",380.257,382.287,20.583,25.703],["PM-LAJE 01",382.307,384.337,20.583,25.703],["PM-LAJE 01",384.357,386.387,20.583,25.703],["PM-LAJE 01",386.407,388.437,20.583,25.703],["PM-LAJE 01",388.457,390.487,20.583,25.703],["PM-LAJE 04",390.507,391.872,20.583,25.703],["PM-U 03",198.872,209.062,25.305,27.605],["PM-U 01",209.082,217.262,25.305,27.605],["PM-U 01",217.282,225.462,25.305,27.605],["PM-U 01",225.482,233.662,25.305,27.605],["PM-U 01",233.682,241.862,25.305,27.605],["PM-U 01",241.882,250.062,25.305,27.605],["PM-U 01",250.082,258.262,25.305,27.605],["PM-U 01",258.282,266.462,25.305,27.605],["PM-U 01",266.482,274.662,25.305,27.605],["PM-U 01",274.682,282.862,25.305,27.605],["PM-U 01",282.882,291.062,25.305,27.605],["PM-U 01",291.082,299.262,25.305,27.605],["PM-U 01",299.282,307.462,25.305,27.605],["PM-U 01",307.482,315.662,25.305,27.605],["PM-U 01",315.682,323.862,25.305,27.605],["PM-U 01",323.882,332.062,25.305,27.605],["PM-U 01",332.082,340.262,25.305,27.605],["PM-U 01",340.282,348.462,25.305,27.605],["PM-U 01",348.482,356.662,25.305,27.605],["PM-U 01",356.682,364.862,25.305,27.605],["PM-U 01",364.882,373.062,25.305,27.605],["PM-U 01",373.082,381.262,25.305,27.605],["PM-U 04",381.282,391.872,25.305,27.605],["PM-LAJE 03",198.872,201.887,27.207,32.327],["PM-LAJE 01",201.907,203.937,27.208,32.328],["PM-LAJE 01",203.957,205.987,27.208,32.328],["PM-LAJE 01",206.007,208.037,27.208,32.328],["PM-LAJE 01",208.057,210.087,27.208,32.328],["PM-LAJE 01",210.107,212.137,27.208,32.328],["PM-LAJE 01",212.157,214.187,27.208,32.328],["PM-LAJE 01",214.207,216.237,27.208,32.328],["PM-LAJE 01",216.257,218.287,27.208,32.328],["PM-LAJE 01",218.307,220.337,27.208,32.328],["PM-LAJE 01",220.357,222.387,27.208,32.328],["PM-LAJE 01",222.407,224.437,27.208,32.328],["PM-LAJE 01",224.457,226.487,27.208,32.328],["PM-LAJE 01",226.507,228.537,27.208,32.328],["PM-LAJE 01",228.557,230.587,27.208,32.328],["PM-LAJE 01",230.607,232.637,27.208,32.328],["PM-LAJE 01",232.657,234.687,27.208,32.328],["PM-LAJE 01",234.707,236.737,27.208,32.328],["PM-LAJE 01",236.757,238.787,27.208,32.328],["PM-LAJE 01",238.807,240.837,27.208,32.328],["PM-LAJE 01",240.857,242.887,27.208,32.328],["PM-LAJE 01",242.907,244.937,27.208,32.328],["PM-LAJE 01",244.957,246.987,27.208,32.328],["PM-LAJE 01",247.007,249.037,27.208,32.328],["PM-LAJE 01",249.057,251.087,27.208,32.328],["PM-LAJE 01",251.107,253.137,27.208,32.328],["PM-LAJE 01",253.157,255.187,27.208,32.328],["PM-LAJE 01",255.207,257.237,27.208,32.328],["PM-LAJE 01",257.257,259.287,27.208,32.328],["PM-LAJE 01",259.307,261.337,27.208,32.328],["PM-LAJE 01",261.357,263.387,27.208,32.328],["PM-LAJE 01",263.407,265.437,27.208,32.328],["PM-LAJE 01",265.457,267.487,27.208,32.328],["PM-LAJE 01",267.507,269.537,27.208,32.328],["PM-LAJE 01",269.557,271.587,27.208,32.328],["PM-LAJE 01",271.607,273.637,27.208,32.328],["PM-LAJE 01",273.657,275.687,27.208,32.328],["PM-LAJE 01",275.707,277.737,27.208,32.328],["PM-LAJE 01",277.757,279.787,27.208,32.328],["PM-LAJE 01",279.807,281.837,27.208,32.328],["PM-LAJE 01",281.857,283.887,27.208,32.328],["PM-LAJE 01",283.907,285.937,27.208,32.328],["PM-LAJE 01",285.957,287.987,27.208,32.328],["PM-LAJE 01",288.007,290.037,27.208,32.328],["PM-LAJE 01",290.057,292.087,27.208,32.328],["PM-LAJE 01",292.107,294.137,27.208,32.328],["PM-LAJE 01",294.157,296.187,27.208,32.328],["PM-LAJE 01",296.207,298.237,27.208,32.328],["PM-LAJE 01",298.257,300.287,27.208,32.328],["PM-LAJE 01",300.307,302.337,27.208,32.328],["PM-LAJE 01",302.357,304.387,27.208,32.328],["PM-LAJE 01",304.407,306.437,27.208,32.328],["PM-LAJE 01",306.457,308.487,27.208,32.328],["PM-LAJE 01",308.507,310.537,27.208,32.328],["PM-LAJE 01",310.557,312.587,27.208,32.328],["PM-LAJE 01",312.607,314.637,27.208,32.328],["PM-LAJE 01",314.657,316.687,27.208,32.328],["PM-LAJE 01",316.707,318.737,27.208,32.328],["PM-LAJE 01",318.757,320.787,27.208,32.328],["PM-LAJE 01",320.807,322.837,27.208,32.328],["PM-LAJE 01",322.857,324.887,27.208,32.328],["PM-LAJE 01",324.907,326.937,27.208,32.328],["PM-LAJE 01",326.957,328.987,27.208,32.328],["PM-LAJE 01",329.007,331.037,27.208,32.328],["PM-LAJE 01",331.057,333.087,27.208,32.328],["PM-LAJE 01",333.107,335.137,27.208,32.328],["PM-LAJE 01",335.157,337.187,27.208,32.328],["PM-LAJE 01",337.207,339.237,27.208,32.328],["PM-LAJE 01",339.257,341.287,27.208,32.328],["PM-LAJE 01",341.307,343.337,27.208,32.328],["PM-LAJE 01",343.357,345.387,27.208,32.328],["PM-LAJE 01",345.407,347.437,27.208,32.328],["PM-LAJE 01",347.457,349.487,27.208,32.328],["PM-LAJE 01",349.507,351.537,27.208,32.328],["PM-LAJE 01",351.557,353.587,27.208,32.328],["PM-LAJE 01",353.607,355.637,27.208,32.328],["PM-LAJE 01",355.657,357.687,27.208,32.328],["PM-LAJE 01",357.707,359.737,27.208,32.328],["PM-LAJE 01",359.757,361.787,27.208,32.328],["PM-LAJE 01",361.807,363.837,27.208,32.328],["PM-LAJE 01",363.857,365.887,27.208,32.328],["PM-LAJE 01",365.907,367.937,27.208,32.328],["PM-LAJE 01",367.957,369.987,27.208,32.328],["PM-LAJE 01",370.007,372.037,27.208,32.328],["PM-LAJE 01",372.057,374.087,27.208,32.328],["PM-LAJE 01",374.107,376.137,27.208,32.328],["PM-LAJE 01",376.157,378.187,27.208,32.328],["PM-LAJE 01",378.207,380.237,27.208,32.328],["PM-LAJE 01",380.257,382.287,27.208,32.328],["PM-LAJE 01",382.307,384.337,27.208,32.328],["PM-LAJE 01",384.357,386.387,27.208,32.328],["PM-LAJE 01",386.407,388.437,27.208,32.328],["PM-LAJE 01",388.457,390.487,27.208,32.328],["PM-LAJE 04",390.507,391.872,27.207,32.327],["PM-U 03",198.872,209.062,31.93,34.23],["PM-U 01",209.082,217.262,31.93,34.23],["PM-U 01",217.282,225.462,31.93,34.23],["PM-U 01",225.482,233.662,31.93,34.23],["PM-U 01",233.682,241.862,31.93,34.23],["PM-U 01",241.882,250.062,31.93,34.23],["PM-U 01",250.082,258.262,31.93,34.23],["PM-U 01",258.282,266.462,31.93,34.23],["PM-U 01",266.482,274.662,31.93,34.23],["PM-U 01",274.682,282.862,31.93,34.23],["PM-U 01",282.882,291.062,31.93,34.23],["PM-U 01",291.082,299.262,31.93,34.23],["PM-U 01",299.282,307.462,31.93,34.23],["PM-U 01",307.482,315.662,31.93,34.23],["PM-U 01",315.682,323.862,31.93,34.23],["PM-U 01",323.882,332.062,31.93,34.23],["PM-U 01",332.082,340.262,31.93,34.23],["PM-U 01",340.282,348.462,31.93,34.23],["PM-U 01",348.482,356.662,31.93,34.23],["PM-U 01",356.682,364.862,31.93,34.23],["PM-U 01",364.882,373.062,31.93,34.23],["PM-U 01",373.082,381.262,31.93,34.23],["PM-U 04",381.282,391.872,31.93,34.23],["PM-LAJE 09",198.172,201.887,33.832,38.952],["PM-LAJE 01",201.907,203.937,33.833,38.953],["PM-LAJE 01",203.957,205.987,33.833,38.953],["PM-LAJE 01",206.007,208.037,33.833,38.953],["PM-LAJE 01",208.057,210.087,33.833,38.953],["PM-LAJE 01",210.107,212.137,33.833,38.953],["PM-LAJE 01",212.157,214.187,33.833,38.953],["PM-LAJE 01",214.207,216.237,33.833,38.953],["PM-LAJE 01",216.257,218.287,33.833,38.953],["PM-LAJE 01",218.307,220.337,33.833,38.953],["PM-LAJE 01",220.357,222.387,33.833,38.953],["PM-LAJE 01",222.407,224.437,33.833,38.953],["PM-LAJE 01",224.457,226.487,33.833,38.953],["PM-LAJE 01",226.507,228.537,33.833,38.953],["PM-LAJE 01",228.557,230.587,33.833,38.953],["PM-LAJE 01",230.607,232.637,33.833,38.953],["PM-LAJE 01",232.657,234.687,33.833,38.953],["PM-LAJE 01",234.707,236.737,33.833,38.953],["PM-LAJE 01",236.757,238.787,33.833,38.953],["PM-LAJE 01",238.807,240.837,33.833,38.953],["PM-LAJE 01",240.857,242.887,33.833,38.953],["PM-LAJE 01",242.907,244.937,33.833,38.953],["PM-LAJE 01",244.957,246.987,33.833,38.953],["PM-LAJE 01",247.007,249.037,33.833,38.953],["PM-LAJE 01",249.057,251.087,33.833,38.953],["PM-LAJE 01",251.107,253.137,33.833,38.953],["PM-LAJE 01",253.157,255.187,33.833,38.953],["PM-LAJE 01",255.207,257.237,33.833,38.953],["PM-LAJE 01",257.257,259.287,33.833,38.953],["PM-LAJE 01",259.307,261.337,33.833,38.953],["PM-LAJE 01",261.357,263.387,33.833,38.953],["PM-LAJE 01",263.407,265.437,33.833,38.953],["PM-LAJE 01",265.457,267.487,33.833,38.953],["PM-LAJE 01",267.507,269.537,33.833,38.953],["PM-LAJE 01",269.557,271.587,33.833,38.953],["PM-LAJE 01",271.607,273.637,33.833,38.953],["PM-LAJE 01",273.657,275.687,33.833,38.953],["PM-LAJE 01",275.707,277.737,33.833,38.953],["PM-LAJE 01",277.757,279.787,33.833,38.953],["PM-LAJE 01",279.807,281.837,33.833,38.953],["PM-LAJE 01",281.857,283.887,33.833,38.953],["PM-LAJE 01",283.907,285.937,33.833,38.953],["PM-LAJE 01",285.957,287.987,33.833,38.953],["PM-LAJE 01",288.007,290.037,33.833,38.953],["PM-LAJE 01",290.057,292.087,33.833,38.953],["PM-LAJE 01",292.107,294.137,33.833,38.953],["PM-LAJE 01",294.157,296.187,33.833,38.953],["PM-LAJE 01",296.207,298.237,33.833,38.953],["PM-LAJE 01",298.257,300.287,33.833,38.953],["PM-LAJE 01",300.307,302.337,33.833,38.953],["PM-LAJE 01",302.357,304.387,33.833,38.953],["PM-LAJE 01",304.407,306.437,33.833,38.953],["PM-LAJE 01",306.457,308.487,33.833,38.953],["PM-LAJE 01",308.507,310.537,33.833,38.953],["PM-LAJE 01",310.557,312.587,33.833,38.953],["PM-LAJE 01",312.607,314.637,33.833,38.953],["PM-LAJE 01",314.657,316.687,33.833,38.953],["PM-LAJE 01",316.707,318.737,33.833,38.953],["PM-LAJE 01",318.757,320.787,33.833,38.953],["PM-LAJE 01",320.807,322.837,33.833,38.953],["PM-LAJE 01",322.857,324.887,33.833,38.953],["PM-LAJE 01",324.907,326.937,33.833,38.953],["PM-LAJE 01",326.957,328.987,33.833,38.953],["PM-LAJE 01",329.007,331.037,33.833,38.953],["PM-LAJE 01",331.057,333.087,33.833,38.953],["PM-LAJE 01",333.107,335.137,33.833,38.953],["PM-LAJE 01",335.157,337.187,33.833,38.953],["PM-LAJE 01",337.207,339.237,33.833,38.953],["PM-LAJE 01",339.257,341.287,33.833,38.953],["PM-LAJE 01",341.307,343.337,33.833,38.953],["PM-LAJE 01",343.357,345.387,33.833,38.953],["PM-LAJE 01",345.407,347.437,33.833,38.953],["PM-LAJE 01",347.457,349.487,33.833,38.953],["PM-LAJE 01",349.507,351.537,33.833,38.953],["PM-LAJE 01",351.557,353.587,33.833,38.953],["PM-LAJE 01",353.607,355.637,33.833,38.953],["PM-LAJE 01",355.657,357.687,33.833,38.953],["PM-LAJE 01",357.707,359.737,33.833,38.953],["PM-LAJE 01",359.757,361.787,33.833,38.953],["PM-LAJE 01",361.807,363.837,33.833,38.953],["PM-LAJE 01",363.857,365.887,33.833,38.953],["PM-LAJE 01",365.907,367.937,33.833,38.953],["PM-LAJE 01",367.957,369.987,33.833,38.953],["PM-LAJE 01",370.007,372.037,33.833,38.953],["PM-LAJE 01",372.057,374.087,33.833,38.953],["PM-LAJE 01",374.107,376.137,33.833,38.953],["PM-LAJE 01",376.157,378.187,33.833,38.953],["PM-LAJE 01",378.207,380.237,33.833,38.953],["PM-LAJE 01",380.257,382.287,33.833,38.953],["PM-LAJE 01",382.307,384.337,33.833,38.953],["PM-LAJE 01",384.357,386.387,33.833,38.953],["PM-LAJE 01",386.407,388.437,33.833,38.953],["PM-LAJE 01",388.457,390.487,33.833,38.953],["PM-LAJE 10",390.507,391.872,33.832,38.953],["PM-U 03",198.872,209.062,38.555,40.855],["PM-U 01",209.082,217.262,38.555,40.855],["PM-U 01",217.282,225.462,38.555,40.855],["PM-U 01",225.482,233.662,38.555,40.855],["PM-U 01",233.682,241.862,38.555,40.855],["PM-U 01",241.882,250.062,38.555,40.855],["PM-U 01",250.082,258.262,38.555,40.855],["PM-U 01",258.282,266.462,38.555,40.855],["PM-U 01",266.482,274.662,38.555,40.855],["PM-U 01",274.682,282.862,38.555,40.855],["PM-U 01",282.882,291.062,38.555,40.855],["PM-U 01",291.082,299.262,38.555,40.855],["PM-U 01",299.282,307.462,38.555,40.855],["PM-U 01",307.482,315.662,38.555,40.855],["PM-U 01",315.682,323.862,38.555,40.855],["PM-U 01",323.882,332.062,38.555,40.855],["PM-U 01",332.082,340.262,38.555,40.855],["PM-U 01",340.282,348.462,38.555,40.855],["PM-U 01",348.482,356.662,38.555,40.855],["PM-U 01",356.682,364.862,38.555,40.855],["PM-U 01",364.882,373.062,38.555,40.855],["PM-U 01",373.082,381.262,38.555,40.855],["PM-U 04",381.282,391.872,38.555,40.855],["PM-LAJE 06",198.872,201.887,40.455,43.705],["PM-LAJE 07",201.907,203.937,40.455,43.705],["PM-LAJE 07",203.957,205.987,40.455,43.705],["PM-LAJE 07",206.007,208.037,40.455,43.705],["PM-LAJE 07",208.057,210.087,40.455,43.705],["PM-LAJE 07",210.107,212.137,40.455,43.705],["PM-LAJE 07",212.157,214.187,40.455,43.705],["PM-LAJE 07",214.207,216.237,40.455,43.705],["PM-LAJE 07",216.257,218.287,40.455,43.705],["PM-LAJE 07",218.307,220.337,40.455,43.705],["PM-LAJE 07",220.357,222.387,40.455,43.705],["PM-LAJE 07",222.407,224.437,40.455,43.705],["PM-LAJE 07",224.457,226.487,40.455,43.705],["PM-LAJE 07",226.507,228.537,40.455,43.705],["PM-LAJE 07",228.557,230.587,40.455,43.705],["PM-LAJE 07",230.607,232.637,40.455,43.705],["PM-LAJE 07",232.657,234.687,40.455,43.705],["PM-LAJE 07",234.707,236.737,40.455,43.705],["PM-LAJE 07",236.757,238.787,40.455,43.705],["PM-LAJE 07",238.807,240.837,40.455,43.705],["PM-LAJE 07",240.857,242.887,40.455,43.705],["PM-LAJE 07",242.907,244.937,40.455,43.705],["PM-LAJE 07",244.957,246.987,40.455,43.705],["PM-LAJE 07",247.007,249.037,40.455,43.705],["PM-LAJE 07",249.057,251.087,40.455,43.705],["PM-LAJE 07",251.107,253.137,40.455,43.705],["PM-LAJE 07",253.157,255.187,40.455,43.705],["PM-LAJE 07",255.207,257.237,40.455,43.705],["PM-LAJE 07",257.257,259.287,40.455,43.705],["PM-LAJE 07",259.307,261.337,40.455,43.705],["PM-LAJE 07",261.357,263.387,40.455,43.705],["PM-LAJE 07",263.407,265.437,40.455,43.705],["PM-LAJE 07",265.457,267.487,40.455,43.705],["PM-LAJE 07",267.507,269.537,40.455,43.705],["PM-LAJE 07",269.557,271.587,40.455,43.705],["PM-LAJE 07",271.607,273.637,40.455,43.705],["PM-LAJE 07",273.657,275.687,40.455,43.705],["PM-LAJE 07",275.707,277.737,40.455,43.705],["PM-LAJE 07",277.757,279.787,40.455,43.705],["PM-LAJE 07",279.807,281.837,40.455,43.705],["PM-LAJE 07",281.857,283.887,40.455,43.705],["PM-LAJE 07",283.907,285.937,40.455,43.705],["PM-LAJE 07",285.957,287.987,40.455,43.705],["PM-LAJE 07",288.007,290.037,40.455,43.705],["PM-LAJE 07",290.057,292.087,40.455,43.705],["PM-LAJE 07",292.107,294.137,40.455,43.705],["PM-LAJE 07",294.157,296.187,40.455,43.705],["PM-LAJE 07",296.207,298.237,40.455,43.705],["PM-LAJE 07",298.257,300.287,40.455,43.705],["PM-LAJE 07",300.307,302.337,40.455,43.705],["PM-LAJE 07",302.357,304.387,40.455,43.705],["PM-LAJE 07",304.407,306.437,40.455,43.705],["PM-LAJE 07",306.457,308.487,40.455,43.705],["PM-LAJE 07",308.507,310.537,40.455,43.705],["PM-LAJE 07",310.557,312.587,40.455,43.705],["PM-LAJE 07",312.607,314.637,40.455,43.705],["PM-LAJE 07",314.657,316.687,40.455,43.705],["PM-LAJE 07",316.707,318.737,40.455,43.705],["PM-LAJE 07",318.757,320.787,40.455,43.705],["PM-LAJE 07",320.807,322.837,40.455,43.705],["PM-LAJE 07",322.857,324.887,40.455,43.705],["PM-LAJE 07",324.907,326.937,40.455,43.705],["PM-LAJE 07",326.957,328.987,40.455,43.705],["PM-LAJE 07",329.007,331.037,40.455,43.705],["PM-LAJE 07",331.057,333.087,40.455,43.705],["PM-LAJE 07",333.107,335.137,40.455,43.705],["PM-LAJE 07",335.157,337.187,40.455,43.705],["PM-LAJE 07",337.207,339.237,40.455,43.705],["PM-LAJE 07",339.257,341.287,40.455,43.705],["PM-LAJE 07",341.307,343.337,40.455,43.705],["PM-LAJE 07",343.357,345.387,40.455,43.705],["PM-LAJE 07",345.407,347.437,40.455,43.705],["PM-LAJE 07",347.457,349.487,40.455,43.705],["PM-LAJE 07",349.507,351.537,40.455,43.705],["PM-LAJE 07",351.557,353.587,40.455,43.705],["PM-LAJE 07",353.607,355.637,40.455,43.705],["PM-LAJE 07",355.657,357.687,40.455,43.705],["PM-LAJE 07",357.707,359.737,40.455,43.705],["PM-LAJE 07",359.757,361.787,40.455,43.705],["PM-LAJE 07",361.807,363.837,40.455,43.705],["PM-LAJE 07",363.857,365.887,40.455,43.705],["PM-LAJE 07",365.907,367.937,40.455,43.705],["PM-LAJE 07",367.957,369.987,40.455,43.705],["PM-LAJE 07",370.007,372.037,40.455,43.705],["PM-LAJE 07",372.057,374.087,40.455,43.705],["PM-LAJE 07",374.107,376.137,40.455,43.705],["PM-LAJE 07",376.157,378.187,40.455,43.705],["PM-LAJE 07",378.207,380.237,40.455,43.705],["PM-LAJE 07",380.257,382.287,40.455,43.705],["PM-LAJE 07",382.307,384.337,40.455,43.705],["PM-LAJE 07",384.357,386.387,40.455,43.705],["PM-LAJE 07",386.407,388.437,40.455,43.705],["PM-LAJE 07",388.457,390.487,40.455,43.705],["PM-LAJE 11",390.507,391.872,40.455,43.705],["PM-U 35",198.872,209.062,43.305,45.935],["PM-U 34",209.082,217.262,43.305,45.935],["PM-U 34",217.282,225.462,43.305,45.935],["PM-U 34",225.482,233.662,43.305,45.935],["PM-U 34",233.682,241.862,43.305,45.935],["PM-U 34",241.882,250.062,43.305,45.935],["PM-U 34",250.082,258.262,43.305,45.935],["PM-U 34",258.282,266.462,43.305,45.935],["PM-U 34",266.482,274.662,43.305,45.935],["PM-U 34",274.682,282.862,43.305,45.935],["PM-U 34",282.882,291.062,43.305,45.935],["PM-U 34",291.082,299.262,43.305,45.935],["PM-U 34",299.282,307.462,43.305,45.935],["PM-U 34",307.482,315.662,43.305,45.935],["PM-U 34",315.682,323.862,43.305,45.935],["PM-U 34",323.882,332.062,43.305,45.935],["PM-U 34",332.082,340.262,43.305,45.935],["PM-U 34",340.282,348.462,43.305,45.935],["PM-U 34",348.482,356.662,43.305,45.935],["PM-U 34",356.682,364.862,43.305,45.935],["PM-U 34",364.882,373.062,43.305,45.935],["PM-U 34",373.082,381.262,43.305,45.935],["PM-36",381.282,391.872,43.305,45.935],["PM-PEST 03",198.872,209.062,45.425,46.751],["PM-PEST 01",209.082,217.262,45.425,46.751],["PM-PEST 01",217.282,225.462,45.425,46.751],["PM-PEST 01",225.482,233.662,45.425,46.751],["PM-PEST 01",233.682,241.862,45.425,46.751],["PM-PEST 01",241.882,250.062,45.425,46.751],["PM-PEST 01",250.082,258.262,45.425,46.751],["PM-PEST 01",258.282,266.462,45.425,46.751],["PM-PEST 01",266.482,274.662,45.425,46.751],["PM-PEST 01",274.682,282.862,45.425,46.751],["PM-PEST 01",282.882,291.062,45.425,46.751],["PM-PEST 01",291.082,299.262,45.425,46.751],["PM-PEST 01",299.282,307.462,45.425,46.751],["PM-PEST 01",307.482,315.662,45.425,46.751],["PM-PEST 01",315.682,323.862,45.425,46.751],["PM-PEST 01",323.882,332.062,45.425,46.751],["PM-PEST 01",332.082,340.262,45.425,46.751],["PM-PEST 01",340.282,348.462,45.425,46.751],["PM-PEST 01",348.482,356.662,45.425,46.751],["PM-PEST 01",356.682,364.862,45.425,46.751],["PM-PEST 01",364.882,373.062,45.425,46.751],["PM-PEST 01",373.082,381.262,45.425,46.751],["PM-PEST 04",381.282,391.872,45.425,46.751]],
+  '03': [["PM-L 11",391.973,393.063,4.23,5.855],["PM-L 10",393.083,394.863,4.23,5.855],["PM-L 10",394.883,396.663,4.23,5.855],["PM-L 10",396.683,398.463,4.23,5.855],["PM-L 10",398.483,400.263,4.23,5.855],["PM-L 10",400.283,402.063,4.23,5.855],["PM-L 10",402.083,403.863,4.23,5.855],["PM-L 10",403.883,405.663,4.23,5.855],["PM-L 10",405.683,407.463,4.23,5.855],["PM-L 10",407.483,409.263,4.23,5.855],["PM-L 10",409.283,411.063,4.23,5.855],["PM-L 10",411.083,412.863,4.23,5.855],["PM-L 10",412.883,414.663,4.23,5.855],["PM-L 10",414.683,416.463,4.23,5.855],["PM-L 10",416.483,418.263,4.23,5.855],["PM-L 10",418.283,420.063,4.23,5.855],["PM-L 10",420.083,421.863,4.23,5.855],["PM-L 10",421.883,423.663,4.23,5.855],["PM-L 10",423.683,425.463,4.23,5.855],["PM-L 10",425.483,427.263,4.23,5.855],["PM-L 10",427.283,429.063,4.23,5.855],["PM-L 10",429.083,430.863,4.23,5.855],["PM-L 12",430.883,431.973,4.23,5.855],["PM-U 06",391.973,401.163,5.455,7.755],["PM-U 07",401.183,408.363,5.455,7.755],["PM-U 07",408.383,415.563,5.455,7.755],["PM-U 07",415.583,422.763,5.455,7.755],["PM-U 06",422.783,431.973,5.455,7.755],["PM-LAJE 14",391.973,393.063,7.357,12.477],["PM-LAJE 13",393.083,394.863,7.357,12.477],["PM-LAJE 13",394.883,396.663,7.357,12.477],["PM-LAJE 13",396.683,398.463,7.357,12.477],["PM-LAJE 13",398.483,400.263,7.357,12.477],["PM-LAJE 13",400.283,402.063,7.357,12.477],["PM-LAJE 13",402.083,403.863,7.357,12.477],["PM-LAJE 13",403.883,405.663,7.357,12.477],["PM-LAJE 13",405.683,407.463,7.357,12.477],["PM-LAJE 13",407.483,409.263,7.357,12.477],["PM-LAJE 13",409.283,411.063,7.357,12.477],["PM-LAJE 13",411.083,412.863,7.357,12.477],["PM-LAJE 13",412.883,414.663,7.357,12.477],["PM-LAJE 13",414.683,416.463,7.357,12.477],["PM-LAJE 13",416.483,418.263,7.357,12.477],["PM-LAJE 13",418.283,420.063,7.357,12.477],["PM-LAJE 13",420.083,421.863,7.357,12.477],["PM-LAJE 13",421.883,423.663,7.357,12.477],["PM-LAJE 13",423.683,425.463,7.357,12.477],["PM-LAJE 13",425.483,427.263,7.357,12.477],["PM-LAJE 13",427.283,429.063,7.357,12.477],["PM-LAJE 13",429.083,430.863,7.357,12.477],["PM-LAJE 14",430.883,431.973,7.357,12.477],["PM-U 06",391.973,401.163,12.08,14.38],["PM-U 07",401.183,408.363,12.08,14.38],["PM-U 07",408.383,415.563,12.08,14.38],["PM-U 07",415.583,422.763,12.08,14.38],["PM-U 06",422.783,431.973,12.08,14.38],["PM-LAJE 16",391.273,393.063,13.982,19.102],["PM-LAJE 13",393.083,394.863,13.982,19.102],["PM-LAJE 13",394.883,396.663,13.982,19.102],["PM-LAJE 13",396.683,398.463,13.982,19.102],["PM-LAJE 13",398.483,400.263,13.982,19.102],["PM-LAJE 13",400.283,402.063,13.982,19.102],["PM-LAJE 13",402.083,403.863,13.982,19.102],["PM-LAJE 13",403.883,405.663,13.982,19.102],["PM-LAJE 13",405.683,407.463,13.982,19.102],["PM-LAJE 13",407.483,409.263,13.982,19.102],["PM-LAJE 13",409.283,411.063,13.982,19.102],["PM-LAJE 13",411.083,412.863,13.982,19.102],["PM-LAJE 13",412.883,414.663,13.982,19.102],["PM-LAJE 13",414.683,416.463,13.982,19.102],["PM-LAJE 13",416.483,418.263,13.982,19.102],["PM-LAJE 13",418.283,420.063,13.982,19.102],["PM-LAJE 13",420.083,421.863,13.982,19.102],["PM-LAJE 13",421.883,423.663,13.982,19.102],["PM-LAJE 13",423.683,425.463,13.982,19.102],["PM-LAJE 13",425.483,427.263,13.982,19.102],["PM-LAJE 13",427.283,429.063,13.982,19.102],["PM-LAJE 13",429.083,430.863,13.982,19.102],["PM-LAJE 14",430.883,431.973,13.982,19.102],["PM-U 06",391.973,401.163,18.704,21.004],["PM-U 07",401.183,408.363,18.704,21.004],["PM-U 07",408.383,415.563,18.704,21.004],["PM-U 07",415.583,422.763,18.704,21.004],["PM-U 06",422.783,431.973,18.704,21.004],["PM-LAJE 14",391.973,393.063,20.607,25.727],["PM-LAJE 13",393.083,394.863,20.607,25.727],["PM-LAJE 13",394.883,396.663,20.607,25.727],["PM-LAJE 13",396.683,398.463,20.607,25.727],["PM-LAJE 13",398.483,400.263,20.607,25.727],["PM-LAJE 13",400.283,402.063,20.607,25.727],["PM-LAJE 13",402.083,403.863,20.607,25.727],["PM-LAJE 13",403.883,405.663,20.607,25.727],["PM-LAJE 13",405.683,407.463,20.607,25.727],["PM-LAJE 13",407.483,409.263,20.607,25.727],["PM-LAJE 13",409.283,411.063,20.607,25.727],["PM-LAJE 13",411.083,412.863,20.607,25.727],["PM-LAJE 13",412.883,414.663,20.607,25.727],["PM-LAJE 13",414.683,416.463,20.607,25.727],["PM-LAJE 13",416.483,418.263,20.607,25.727],["PM-LAJE 13",418.283,420.063,20.607,25.727],["PM-LAJE 13",420.083,421.863,20.607,25.727],["PM-LAJE 13",421.883,423.663,20.607,25.727],["PM-LAJE 13",423.683,425.463,20.607,25.727],["PM-LAJE 13",425.483,427.263,20.607,25.727],["PM-LAJE 13",427.283,429.063,20.607,25.727],["PM-LAJE 13",429.083,430.863,20.607,25.727],["PM-LAJE 14",430.883,431.973,20.607,25.727],["PM-U 06",391.973,401.163,25.329,27.629],["PM-U 07",401.183,408.363,25.329,27.629],["PM-U 07",408.383,415.563,25.329,27.629],["PM-U 07",415.583,422.763,25.329,27.629],["PM-U 06",422.783,431.973,25.329,27.629],["PM-LAJE 14",391.973,393.063,27.232,32.352],["PM-LAJE 13",393.083,394.863,27.232,32.352],["PM-LAJE 13",394.883,396.663,27.232,32.352],["PM-LAJE 13",396.683,398.463,27.232,32.352],["PM-LAJE 13",398.483,400.263,27.232,32.352],["PM-LAJE 13",400.283,402.063,27.232,32.352],["PM-LAJE 13",402.083,403.863,27.232,32.352],["PM-LAJE 13",403.883,405.663,27.232,32.352],["PM-LAJE 13",405.683,407.463,27.232,32.352],["PM-LAJE 13",407.483,409.263,27.232,32.352],["PM-LAJE 13",409.283,411.063,27.232,32.352],["PM-LAJE 13",411.083,412.863,27.232,32.352],["PM-LAJE 13",412.883,414.663,27.232,32.352],["PM-LAJE 13",414.683,416.463,27.232,32.352],["PM-LAJE 13",416.483,418.263,27.232,32.352],["PM-LAJE 13",418.283,420.063,27.232,32.352],["PM-LAJE 13",420.083,421.863,27.232,32.352],["PM-LAJE 13",421.883,423.663,27.232,32.352],["PM-LAJE 13",423.683,425.463,27.232,32.352],["PM-LAJE 13",425.483,427.263,27.232,32.352],["PM-LAJE 13",427.283,429.063,27.232,32.352],["PM-LAJE 13",429.083,430.863,27.232,32.352],["PM-LAJE 14",430.883,431.973,27.232,32.352],["PM-U 06",391.973,401.163,31.955,34.255],["PM-U 07",401.183,408.363,31.955,34.255],["PM-U 07",408.383,415.563,31.955,34.255],["PM-U 07",415.583,422.763,31.955,34.255],["PM-U 06",422.783,431.973,31.955,34.255],["PM-LAJE 16",391.273,393.063,33.857,38.977],["PM-LAJE 13",393.093,394.873,33.857,38.977],["PM-LAJE 13",394.893,396.673,33.857,38.977],["PM-LAJE 13",396.693,398.473,33.857,38.977],["PM-LAJE 13",398.493,400.273,33.857,38.977],["PM-LAJE 13",400.293,402.073,33.857,38.977],["PM-LAJE 13",402.093,403.873,33.857,38.977],["PM-LAJE 13",403.893,405.673,33.857,38.977],["PM-LAJE 13",405.693,407.473,33.857,38.977],["PM-LAJE 13",407.493,409.273,33.857,38.977],["PM-LAJE 13",409.293,411.073,33.857,38.977],["PM-LAJE 13",411.093,412.873,33.857,38.977],["PM-LAJE 13",412.893,414.673,33.857,38.977],["PM-LAJE 13",414.693,416.473,33.857,38.977],["PM-LAJE 13",416.493,418.273,33.857,38.977],["PM-LAJE 13",418.293,420.073,33.857,38.977],["PM-LAJE 13",420.093,421.873,33.857,38.977],["PM-LAJE 13",421.893,423.673,33.857,38.977],["PM-LAJE 13",423.693,425.473,33.857,38.977],["PM-LAJE 13",425.493,427.273,33.857,38.977],["PM-LAJE 13",427.293,429.073,33.857,38.977],["PM-LAJE 13",429.093,430.873,33.857,38.977],["PM-LAJE 14",430.883,431.973,33.857,38.977],["PM-U 06",391.973,401.163,38.58,40.88],["PM-U 07",401.183,408.363,38.58,40.88],["PM-U 07",408.383,415.563,38.58,40.88],["PM-U 07",415.583,422.763,38.58,40.88],["PM-U 06",422.783,431.973,38.58,40.88],["PM-LAJE 19",391.973,393.063,40.48,43.729],["PM-LAJE 18",393.083,394.863,40.48,43.73],["PM-LAJE 18",394.883,396.663,40.48,43.73],["PM-LAJE 18",396.683,398.463,40.48,43.73],["PM-LAJE 18",398.483,400.263,40.48,43.73],["PM-LAJE 18",400.283,402.063,40.48,43.73],["PM-LAJE 18",402.083,403.863,40.48,43.73],["PM-LAJE 18",403.883,405.663,40.48,43.73],["PM-LAJE 18",405.683,407.463,40.48,43.73],["PM-LAJE 18",407.483,409.263,40.48,43.73],["PM-LAJE 18",409.283,411.063,40.48,43.73],["PM-LAJE 18",411.083,412.863,40.48,43.73],["PM-LAJE 18",412.883,414.663,40.48,43.73],["PM-LAJE 18",414.683,416.463,40.48,43.73],["PM-LAJE 18",416.483,418.263,40.48,43.73],["PM-LAJE 18",418.283,420.063,40.48,43.73],["PM-LAJE 18",420.083,421.863,40.48,43.73],["PM-LAJE 18",421.883,423.663,40.48,43.73],["PM-LAJE 18",423.683,425.463,40.48,43.73],["PM-LAJE 18",425.483,427.263,40.48,43.73],["PM-LAJE 18",427.283,429.063,40.48,43.73],["PM-LAJE 18",429.083,430.863,40.48,43.73],["PM-LAJE 19",430.883,431.973,40.48,43.73],["PM-U 37",391.973,401.163,43.33,45.96],["PM-U 38",401.183,408.363,43.33,45.96],["PM-U 38",408.383,415.563,43.33,45.96],["PM-U 38",415.583,422.763,43.33,45.96],["PM-U 37",422.783,431.973,43.33,45.96],["PM-PEST 05",391.973,401.163,45.45,46.776],["PM-PEST 06",401.183,408.363,45.45,46.776],["PM-PEST 06",408.383,415.563,45.45,46.776],["PM-PEST 06",415.583,422.763,45.45,46.776],["PM-PEST 05",422.783,431.973,45.45,46.776]],
+};
 
 /** Todos os elementos do projeto, sem nenhum registro de execucao. */
 function criarElementosDoProjeto() {
@@ -13601,18 +13742,28 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     const w = Math.max(...xs) - Math.min(...xs); const hh = Math.max(...ys) - Math.min(...ys);
     const vertical = hh > w * 1.6;
     const larg = vertical ? hh : w; const alt = vertical ? w : hh;
-    if (alt < 13) return;
-    const tam = Math.max(10, Math.min(15, alt * 0.42));
+    if (alt < 11) return;
+    // v6.26.0: nome completo quando cabe; senao so o "PM-" e o numero da peca (ex.: "PM-210", "PM-01", "PM-112")
+    const nome = o.curto.replace(/ #\d+$/, '');   // v6.26.0: sem o numero sequencial (#001) no desenho
+    const soPM = nome.replace(/ \(.*\)$/, '');
+    let texto = soPM;   // v6.26.0: no desenho so o PM e o numero (ex.: PM-104), sem linha / vao / sequencial
+    let tam = Math.max(10, Math.min(15, alt * 0.42));
     ctx.font = fonte(tam, true);
-    const tw = ctx.measureText(o.curto).width;
-    if (tw + 8 > larg) return;
+    let tw = ctx.measureText(texto).width;
+    for (const tentativa of [[soPM, 10], [soPM, 8.5]]) {
+      if (tw + 8 <= larg) break;
+      [texto, tam] = [tentativa[0], Math.min(tam, tentativa[1])];
+      ctx.font = fonte(tam, true);
+      tw = ctx.measureText(texto).width;
+    }
+    if (tw + 6 > larg) return;
     const cx = xs.reduce((s, v) => s + v, 0) / xs.length; const cy = ys.reduce((s, v) => s + v, 0) / ys.length;
     ctx.save();
     ctx.translate(cx, cy);
     if (vertical) ctx.rotate(-Math.PI / 2);
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.strokeText(o.curto, 0, 0);
-    ctx.fillStyle = '#0f172a'; ctx.fillText(o.curto, 0, 0);
+    ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.strokeText(texto, 0, 0);
+    ctx.fillStyle = '#0f172a'; ctx.fillText(texto, 0, 0);
     ctx.restore();
   }
 
@@ -14361,14 +14512,31 @@ const CHAVE_CAMADAS = 'controle-campo:camadas-ocultas';
 const CAMADAS_STATUS = [['nao-iniciada', 'Não iniciado'], ['liberado', 'Liberado (azul)'], ['execucao', 'Em execução'], ['concluida', 'Concluído'], ['pendencia', 'Pendência']];
 const CAMADAS_DESENHO = [['eixos', 'Eixos e linhas'], ['cotas', 'Cotas'], ['nomes', 'Nomes dos elementos'], ['marcas', 'Números (sapatas / peças)']];
 function lerCamadasOcultas() {
-  const vazio = { frentes: [], status: [], desenho: [] };
+  const vazio = { frentes: [], tipos: [], diametros: [], status: [], desenho: [] };
   try {
     const salvo = JSON.parse(localStorage.getItem(CHAVE_CAMADAS) || 'null');
     if (salvo && typeof salvo === 'object') Object.keys(vazio).forEach((k) => { if (Array.isArray(salvo[k])) vazio[k] = salvo[k].map(String); });
   } catch (erro) { /* sem armazenamento: tudo visivel */ }
   return vazio;
 }
-const estadoCampo = { seg: '01', selecionadoId: null, ocultas: lerCamadasOcultas() };
+const estadoCampo = { seg: '01', selecionadoId: null, ocultas: lerCamadasOcultas(), periodo: null };
+/**
+ * v6.26.0: filtro por periodo e etapas (Camadas). periodo = { de, ate, etapas: [textos] | null (todas) }.
+ * Um elemento aparece quando alguma das etapas escolhidas aconteceu no periodo: a execucao dela
+ * (do inicio ao termino; em andamento = ate hoje; pontual = a data) cruza o intervalo de / ate.
+ */
+function passaPeriodo(e) {
+  const p = estadoCampo.periodo;
+  if (!p) return true;
+  return etapasDe(e).some((et) => {
+    if (p.etapas && !p.etapas.includes(`${tipoDe(e).frente}|${et.texto}`)) return false;   // servico|etapa
+    const r = e.reg[et.chave];
+    if (!r || !(r.inicio || r.data)) return false;
+    const ini = r.inicio || r.data;
+    const fim = r.data || hojeIso();
+    return (!p.ate || ini <= p.ate) && (!p.de || fim >= p.de);   // sem datas: qualquer dia
+  });
+}
 const camadaVisivel = (grupo, chave) => !estadoCampo.ocultas[grupo].includes(chave);
 function definirCamada(grupo, chave, visivel) {
   const lista = estadoCampo.ocultas[grupo].filter((k) => k !== chave);
@@ -14394,7 +14562,11 @@ const TOM_TIPO = {
 };
 const corElemento = (e) => (statusDe(e) === 'nao-iniciada' && TOM_TIPO[e.tipo] ? TOM_TIPO[e.tipo] : STATUS[statusDe(e)].cor);   // v6.22.0: sem o azul de liberado
 const chaveStatusCamada = (e) => (liberado(e) ? 'liberado' : statusDe(e));
-const passaFrente = (e) => camadaVisivel('frentes', tipoDe(e).frente) && camadaVisivel('status', chaveStatusCamada(e));
+/** v6.26.0: diametro da estaca metalica (Ø1016 / Ø1219) para o filtro de Servicos. */
+const diametroEstaca = (e) => (e.tipo === 'estaca-metalica' ? String(e.info?.diametro || (String(e.sub || '').match(/Ø(\d+)/) || [])[1] || '') : '');
+const passaFrente = (e) => camadaVisivel('frentes', tipoDe(e).frente) && camadaVisivel('tipos', e.tipo)
+  && (e.tipo !== 'estaca-metalica' || camadaVisivel('diametros', diametroEstaca(e)))
+  && camadaVisivel('status', chaveStatusCamada(e)) && passaPeriodo(e);
 
 const GRADES = {
   '01': { eixos: Array.from({ length: 55 }, (_, i) => i), titulo: 'LAJE ESTAQUEADA — SEGMENTOS 01A, 01B, 02, 03 E 04', desenho: '01A: DWG-00002 a 04, 08, 17, 24, 25, 46, 47 · 01B: DWG-00019, 00048 · 04: DWG-00198, 00202, 00203 (rev. B)' },
@@ -14405,7 +14577,7 @@ const GRADES = {
 
 /** Codigo curto escrito dentro da peca na prancha: estaca "1-A", peca "PM-201 #05", bloco "B3"... */
 function codigoCurto(e) {
-  const t = String(e.id || '').replace(/^(01B|1A|Canteiro) · /, '');
+  const t = String(e.id || '').replace(/^(01A|01B|1A|02|03|04|Canteiro) · /, '');   // v6.26.0: sem o prefixo do segmento
   return t.length > 18 ? `${t.slice(0, 17)}…` : t;
 }
 
@@ -14438,6 +14610,9 @@ function cenaSegmento(seg) {
     const emCorte = iniciou && !arrasada && !concretada;
     const corEtapa = (estado, parte) => (estado === 'f' ? (parte === 'concreto' ? COR_ESTACA.concreto : COR_ESTACA.pronto)
       : (estado === 'a' ? (parte === 'concreto' ? COR_ESTACA.concretando : COR_ESTACA.exec) : COR_ESTACA.cinza));
+    // v6.26.0: o nome vai no maior pedaco do elemento (vigas da junta tem um pedaco curto antes do capitel)
+    const areaGeo = (g) => (g.forma === 'caixa' ? (g.x1 - g.x0) * (g.y1 - g.y0) : 0);
+    const iNome = e.geo.length > 1 ? e.geo.reduce((m, g, k) => (areaGeo(g) > areaGeo(e.geo[m]) ? k : m), 0) : 0;
     e.geo.forEach((g0, i) => {
       let g = g0;
       if (ehEstaca) {
@@ -14469,7 +14644,7 @@ function cenaSegmento(seg) {
         parteAtiva: ehEstaca && iniciou,
         // planta da estaca (anel da camisa, pino, aco, miolo oco/azul, verde solido, ✓ do PIT) desenhada pelo motor
         ...(ehEstaca && i === 0 ? { planta: { ...pt, iniciou } } : {}),
-        curto: i === 0 ? curto : '',
+        curto: i === iNome || e.tipo === 'viga-u' ? curto : '',   // vigas: a ponta da junta tambem leva o nome (forma curta se nao couber)
       });
     });
   });
@@ -16087,7 +16262,9 @@ function paginaCampo() {
   const contarStatus = (s) => listaSeg.filter((e) => chaveStatusCamada(e) === s).length;
   const atualizarMeta = () => {
     const t = totaisDe(listaSeg.filter(passaFrente));
-    filtros.definirMeta(`Na tela: ${t.concluidos} concluídos · ${t.execucao} em execução · ${t.liberados} liberados · ${t.pendencias} pendências`);
+    const p = estadoCampo.periodo;
+    const txtPeriodo = p ? ` · ${p.de ? `Período ${dataTexto(p.de)} a ${dataTexto(p.ate)}` : 'Qualquer data'} (${!p.etapas ? 'todas as etapas' : (p.etapas.length <= 2 ? p.etapas.map((k) => k.split('|')[1]).join(', ') : `${p.etapas.length} etapas`)}): ${listaSeg.filter(passaFrente).length} elemento(s)` : '';
+    filtros.definirMeta(`Na tela: ${t.concluidos} concluídos · ${t.execucao} em execução · ${t.liberados} liberados · ${t.pendencias} pendências${txtPeriodo}`);
   };
   const filtros = criarBarraFiltros({
     busca: { placeholder: 'Localizar (ex.: 12-C, PM-105, Bloco B2)' },
@@ -16100,6 +16277,9 @@ function paginaCampo() {
             // elemento numa camada desligada: liga a camada dele e aproxima ao abrir
             definirCamada('frentes', tipoDe(achado).frente, true);
             definirCamada('status', chaveStatusCamada(achado), true);
+            definirCamada('tipos', achado.tipo, true);
+            if (achado.tipo === 'estaca-metalica') definirCamada('diametros', diametroEstaca(achado), true);
+            if (!passaPeriodo(achado)) estadoCampo.periodo = null;   // v6.26.0
             estadoCampo.selecionadoId = achado.id;
             estadoCampo.focarAoAbrir = achado.id;
             aplicativo.navegar('campo');
@@ -16183,32 +16363,211 @@ function paginaCampo() {
     if (!vista.travarArea(area)) { toast.info('Área sem elementos visíveis', 'Ligue as camadas ou escolha outros eixos e linhas.'); return; }
     abrirCamadas(false);
   };
-  const painelCamadas = h('div', { class: 'ctc-dropdown__panel ctc-dropdown__panel--right' },
-    h('div', { class: 'ctc-dropdown__footer' }, h('strong', {}, travada ? `Área: ${travada.texto}` : 'Área (eixos e linhas)'),
-      temArea ? h('button', { type: 'button', class: 'ctc-link ctc-allow-readonly', onClick: verTudoArea }, 'Ver tudo') : null),
-    fxE ? fxE.linha : null,
-    fxL ? fxL.linha : null,
-    temArea ? h('div', { class: 'ctc-dropdown__item ctc-faixa-eixos__acoes' },
-      h('button', { type: 'button', class: 'ctc-btn ctc-btn--primary ctc-btn--sm ctc-allow-readonly', onClick: aplicarFaixa }, 'Ver área')) : null,
-    temArea ? null : h('div', { class: 'ctc-dropdown__item' }, 'Este local não tem eixos e linhas de projeto.'),
-    tituloGrupo('Serviços', 'frentes'),
-    ...frentes.map((f) => itemInterruptor('frentes', f, `${FRENTES[f].texto} (${contar(f)})`)),
-    tituloGrupo('Situação', 'status'),
-    ...(statusDoSeg.length ? statusDoSeg : CAMADAS_STATUS).map(([s, txt]) => itemInterruptor('status', s, `${txt} (${contarStatus(s)})`)),
-    tituloGrupo('Desenho', 'desenho'),
-    ...CAMADAS_DESENHO.map(([k, txt]) => itemInterruptor('desenho', k, txt)),
-    (() => {   // v6.6: o antigo botao "3D claro / sólido" virou um interruptor das Camadas
-      const sw = criarInterruptor(vista.translucido());
-      const b = h('button', {
-        type: 'button', class: 'ctc-dropdown__item ctc-allow-readonly', role: 'switch', 'aria-checked': String(vista.translucido()),
-        onClick: () => { const on = vista.alternarTranslucido(); sw.definir(on); b.setAttribute('aria-checked', String(on)); },
-      }, h('span', {}, '3D em tom claro (só o selecionado em cor cheia)'), h('span', { class: 'ctc-spacer' }), sw);
-      return b;
-    })());
+  // v6.26.0: painel de Camadas com 2 abas: Filtros gerais (data, servicos, situacao, desenho com interruptores)
+  // e Filtro avancado (area de eixos / linhas e etapas por servico)
+  const per = estadoCampo.periodo;
+  const hoje = hojeIso();
+  const ICONE_FRENTE = { fundacoes: '🔩', blocos: '🧱', 'viga-eixo': '➖', premoldados: '🧩', lajes: '▦', concreto: '🪣', pavimento: '🛣️', central: '🏭', canteiro: '🏠', plataforma: '🛠️', cravacao: '⚙️', edificacoes: '🏢', areas: '🗺️' };
+  const atualizarPeriodo = (mudanca) => {
+    const atual = estadoCampo.periodo || { de: null, ate: null, etapas: null };
+    const novoP = { ...atual, ...mudanca };
+    estadoCampo.periodo = (novoP.de || novoP.etapas) ? novoP : null;
+    const n = listaSeg.filter(passaFrente).length;
+    abrirCamadas(false);
+    aplicativo.navegar('campo');
+    if (estadoCampo.periodo && !n) toast.info('Nada encontrado', 'Nenhum elemento atende a esse filtro.');
+  };
+  const secao = (icone, titulo, conteudo, extra) => h('section', { class: 'ctc-fsec' },
+    h('div', { class: 'ctc-fsec__cab' }, h('span', { class: 'ctc-fsec__ico', 'aria-hidden': 'true' }, icone), h('b', {}, titulo), h('span', { class: 'ctc-spacer' }), extra || null),
+    conteudo);
+  /** Linha com interruptor (estilo iPhone): { el, definir } */
+  const linhaSwitch = ({ icone, cor, texto, n, ligado, aoMudar, sub }) => {
+    const sw = criarInterruptor(ligado);
+    let on = ligado;
+    const el = h('button', { type: 'button', role: 'switch', 'aria-checked': String(on), class: `ctc-flinha ctc-allow-readonly${sub ? ' ctc-flinha--sub' : ''}` },
+      cor ? h('i', { class: 'ctc-flinha__cor', style: { background: cor } }) : null,
+      icone ? h('span', { class: 'ctc-flinha__ico', 'aria-hidden': 'true' }, icone) : null,
+      h('span', { class: 'ctc-flinha__txt' }, texto),
+      n != null ? h('b', { class: 'ctc-flinha__n' }, String(n)) : null,
+      sw);
+    const definir = (v) => { on = v; sw.definir(v); el.setAttribute('aria-checked', String(v)); };
+    el.addEventListener('click', () => { definir(!on); aoMudar(on); });
+    return { el, definir };
+  };
+  const linhaCamada = (grupo, chave, opc) => {
+    const l = linhaSwitch({ ...opc, ligado: camadaVisivel(grupo, chave), aoMudar: (v) => { definirCamada(grupo, chave, v); aoMudarCamada(); } });
+    l.grupo = grupo; l.chave = chave;
+    return l;
+  };
+  const todasNenhuma = (lista) => h('span', { class: 'ctc-cpainel__links' },
+    ...[['todas', true], ['nenhuma', false]].map(([t, v]) => h('button', { type: 'button', class: 'ctc-link ctc-allow-readonly', onClick: () => { lista.forEach((l) => { l.definir(v); definirCamada(l.grupo, l.chave, v); }); aoMudarCamada(); } }, t)));
+
+  // ---- Filtros gerais: data
+  const perDe = h('input', { type: 'date', class: 'ctc-input ctc-input--sm ctc-allow-readonly', value: per?.de || `${hoje.slice(0, 8)}01`, 'aria-label': 'Data inicial', dataset: { chips: '1' } });
+  const perAte = h('input', { type: 'date', class: 'ctc-input ctc-input--sm ctc-allow-readonly', value: per?.ate || hoje, 'aria-label': 'Data final', dataset: { chips: '1' } });
+  const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const atalho = (texto, fn) => h('button', { type: 'button', class: 'ctc-cchip ctc-cchip--atalho ctc-allow-readonly', onClick: () => { const [a, b] = fn(); perDe.value = a; perAte.value = b; } }, texto);
+  const aplicarData = () => {
+    let de = perDe.value; let ate = perAte.value;
+    if (!de || !ate) { toast.erro('Data incompleta', 'Escolha a data inicial e a final.'); return; }
+    if (de > ate) [de, ate] = [ate, de];
+    atualizarPeriodo({ de, ate });
+  };
+  const secData = secao('📅', 'Data', h('div', { class: 'ctc-fsec__corpo' },
+    h('div', { class: 'ctc-cpainel__datas' }, perDe, h('span', {}, 'a'), perAte),
+    h('div', { class: 'ctc-cpainel__chips' },
+      atalho('Hoje', () => [hoje, hoje]),
+      atalho('7 dias', () => { const d = new Date(); d.setDate(d.getDate() - 6); return [iso(d), hoje]; }),
+      atalho('Este mês', () => [`${hoje.slice(0, 8)}01`, hoje]),
+      atalho('Mês passado', () => { const d = new Date(); return [iso(new Date(d.getFullYear(), d.getMonth() - 1, 1)), iso(new Date(d.getFullYear(), d.getMonth(), 0))]; })),
+    h('div', { class: 'ctc-cpainel__acoes' },
+      per?.de ? h('button', { type: 'button', class: 'ctc-btn ctc-btn--outline ctc-btn--sm ctc-allow-readonly', onClick: () => atualizarPeriodo({ de: null, ate: null }) }, 'Limpar data') : null,
+      h('button', { type: 'button', class: 'ctc-btn ctc-btn--primary ctc-btn--sm ctc-allow-readonly', onClick: aplicarData }, 'Aplicar data'))),
+    per?.de ? h('span', { class: 'ctc-fsec__ativo' }, `${dataTexto(per.de)} a ${dataTexto(per.ate)}`) : null);
+
+  // ---- Filtros gerais: servicos (com os tipos de cada servico)
+  if (!estadoCampo.servicosAbertos) estadoCampo.servicosAbertos = new Set();
+  const linhasFrente = [];
+  const blocosServico = frentes.map((f) => {
+    const tiposF = [...new Set(listaSeg.filter((e) => tipoDe(e).frente === f).map((e) => e.tipo))];
+    const lf = linhaCamada('frentes', f, { icone: ICONE_FRENTE[f] || '▪', texto: FRENTES[f].texto, n: contar(f) });
+    linhasFrente.push(lf);
+    if (tiposF.length < 2) return h('div', { class: 'ctc-fserv' }, h('div', { class: 'ctc-fserv__linha' }, h('span', { class: 'ctc-fserv__seta ctc-fserv__seta--vazia' }), lf.el));
+    const subs = tiposF.map((tp) => linhaCamada('tipos', tp, { texto: TIPOS[tp].nome.split(' (')[0], n: listaSeg.filter((e) => e.tipo === tp).length, sub: true }));
+    // estaca metalica: mais um nivel, por diametro (Ø1016 / Ø1219)
+    const itensSub = subs.map((l, i) => {
+      if (tiposF[i] !== 'estaca-metalica') return l.el;
+      const diams = [...new Set(listaSeg.filter((e) => e.tipo === 'estaca-metalica').map(diametroEstaca).filter(Boolean))].sort();
+      if (diams.length < 2) return l.el;
+      const linhasD = diams.map((d) => linhaCamada('diametros', d, { texto: `Ø${d}`, n: listaSeg.filter((e) => e.tipo === 'estaca-metalica' && diametroEstaca(e) === d).length, sub: true }));
+      const corpoD = h('div', { class: 'ctc-fserv__subs' }, linhasD.map((x) => x.el));
+      const setaD = h('button', { type: 'button', class: 'ctc-fserv__seta ctc-allow-readonly', 'aria-label': 'Ver os diâmetros da estaca metálica' }, '▸');
+      const chaveAb = `${f}|estaca-metalica`;
+      const atualD = () => { const ab = estadoCampo.servicosAbertos.has(chaveAb); corpoD.hidden = !ab; setaD.setAttribute('aria-expanded', String(ab)); };
+      setaD.addEventListener('click', () => { if (estadoCampo.servicosAbertos.has(chaveAb)) estadoCampo.servicosAbertos.delete(chaveAb); else estadoCampo.servicosAbertos.add(chaveAb); atualD(); });
+      atualD();
+      return h('div', { class: 'ctc-fserv' }, h('div', { class: 'ctc-fserv__linha' }, setaD, l.el), corpoD);
+    });
+    const corpoS = h('div', { class: 'ctc-fserv__subs' }, itensSub);
+    const seta = h('button', { type: 'button', class: 'ctc-fserv__seta ctc-allow-readonly', 'aria-label': `Ver os tipos de ${FRENTES[f].texto}` }, '▸');
+    const atual = () => { const ab = estadoCampo.servicosAbertos.has(f); corpoS.hidden = !ab; seta.setAttribute('aria-expanded', String(ab)); };
+    seta.addEventListener('click', () => { if (estadoCampo.servicosAbertos.has(f)) estadoCampo.servicosAbertos.delete(f); else estadoCampo.servicosAbertos.add(f); atual(); });
+    atual();
+    return h('div', { class: 'ctc-fserv' }, h('div', { class: 'ctc-fserv__linha' }, seta, lf.el), corpoS);
+  });
+  const secServicos = secao('🏗️', 'Serviços', h('div', { class: 'ctc-fsec__lista' }, blocosServico), todasNenhuma(linhasFrente));
+
+  // ---- Filtros gerais: situacao e desenho
+  const COR_SIT = { 'nao-iniciada': '#cbd5e1', liberado: COR_LIBERADO, execucao: COR_ESTACA.exec, concluida: STATUS.concluida.cor, pendencia: STATUS.pendencia.cor };
+  const linhasSit = (statusDoSeg.length ? statusDoSeg : CAMADAS_STATUS).map(([st, txt]) => linhaCamada('status', st, { cor: COR_SIT[st], texto: txt.replace(' (azul)', ''), n: contarStatus(st) }));
+  const secSituacao = secao('🚦', 'Situação', h('div', { class: 'ctc-fsec__lista' }, linhasSit.map((l) => l.el)), todasNenhuma(linhasSit));
+  const ICONE_DES = { eixos: '📐', cotas: '📏', nomes: '🔤', marcas: '#️⃣' };
+  const linhasDes = CAMADAS_DESENHO.map(([k, txt]) => linhaCamada('desenho', k, { icone: ICONE_DES[k], texto: txt }));
+  const linhaClaro = linhaSwitch({ icone: '👻', texto: '3D em tom claro', ligado: vista.translucido(), aoMudar: () => { const on = vista.alternarTranslucido(); linhaClaro.definir(on); } });
+  const secDesenho = secao('✏️', 'Desenho', h('div', { class: 'ctc-fsec__lista' }, linhasDes.map((l) => l.el), linhaClaro.el));
+  const abaGeral = h('div', { class: 'ctc-cpainel__aba' }, secData, secServicos, secSituacao, secDesenho);
+
+  // ---- Filtro avancado: area
+  const secArea = secao('🎯', 'Área (eixos e linhas)', h('div', { class: 'ctc-fsec__corpo' },
+    temArea ? h('div', { class: 'ctc-cpainel__faixas' },
+      fxE ? h('div', { class: 'ctc-cpainel__faixa' }, h('span', {}, '↔ Eixos'), fxE.de, h('span', {}, 'a'), fxE.ate) : null,
+      fxL ? h('div', { class: 'ctc-cpainel__faixa' }, h('span', {}, '↕ Linhas'), fxL.de, h('span', {}, 'a'), fxL.ate) : null)
+      : h('p', { class: 'ctc-cpainel__vazio' }, 'Este local não tem eixos e linhas de projeto.'),
+    temArea ? h('div', { class: 'ctc-cpainel__acoes' },
+      h('button', { type: 'button', class: 'ctc-btn ctc-btn--outline ctc-btn--sm ctc-allow-readonly', onClick: verTudoArea }, 'Ver tudo'),
+      h('button', { type: 'button', class: 'ctc-btn ctc-btn--primary ctc-btn--sm ctc-allow-readonly', onClick: aplicarFaixa }, 'Ver área')) : null),
+    travada ? h('span', { class: 'ctc-fsec__ativo' }, travada.texto) : null);
+
+  // ---- Filtro avancado: etapas por servico (com a data do filtro geral, ou de qualquer dia)
+  const criarChip = ({ texto, titulo, ligado, aoMudar }) => {
+    let on = ligado;
+    const el = h('button', { type: 'button', class: 'ctc-cchip ctc-allow-readonly', 'aria-pressed': String(on), title: titulo || texto }, h('span', {}, texto));
+    const definir = (v) => { on = v; el.setAttribute('aria-pressed', String(v)); };
+    el.addEventListener('click', () => { definir(!on); if (aoMudar) aoMudar(on); });
+    return { el, ligado: () => on, definir };
+  };
+  const gruposEtapa = frentes.map((f) => {
+    const tiposF = [...new Set(listaSeg.filter((e) => tipoDe(e).frente === f).map((e) => e.tipo))];
+    const vistas = new Set();
+    const subs = tiposF.map((tp) => ({ nome: TIPOS[tp].nome.split(' (')[0], etapas: TIPOS[tp].etapas.map((et) => et.texto).filter((t) => (vistas.has(t) ? false : vistas.add(t))) }))
+      .filter((sb) => sb.etapas.length);
+    return { f, subs, etapas: subs.flatMap((sb) => sb.etapas) };
+  }).filter((g) => g.etapas.length);
+  const todasEtapas = gruposEtapa.flatMap((g) => g.etapas.map((t) => `${g.f}|${t}`));
+  const marcadas = new Set(per && per.etapas ? per.etapas : todasEtapas);
+  const chipsEtapa = [];
+  if (!estadoCampo.gruposAbertos) estadoCampo.gruposAbertos = new Set();
+  const blocosGrupo = gruposEtapa.map((g) => {
+    const chips = [];
+    const partes = g.subs.map((sb) => {
+      const cs = sb.etapas.map((t) => {
+        const k = `${g.f}|${t}`;
+        const c = criarChip({ texto: t.replace(/ \(.*\)$/, ''), titulo: t, ligado: marcadas.has(k), aoMudar: () => atualizarCab() });
+        c.t = k; chipsEtapa.push(c); chips.push(c);
+        return c.el;
+      });
+      return g.subs.length > 1 ? [h('div', { class: 'ctc-pgrupo__sub' }, sb.nome), ...cs] : cs;
+    }).flat();
+    const contagem = h('b', { class: 'ctc-pgrupo__n' });
+    const marca = h('button', { type: 'button', class: 'ctc-pgrupo__marca ctc-allow-readonly', 'aria-label': `Marcar ou desmarcar todas as etapas de ${FRENTES[g.f].texto}` });
+    const corpoG = h('div', { class: 'ctc-cpainel__chips ctc-pgrupo__chips' }, partes);
+    const aberto = () => estadoCampo.gruposAbertos.has(g.f);
+    const cab = h('button', { type: 'button', class: 'ctc-pgrupo__cab ctc-allow-readonly', 'aria-expanded': String(aberto()) },
+      h('span', { class: 'ctc-pgrupo__ico', 'aria-hidden': 'true' }, ICONE_FRENTE[g.f] || '▪'),
+      h('span', { class: 'ctc-pgrupo__nome' }, FRENTES[g.f].texto), contagem, h('span', { class: 'ctc-pgrupo__seta', 'aria-hidden': 'true' }, '▸'));
+    const bloco = h('div', { class: 'ctc-pgrupo' }, h('div', { class: 'ctc-pgrupo__linha' }, marca, cab), corpoG);
+    function atualizarCab() {
+      const n = chips.filter((c) => c.ligado()).length;
+      contagem.textContent = `${n}/${chips.length}`;
+      marca.dataset.estado = n === 0 ? 'nenhuma' : (n === chips.length ? 'todas' : 'parte');
+      marca.textContent = n === 0 ? '' : (n === chips.length ? '✓' : '–');
+      corpoG.hidden = !aberto();
+      cab.setAttribute('aria-expanded', String(aberto()));
+    }
+    cab.addEventListener('click', () => { if (aberto()) estadoCampo.gruposAbertos.delete(g.f); else estadoCampo.gruposAbertos.add(g.f); atualizarCab(); });
+    marca.addEventListener('click', () => { const todas = chips.every((c) => c.ligado()); chips.forEach((c) => c.definir(!todas)); atualizarCab(); });
+    atualizarCab();
+    bloco.atualizar = atualizarCab;
+    return bloco;
+  });
+  const marcarTodasEtapas = (v) => { chipsEtapa.forEach((c) => c.definir(v)); blocosGrupo.forEach((b) => b.atualizar()); };
+  const aplicarEtapas = () => {
+    const escolhidas = chipsEtapa.filter((c) => c.ligado()).map((c) => c.t);
+    if (!escolhidas.length) { toast.erro('Nenhuma etapa marcada', 'Marque ao menos uma etapa.'); return; }
+    atualizarPeriodo({ etapas: escolhidas.length === chipsEtapa.length ? null : escolhidas });
+  };
+  const secEtapas = secao('🧩', 'Etapas por serviço', h('div', { class: 'ctc-fsec__corpo' },
+    h('p', { class: 'ctc-fsec__dica' }, per?.de ? `Etapas que aconteceram de ${dataTexto(per.de)} a ${dataTexto(per.ate)} (data do filtro geral).` : 'Elementos com estas etapas registradas, em qualquer data (escolha a data no filtro geral).'),
+    h('div', { class: 'ctc-pgrupos' }, blocosGrupo),
+    h('div', { class: 'ctc-cpainel__acoes' },
+      per?.etapas ? h('button', { type: 'button', class: 'ctc-btn ctc-btn--outline ctc-btn--sm ctc-allow-readonly', onClick: () => atualizarPeriodo({ etapas: null }) }, 'Limpar etapas') : null,
+      h('button', { type: 'button', class: 'ctc-btn ctc-btn--primary ctc-btn--sm ctc-allow-readonly', onClick: aplicarEtapas }, 'Aplicar etapas'))),
+    h('span', { class: 'ctc-cpainel__links' },
+      h('button', { type: 'button', class: 'ctc-link ctc-allow-readonly', onClick: () => marcarTodasEtapas(true) }, 'todas'),
+      h('button', { type: 'button', class: 'ctc-link ctc-allow-readonly', onClick: () => marcarTodasEtapas(false) }, 'nenhuma')));
+  const abaAvancado = h('div', { class: 'ctc-cpainel__aba' }, secArea, secEtapas);
+
+  // ---- abas
+  const ABAS_CAM = [['geral', '🎛️', 'Filtros gerais', abaGeral, Boolean(per?.de)], ['avancado', '🔎', 'Filtro avançado', abaAvancado, Boolean(travada || per?.etapas)]];
+  if (!['geral', 'avancado'].includes(estadoCampo.abaCamadas)) estadoCampo.abaCamadas = 'geral';
+  const corpo = h('div', { class: 'ctc-cpainel__corpo' });
+  const botoesAba = ABAS_CAM.map(([id, ic, txt, , ativo]) => h('button', {
+    type: 'button', role: 'tab', class: 'ctc-cpainel__tab ctc-allow-readonly', 'aria-selected': String(estadoCampo.abaCamadas === id),
+    onClick: () => mostrarAba(id),
+  }, h('span', { 'aria-hidden': 'true' }, ic), txt, ativo ? h('i', { class: 'ctc-cpainel__ponto', title: 'filtro ativo' }) : null));
+  function mostrarAba(id) {
+    estadoCampo.abaCamadas = id;
+    botoesAba.forEach((b, i) => b.setAttribute('aria-selected', String(ABAS_CAM[i][0] === id)));
+    corpo.replaceChildren(ABAS_CAM.find((a) => a[0] === id)[3]);
+  }
+  mostrarAba(estadoCampo.abaCamadas);
+  const painelCamadas = h('div', { class: 'ctc-dropdown__panel ctc-dropdown__panel--right ctc-cpainel' },
+    h('div', { class: 'ctc-cpainel__tabs ctc-cpainel__tabs--2', role: 'tablist', 'aria-label': 'Filtros' }, botoesAba),
+    corpo);
   const botaoCamadas = h('button', {
     type: 'button', class: 'ctc-fbtn ctc-allow-readonly', 'aria-haspopup': 'true', 'aria-expanded': 'false', title: 'Camadas e área', 'aria-label': 'Camadas e área',
     onClick: () => abrirCamadas(!painelCamadas.classList.contains('is-open')),
-  }, '🎛️');
+  }, '🎛️', (travada || per) ? h('i', { class: 'ctc-fbtn__ponto', 'aria-hidden': 'true' }) : null);
   const dropCamadas = h('div', { class: 'ctc-dropdown' }, botaoCamadas, painelCamadas);
   function abrirCamadas(abrir) {
     painelCamadas.classList.toggle('is-open', abrir);
@@ -19052,7 +19411,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, ...(['controlador', 'administrador'].includes(perfil) ? [{ id: 'avisos', texto: 'E-mails de aviso', emoji: '📧' }] : []), { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.25.0' : 'Controle de Execução em Campo v6.25.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.26.0' : 'Controle de Execução em Campo v6.26.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -19092,7 +19451,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.25.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.26.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
