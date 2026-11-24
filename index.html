@@ -2710,6 +2710,50 @@ img { max-width: 100%; display: block; }
 @supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
   .ctc-vista .ctc-vista__legenda, .ctc-vista .ctc-fbtn, .ctc-vista .ctc-vista__flutua .ctc-dropdown__panel { background: rgba(255,255,255,.92); }
 }
+/* =====================================================================
+   v6.38.0: ICONES DESENHADOS — escolha do usuario
+   Flutuantes, ficha e acoes = estilo E "Marinho"; menu lateral = estilo D.
+   ===================================================================== */
+.ctc-fbtn svg { width: 24px; height: 24px; }
+.ctc-fbtn, .ctc-vista .ctc-fbtn {
+  background: #00144d; color: #fff; border: 2px solid rgba(255,255,255,.85);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  box-shadow: 0 4px 12px rgba(0,20,77,.35), 0 0 0 1px rgba(0,20,77,.12);
+}
+.ctc-fbtn:hover, .ctc-vista .ctc-fbtn:hover { background: #0b2a7a; transform: scale(1.05); }
+.ctc-fbtn[aria-expanded="true"], .ctc-vista .ctc-fbtn[aria-expanded="true"] { background: #005bab; color: #fff; border-color: #fdb913; box-shadow: 0 0 0 3px rgba(253,185,19,.45), 0 4px 12px rgba(0,20,77,.35); }
+.ctc-fbtn__ponto { border: 2px solid #00144d; }
+.ctc-centro__tudo svg, .ctc-centro__ir svg { vertical-align: -3px; color: #005bab; }
+/* menu lateral (D) */
+.ctc-sidebar__icon { color: #93c5fd; }
+.ctc-sidebar__item.is-active, .ctc-sidebar__item[aria-current="page"] { background: #00144d; box-shadow: inset 0 0 0 1px rgba(147,197,253,.18); }
+.ctc-sidebar__item.is-active::before, .ctc-sidebar__item[aria-current="page"]::before { background: #fdb913; width: 4px; }
+.ctc-sidebar__item.is-active .ctc-sidebar__icon, .ctc-sidebar__item[aria-current="page"] .ctc-sidebar__icon { color: #fdb913; }
+/* menu em painel claro (botao Menu): icone azul; ativo marinho com barra e icone amarelos */
+.ctc-app--menu-botao .ctc-sidebar__icon { color: #005bab; }
+.ctc-app--menu-botao .ctc-sidebar__icon svg { width: 18px; height: 18px; }
+.ctc-app--menu-botao .ctc-sidebar__item.is-active, .ctc-app--menu-botao .ctc-sidebar__item[aria-current="page"] { background: #00144d; color: #fff; }
+.ctc-app--menu-botao .ctc-sidebar__item.is-active::before, .ctc-app--menu-botao .ctc-sidebar__item[aria-current="page"]::before { background: #fdb913; width: 4px; }
+.ctc-app--menu-botao .ctc-sidebar__item.is-active .ctc-sidebar__icon, .ctc-app--menu-botao .ctc-sidebar__item[aria-current="page"] .ctc-sidebar__icon { color: #fdb913; }
+/* botoes (E): principal marinho com icone amarelo; contorno azul-claro com icone azul */
+.ctc-btn--primary { --_bg: #00144d; --_fg: #fff; --_bg-hover: #0b2a7a; }
+.ctc-btn--primary svg { color: #fdb913; }
+.ctc-btn--outline { --_bg: #eef2f9; --_fg: #00144d; --_bd: #d6deeb; --_bg-hover: #e0e7f3; }
+.ctc-btn--outline svg { color: #005bab; }
+.ctc-header .ctc-btn svg { color: inherit; }   /* cabecalho escuro: icone na cor do texto */
+.ctc-ico-txt { display: inline-flex; align-items: center; gap: 8px; }
+/* ficha (E) */
+.ctc-comp__botao { background: #00144d; border: 2px solid #00144d; color: #fff; align-items: center; }
+.ctc-comp__botao svg { color: #fdb913; flex: none; }
+.ctc-comp__botao small { color: #c7d2fe; }
+.ctc-comp__botao:hover { background: #0b2a7a; border-color: #0b2a7a; }
+button.ctc-ficha__abrir { background: #00144d; color: #fff; border: 1px solid #00144d; }
+button.ctc-ficha__abrir:hover { background: #0b2a7a; }
+.ctc-ficha__abrir svg { color: #fdb913; }
+.ctc-modal .ctc-ap-retorno__btn.is-historico { background: #eef2f9; color: #00144d; border: 1px solid #d6deeb; }
+.ctc-modal .ctc-ap-retorno__btn.is-historico:hover { background: #e0e7f3; }
+.ctc-modal .ctc-ap-retorno__btn.is-historico svg { color: #005bab; }
+
 
 /* v6.9.5: filtro por coluna no estilo do Excel */
 .ctc-th-excel { all: unset; cursor: pointer; display: inline-grid; place-items: center; width: 22px; height: 22px; margin-left: 2px; border-radius: 6px;
@@ -4341,6 +4385,27 @@ const ICONES = {
   filtro: '<path d="M3 5h18l-7 8v6l-4 2v-8L3 5z"/>',
   olho: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   salvar: '<path d="M5 3h11l3 3v15H5zM8 3v6h7V3M8 21v-7h8v7"/>',
+  mapa: '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>',   // v6.38.0
+  cubo: '<path d="M12 2.5 3.5 7v10l8.5 4.5 8.5-4.5V7z"/><path d="m3.5 7 8.5 4.5L20.5 7M12 11.5v10"/>',   // v6.38.0
+  cenario: '<path d="m2.5 19.5 6.5-9 4.5 6 3-4 5 7z"/><circle cx="17" cy="6" r="2.2"/>',   // v6.38.0
+  alvo: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4"/>',   // v6.38.0
+  camadas: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 12.5 9 5 9-5"/><path d="m3 16.5 9 5 9-5"/>',   // v6.38.0
+  barras: '<path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/>',   // v6.38.0
+  caixa: '<path d="m12 2.5 9 4.5v10l-9 4.5-9-4.5V7z"/><path d="m3 7 9 4.5L21 7M12 11.5v10M7.5 4.8l9 4.5"/>',   // v6.38.0
+  avanco: '<path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/>',   // v6.38.0
+  email: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',   // v6.38.0
+  sinc: '<path d="M20.5 12a8.5 8.5 0 0 1-14.6 5.9L3.5 15.5M3.5 12a8.5 8.5 0 0 1 14.6-5.9L20.5 8.5"/><path d="M20.5 3.5v5h-5M3.5 20.5v-5h5"/>',   // v6.38.0
+  escudo: '<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>',   // v6.38.0
+  composicao: '<rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><path d="M17 13.5v7M13.5 17h7"/>',   // v6.38.0
+  historico: '<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 3.5v5h5M12 7.5V12l3 2"/>',   // v6.38.0
+  ficha: '<rect x="5.5" y="4" width="13" height="17" rx="2"/><path d="M9 4V2.8h6V4M9 10h6M9 14h6M9 18h3.5"/>',   // v6.38.0
+  estaca: '<path d="M9 2.5h6v3H9zM10 5.5h4V19l-2 2.5-2-2.5z"/><path d="M4 9h3M17 9h3M4 13h3M17 13h3"/>',   // v6.38.0
+  relatorio: '<path d="M6 2.5h8.5L19 7v14.5H6z"/><path d="M14 2.5V7h5M9 12h7M9 15.5h7M9 19h4"/>',   // v6.38.0
+  excel: '<rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M3.5 9h17M3.5 14.5h17M9 3.5v17"/>',   // v6.38.0
+  video: '<rect x="2.5" y="6" width="13.5" height="12" rx="2"/><path d="m16 10 5.5-3v10L16 14z"/>',   // v6.38.0
+  copiar: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M4.5 16V5a1 1 0 0 1 1-1h11"/>',   // v6.38.0
+  globo: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/>',   // v6.38.0
+  retornar: '<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>',   // v6.38.0
 };
 
 /** Cria um icone SVG do conjunto ICONES. Aceita tambem um Node pronto (devolve o proprio). */
@@ -7963,7 +8028,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.37.0
+   Versao: 6.38.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -8196,6 +8261,12 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
             e Excel) sem baixar e mostra o resultado de cada um; guarda os ultimos testes neste aparelho.
    6.37.0: Tela de entrada: Importar e Projeto novo em cartoes lado a lado, perfil em botao segmentado
           (padrao Visualizador) e botao Entrar; login do Portal KZ passa para baixo do Entrar.
+   6.38.0: Icones desenhados (SVG, iguais em todos os aparelhos) no lugar dos emojis, conforme a escolha do usuario:
+          - botoes flutuantes do desenho (Planta/3D, Cenario, Centralizar, Camadas): estilo E "Marinho"
+            (circulo azul #00144D, icone branco);
+          - menu lateral: estilo D (icone azul-claro; item ativo em #00144D com barra amarela);
+          - botoes da ficha e de acao: estilo E (principal em #00144D com icone amarelo; secundario azul-claro
+            com icone azul). Vale para todos os botoes principais / contorno do controle.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -14813,7 +14884,7 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     const botaoModo = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly' });
     const atualizarModo = () => {
       const planta = est.prancha > 0.5;
-      botaoModo.textContent = planta ? '🧊' : '🗺️';
+      botaoModo.replaceChildren(criarIcone(planta ? 'cubo' : 'mapa', 24));   // v6.38.0: icone desenhado
       botaoModo.title = planta ? 'Ver em 3D' : 'Ver a planta';
       botaoModo.setAttribute('aria-label', botaoModo.title);
     };
@@ -14823,7 +14894,7 @@ function criarVista3D({ chave, titulo, obterCena, escalaZ = 0.4, altura = 640, a
     });
     ['pointerup', 'touchend', 'dblclick'].forEach((ev) => canvas.addEventListener(ev, () => setTimeout(atualizarModo, 900)));
     atualizarModo();
-    const botaoEnq = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', title: 'Centralizar: traz o desenho de volta ao centro da tela', 'aria-label': 'Centralizar o desenho', onClick: enquadrarAtual }, '🎯');
+    const botaoEnq = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', title: 'Centralizar: traz o desenho de volta ao centro da tela', 'aria-label': 'Centralizar o desenho', onClick: enquadrarAtual }, criarIcone('alvo', 24));
     vista.flutua = h('div', { class: 'ctc-vista__flutua' }, botaoModo, botaoEnq);
     vista.elemento = h('div', { class: 'ctc-vista' }, canvas, legenda, vista.flutua, balao);
     vista.piscar = () => { vista.elemento.classList.add('is-piscando'); setTimeout(() => vista.elemento.classList.remove('is-piscando'), 1600); };
@@ -15724,10 +15795,10 @@ function criarVistaWebGL({ chave, titulo, obterCena, altura = 640, aoSelecionar,
   const ajuda = h('div', { style: 'position:absolute;left:12px;bottom:6px;font:11px "Segoe UI",Arial,sans-serif;color:#475569;text-shadow:0 0 3px #fff;z-index:2;pointer-events:none' },
     `${titulo} · 3D · arraste = girar · botão direito / meio ou 2 dedos = mover · roda / pinça = aproximar no ponto (Shift + roda = devagar) · 2 cliques = aproximar ou registrar · 🏞️ = cenário (água, terreno, navio… por partes) e perfil da estaca`);
   // botoes flutuantes (mesmos do padrao: planta/3D e Centralizar)
-  const botaoModo = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', title: 'Vista de cima', 'aria-label': 'Vista de cima' }, '🗺️');
+  const botaoModo = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', title: 'Vista de cima', 'aria-label': 'Vista de cima' }, criarIcone('mapa', 24));
   let deCima = false;
   botaoModo.addEventListener('click', () => { if (deCima) vista.vistaGeral(); else vista.prancha(); });
-  const botaoEnq = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', title: 'Centralizar: traz o desenho de volta ao centro da tela', 'aria-label': 'Centralizar o desenho', onClick: () => vista.verTudo() }, '🎯');
+  const botaoEnq = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', title: 'Centralizar: traz o desenho de volta ao centro da tela', 'aria-label': 'Centralizar o desenho', onClick: () => vista.verTudo() }, criarIcone('alvo', 24));
   const vista = {
     focar(id) {
       est.selecionadoId = id; montar();
@@ -15746,8 +15817,8 @@ function criarVistaWebGL({ chave, titulo, obterCena, altura = 640, aoSelecionar,
       const dist = Math.max(12, ((Math.max(s.y, s.x, s.z) / 2) / Math.tan((camera.fov * Math.PI) / 360)) * 1.25);
       animarPara({ alvo: c, dist, teta: cam.teta, fi: Math.PI / 2 - 0.03 });
     },
-    vistaGeral() { deCima = false; botaoModo.textContent = '🗺️'; animarPara(enquadrarCaixa(est.area ? caixaDe(est.area.objs()) : caixaGeral(), 0.95, -0.6)); },
-    prancha() { deCima = true; botaoModo.textContent = '🧊'; animarPara(enquadrarCaixa(est.area ? caixaDe(est.area.objs()) : caixaGeral(), 0.02, 0)); },
+    vistaGeral() { deCima = false; botaoModo.replaceChildren(criarIcone('mapa', 24)); animarPara(enquadrarCaixa(est.area ? caixaDe(est.area.objs()) : caixaGeral(), 0.95, -0.6)); },
+    prancha() { deCima = true; botaoModo.replaceChildren(criarIcone('cubo', 24)); animarPara(enquadrarCaixa(est.area ? caixaDe(est.area.objs()) : caixaGeral(), 0.02, 0)); },
     marcar(id) { est.selecionadoId = id; montar(); },
     travarArea(area) {
       const objs = area.objs(); if (!objs.length) return false;
@@ -15768,14 +15839,14 @@ function criarVistaWebGL({ chave, titulo, obterCena, altura = 640, aoSelecionar,
     el.addEventListener('click', () => { definir(!on); aoMudar(on); });
     return { el, definir };
   };
-  const botaoCenario = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', 'aria-haspopup': 'true', 'aria-expanded': 'false', title: 'Cenário: escolher o que aparece', 'aria-label': 'Cenário: escolher o que aparece' }, '🏞️');
+  const botaoCenario = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', 'aria-haspopup': 'true', 'aria-expanded': 'false', title: 'Cenário: escolher o que aparece', 'aria-label': 'Cenário: escolher o que aparece' }, criarIcone('cenario', 24));
   const atualizarBotaoCenario = () => { botaoCenario.style.boxShadow = est.cenarioOculto.size ? '0 0 0 3px #0ea5e9' : ''; };
   const linhasCen = PARTES_CENARIO.map(([k, ic, txt]) => {
     const l = linhaCen({ icone: ic, texto: txt, ligado: vePart(k), aoMudar: (v) => { if (v) est.cenarioOculto.delete(k); else est.cenarioOculto.add(k); guardarCenario(); atualizarBotaoCenario(); montar(); } });
     l.chave = k; return l;
   });
   const todosCen = (ligar) => { PARTES_CENARIO.forEach(([k]) => { if (ligar) est.cenarioOculto.delete(k); else est.cenarioOculto.add(k); }); linhasCen.forEach((l) => l.definir(ligar)); guardarCenario(); atualizarBotaoCenario(); montar(); };
-  const botaoPerfil = criarBotao({ texto: '🔍 Perfil da estaca selecionada', variante: 'outline', tamanho: 'sm', onClick: () => {
+  const botaoPerfil = criarBotao({ texto: 'Perfil da estaca selecionada', icone: 'estaca', variante: 'outline', tamanho: 'sm', onClick: () => {
     if (est.selecionadoId == null || !objetosAtuais.some((o) => o.id === est.selecionadoId && o.estaca)) { toast.info('Toque numa estaca', 'Selecione uma estaca no desenho e depois use o perfil.'); return; }
     abrirCenario(false); vista.perfil(est.selecionadoId);
   } });
@@ -17206,7 +17277,7 @@ function abrirFichaElemento(e) {
       chegada ? h('p', { class: 'ctc-ficha__nota' }, `Chegada ao canteiro: ${dataTexto(chegada)}.`) : null),
     h('section', {}, h('h4', {}, 'Dados de projeto'),
       h('div', { class: 'ctc-stack' },
-        h('button', { type: 'button', class: 'ctc-comp__botao', onClick: () => abrirComposicao(e) }, '🧩 Composição', h('small', {}, 'tudo o que compõe esta peça: materiais, cotas, onde apoia e o que vem em cima')),
+        h('button', { type: 'button', class: 'ctc-comp__botao', onClick: () => abrirComposicao(e) }, criarIcone('composicao', 20), 'Composição', h('small', {}, 'tudo o que compõe esta peça: materiais, cotas, onde apoia e o que vem em cima')),
         projeto.length ? h('div', { class: 'ctc-ficha__dados' }, projeto.map(([r, v]) => h('div', {}, h('small', {}, r), h('b', {}, v)))) : null)),
     e.observacao ? h('section', {}, h('h4', {}, 'Observação'), h('p', {}, e.observacao)) : null);
 
@@ -17344,14 +17415,14 @@ function abrirFichaCompleta(e) {
   const nRet = (e.retornos || []).length;
   const retorno = h('div', { class: 'ctc-ap-retorno' },
     podeCorrigirRegistros() && ultimaAcao(e)
-      ? h('button', { type: 'button', class: 'ctc-ap-retorno__btn is-retornar', onClick: fecharE(() => retornarEtapa(e)) }, '↩ Retornar etapa', h('small', {}, ultimaAcao(e).etapa.texto))
+      ? h('button', { type: 'button', class: 'ctc-ap-retorno__btn is-retornar', onClick: fecharE(() => retornarEtapa(e)) }, h('span', { class: 'ctc-ico-txt' }, criarIcone('retornar', 18), 'Retornar etapa'), h('small', {}, ultimaAcao(e).etapa.texto))
       : null,
-    h('button', { type: 'button', class: 'ctc-ap-retorno__btn is-historico', onClick: () => abrirHistoricoRetornos(e) }, '🕘 Histórico', h('small', {}, nRet ? `${nRet} retorno(s)` : 'nenhum retorno')));
+    h('button', { type: 'button', class: 'ctc-ap-retorno__btn is-historico', onClick: () => abrirHistoricoRetornos(e) }, h('span', { class: 'ctc-ico-txt' }, criarIcone('historico', 18), 'Histórico'), h('small', {}, nRet ? `${nRet} retorno(s)` : 'nenhum retorno')));
   const extrasQuadro = h('div', { class: 'ctc-stack' },
-    h('button', { type: 'button', class: 'ctc-ficha__abrir', onClick: () => abrirFichaElemento(e) }, '📋 Ficha completa: previsto × real de todas as etapas, quantidades e dados'),
+    h('button', { type: 'button', class: 'ctc-ficha__abrir', onClick: () => abrirFichaElemento(e) }, h('span', { class: 'ctc-ico-txt' }, criarIcone('ficha', 18), 'Ficha completa: previsto × real de todas as etapas, quantidades e dados')),
     h('details', { class: 'ctc-todas-etapas' }, h('summary', {}, '📐 Dados de projeto'),
       h('div', { class: 'ctc-stack' },
-        h('button', { type: 'button', class: 'ctc-comp__botao', onClick: () => abrirComposicao(e) }, '🧩 Composição', h('small', {}, 'tudo o que compõe esta peça: materiais, cotas, onde apoia e o que vem em cima')),
+        h('button', { type: 'button', class: 'ctc-comp__botao', onClick: () => abrirComposicao(e) }, criarIcone('composicao', 20), 'Composição', h('small', {}, 'tudo o que compõe esta peça: materiais, cotas, onde apoia e o que vem em cima')),
         projeto.length ? h('div', { class: 'ctc-ficha__dados' }, projeto.map(([r, v]) => h('div', {}, h('small', {}, r), h('b', {}, v)))) : null)),
     e.observacao ? criarAlerta({ tipo: 'info', titulo: 'Observação', mensagem: e.observacao }) : null);
   const todas = h('details', { class: 'ctc-todas-etapas', open: !podeEditar ? false : !proxima },
@@ -17825,7 +17896,7 @@ function paginaCampo() {
   const botaoCamadas = h('button', {
     type: 'button', class: 'ctc-fbtn ctc-allow-readonly', 'aria-haspopup': 'true', 'aria-expanded': 'false', title: 'Camadas e área', 'aria-label': 'Camadas e área',
     onClick: () => abrirCamadas(!painelCamadas.classList.contains('is-open')),
-  }, '🎛️', (travada || per) ? h('i', { class: 'ctc-fbtn__ponto', 'aria-hidden': 'true' }) : null);
+  }, criarIcone('camadas', 24), (travada || per) ? h('i', { class: 'ctc-fbtn__ponto', 'aria-hidden': 'true' }) : null);
   const dropCamadas = h('div', { class: 'ctc-dropdown' }, botaoCamadas, painelCamadas);
   function abrirCamadas(abrir) {
     painelCamadas.classList.toggle('is-open', abrir);
@@ -17859,11 +17930,11 @@ function paginaCampo() {
     };
     const abrir2D = (loc) => { abrirCentro(false); estadoCampo.seg = loc; estadoCampo.selecionadoId = null; estadoCampo.abrirPlanta = true; aplicativo.navegar('campo'); };
     const painelCentro = h('div', { class: 'ctc-dropdown__panel ctc-dropdown__panel--right ctc-cpainel ctc-centro' },
-      h('button', { type: 'button', class: 'ctc-centro__tudo ctc-allow-readonly', onClick: () => { vista.verTudo(); abrirCentro(false); } }, '🌎 Ver tudo'),
+      h('button', { type: 'button', class: 'ctc-centro__tudo ctc-allow-readonly', onClick: () => { vista.verTudo(); abrirCentro(false); } }, criarIcone('globo', 16), ' Ver tudo'),
       ...LOCAIS_OBRA.map((loc) => h('div', { class: 'ctc-centro__linha' },
-        h('button', { type: 'button', class: 'ctc-centro__ir ctc-allow-readonly', onClick: () => irPara(loc) }, `🎯 ${NOMES_LOC[loc]}`),
+        h('button', { type: 'button', class: 'ctc-centro__ir ctc-allow-readonly', onClick: () => irPara(loc) }, criarIcone('alvo', 16), ` ${NOMES_LOC[loc]}`),
         h('button', { type: 'button', class: 'ctc-centro__2d ctc-allow-readonly', title: `Abrir o 2D de ${NOMES_LOC[loc]}`, onClick: () => abrir2D(loc) }, 'Abrir 2D'))));
-    const botaoCentro = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', title: 'Centralizar: ver tudo ou ir para um local', 'aria-label': 'Centralizar: ver tudo ou ir para um local', 'aria-haspopup': 'true', 'aria-expanded': 'false', onClick: () => abrirCentro(!painelCentro.classList.contains('is-open')) }, '🎯');
+    const botaoCentro = h('button', { type: 'button', class: 'ctc-fbtn ctc-allow-readonly', title: 'Centralizar: ver tudo ou ir para um local', 'aria-label': 'Centralizar: ver tudo ou ir para um local', 'aria-haspopup': 'true', 'aria-expanded': 'false', onClick: () => abrirCentro(!painelCentro.classList.contains('is-open')) }, criarIcone('alvo', 24));
     const dropCentro = h('div', { class: 'ctc-dropdown' }, botaoCentro, painelCentro);
     function abrirCentro(abrir) { painelCentro.classList.toggle('is-open', abrir); botaoCentro.setAttribute('aria-expanded', String(abrir)); if (abrir) abrirCamadas(false); }
     vista.flutua.insertBefore(dropCentro, dropCamadas);
@@ -19140,7 +19211,7 @@ const COR_BLOCO_PDF = { concluida: PDF_CORES.verde, execucao: '#facc15', 'nao-in
    v6.35.0: AVISO DE VERSAO NOVA — no site publicado, confere a versao do index.html (a cada 10 min e ao
    voltar para a aba); se houver uma mais nova, mostra a faixa com o botao Atualizar.
    ========================================================================== */
-const VERSAO_APP = '6.37.0';
+const VERSAO_APP = '6.38.0';
 function versaoMaior(a, b) {
   const pa = String(a).split('.').map(Number); const pb = String(b).split('.').map(Number);
   for (let i = 0; i < 3; i += 1) { if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0); }
@@ -19697,7 +19768,7 @@ function abrirGeradorVideo() {
   const status = h('p', { class: 'ctc-video__status' }, 'Escolha as opções e toque em "Gerar vídeo". O vídeo vai do começo da obra até hoje.');
   const resultado = h('div', { class: 'ctc-stack' });
   let gerando = false; let continuar = true;
-  const botao = criarBotao({ texto: '🎬 Gerar vídeo', variante: 'primary', tamanho: 'lg' });
+  const botao = criarBotao({ texto: 'Gerar vídeo', icone: 'video', variante: 'primary', tamanho: 'lg' });
   const cancelar = criarBotao({ texto: 'Cancelar', variante: 'outline', tamanho: 'lg' });
   cancelar.style.display = 'none';
   cancelar.addEventListener('click', () => { continuar = false; });
@@ -19744,7 +19815,7 @@ function abaMemorias() {
       titulo: 'Vídeo da obra', icone: 'calendario',
       conteudo: h('div', { class: 'ctc-stack' },
         h('p', { class: 'ctc-text-sm ctc-text-muted' }, 'Monta um vídeo do campo (prancha ou 3D), dia a dia, do começo da obra até hoje: o previsto pelo cronograma, o real pelos registros ou os dois lado a lado.'),
-        h('div', { class: 'ctc-cluster' }, criarBotao({ texto: '🎬 Gerar vídeo', variante: 'primary', onClick: abrirGeradorVideo }))),
+        h('div', { class: 'ctc-cluster' }, criarBotao({ texto: 'Gerar vídeo', icone: 'video', variante: 'primary', onClick: abrirGeradorVideo }))),
     }).elemento);
 }
 
@@ -21101,7 +21172,7 @@ async function gerarRelatorioBlocos({ formato, de, ate, etapas, nome, aoProgress
 /** v6.31.0: janela final com um botao por arquivo (o clique garante o download; o navegador nao barra o 2º arquivo). */
 function abrirArquivosRelatorio(r) {
   const tam = (b) => (b.size > 1048576 ? `${formatarNumero(b.size / 1048576, 1)} MB` : `${Math.max(1, Math.round(b.size / 1024))} KB`);
-  const botoes = r.arquivos.map((a) => criarBotao({ texto: `⬇️ Baixar ${a.tipo} (${tam(a.blob)})`, variante: 'primary', onClick: () => { baixarArquivo(a.blob, a.nome); toast.sucesso(`${a.tipo} baixado`, a.nome); } }));
+  const botoes = r.arquivos.map((a) => criarBotao({ texto: `Baixar ${a.tipo} (${tam(a.blob)})`, icone: a.tipo === 'Excel' ? 'excel' : (a.tipo === 'PowerPoint' ? 'relatorio' : 'download'), variante: 'primary', onClick: () => { baixarArquivo(a.blob, a.nome); toast.sucesso(`${a.tipo} baixado`, a.nome); } }));
   criarModal({
     titulo: 'Relatório pronto', tamanho: 'sm', destruirAoFechar: true,
     conteudo: [
@@ -21224,7 +21295,7 @@ function abaConferencia() {
       ...[...Object.keys(PROBLEMAS_CONF), 'todos'].map((tp) => h('button', { type: 'button', class: `ctc-conf__chip${estado.filtro === tp ? ' is-on' : ''} ctc-allow-readonly`, onClick: () => { estado.filtro = tp; desenhar(); } },
         `${tp === 'todos' ? 'Todos' : PROBLEMAS_CONF[tp].texto} (${tp === 'todos' ? todos.length : n(tp)})`)),
       (() => { const inp = h('input', { type: 'search', class: 'ctc-input ctc-conf__busca', placeholder: 'Procurar elemento (ex.: B2-3, 5-C)…', value: estado.busca }); inp.addEventListener('input', () => { estado.busca = inp.value; clearTimeout(inp.__t); inp.__t = setTimeout(() => { desenhar(); const novo = raiz.querySelector('.ctc-conf__busca'); if (novo) { novo.focus(); novo.setSelectionRange(novo.value.length, novo.value.length); } }, 250); }); return inp; })(),
-      criarBotao({ texto: '⬇️ Exportar lista (Excel)', variante: 'outline', onClick: () => {
+      criarBotao({ texto: 'Exportar lista (Excel)', icone: 'excel', variante: 'outline', onClick: () => {
         const linhas = [['Elemento', 'Local', 'Tipo', 'Problema', 'Detalhe', 'Bloco atual', 'Sugestão de bloco']];
         todos.forEach((p) => linhas.push([p.e.rotulo, textoLocal(p.e), TIPOS[p.e.tipo].nome, PROBLEMAS_CONF[p.tipo].texto, p.detalhe, blocoDe(p.e) || '', p.sugestao || '']));
         baixarArquivo(montarXlsx(linhas, { nomePlanilha: 'Conferência', larguras: [12, 24, 28, 14, 60, 12, 16] }), `Conferencia do banco ${hojeIso()}.xlsx`);
@@ -21262,7 +21333,7 @@ function abaConferencia() {
     raiz.replaceChildren(
       h('p', { class: 'ctc-text-sm ctc-text-muted' }, `O controle confere o Banco de dados e lista o que pode deixar relatórios incompletos ou errados. Toque num cartão para filtrar.${podeCorrigir ? ' "Corrigir" e "Usar" gravam o bloco na hora (entra na sincronização).' : ' Só o Controlador corrige.'}`),
       cartoes, chips, tabela,
-      podeCorrigir && comSug.length > 1 ? h('div', { class: 'ctc-cluster' }, criarBotao({ texto: `✓ Usar todas as sugestões de bloco (${comSug.length})`, variante: 'primary', onClick: async () => {
+      podeCorrigir && comSug.length > 1 ? h('div', { class: 'ctc-cluster' }, criarBotao({ texto: `Usar todas as sugestões de bloco (${comSug.length})`, icone: 'check', variante: 'primary', onClick: async () => {
         const ex = comSug.slice(0, 6).map((p) => `${p.e.rotulo} → ${p.sugestao}`).join(' · ');
         const ok = await confirmar({ titulo: 'Usar as sugestões de bloco?', mensagem: `${comSug.length} elemento(s) recebem o bloco sugerido (o mais comum no mesmo grupo). Ex.: ${ex}${comSug.length > 6 ? ' …' : ''}`, textoConfirmar: 'Usar sugestões' });
         if (!ok) return;
@@ -21337,7 +21408,7 @@ function painelTestarRelatorios() {
   };
   const caixaHist = h('div', {}, historico());
   const area = h('div', { class: 'ctc-stack' });
-  const botao = criarBotao({ texto: '▶ Testar agora', variante: 'primary', onClick: async () => {
+  const botao = criarBotao({ texto: 'Testar agora', icone: 'check', variante: 'primary', onClick: async () => {
     botao.disabled = true;
     const barra = h('div', { class: 'ctc-conf__progresso' }, h('i', { style: 'width:0%' }));
     const legenda = h('div', { class: 'ctc-text-sm ctc-text-muted' }, 'Começando…');
@@ -21354,7 +21425,7 @@ function painelTestarRelatorios() {
         if (!x.ok) {
           const det = `Relatório ${x.rel} (${x.fmt}) · v${VERSAO_APP}\n${x.erro}\n${x.pilha}`;
           linhas.push(h('tr', {}, h('td', { colspan: 5 }, h('div', { class: 'ctc-conf__erro' }, h('b', {}, 'Erro: '), x.erro, h('br'), 'O relatório não seria gerado. Avise o suporte com os detalhes.'),
-            criarBotao({ texto: '📋 Copiar detalhes do erro', variante: 'outline', tamanho: 'sm', onClick: async () => { try { await navigator.clipboard.writeText(det); toast.sucesso('Copiado', 'Cole na mensagem para o suporte.'); } catch (erro) { toast.aviso('Não foi possível copiar', det); } } }))));
+            criarBotao({ texto: 'Copiar detalhes do erro', icone: 'copiar', variante: 'outline', tamanho: 'sm', onClick: async () => { try { await navigator.clipboard.writeText(det); toast.sucesso('Copiado', 'Cole na mensagem para o suporte.'); } catch (erro) { toast.aviso('Não foi possível copiar', det); } } }))));
         }
       });
       area.append(h('div', { class: 'ctc-conf__tabela' }, h('table', {}, h('thead', {}, h('tr', {}, ...['Relatório', 'Formato', 'Resultado', 'Páginas', 'Tempo'].map((c) => h('th', {}, c)))), h('tbody', {}, ...linhas))));
@@ -21376,11 +21447,11 @@ function abaRelatoriosBlocos() {
       titulo: 'Relatório por blocos', icone: 'download',
       conteudo: h('div', { class: 'ctc-stack' },
         h('p', { class: 'ctc-text-sm ctc-text-muted' }, 'PDF e/ou PowerPoint com capa e resumo; por bloco, a planta com o contorno do bloco e uma página por elemento com o esquema 3D e as datas reais de cada etapa. Escolha o período, as etapas e o nome do relatório.'),
-        h('div', { class: 'ctc-cluster' }, criarBotao({ texto: '🧾 Exportar relatório', variante: 'primary', onClick: abrirExportarRelatorioBlocos }))),
+        h('div', { class: 'ctc-cluster' }, criarBotao({ texto: 'Exportar relatório', icone: 'relatorio', variante: 'primary', onClick: abrirExportarRelatorioBlocos }))),
     }).elemento,
     criarPainel({
       titulo: 'Outros relatórios (PDF e PowerPoint)', icone: 'download',
-      conteudo: h('div', { class: 'ctc-cluster' }, criarBotao({ texto: 'Avanço, medição e estoque', variante: 'outline', onClick: abrirRelatorios })),
+      conteudo: h('div', { class: 'ctc-cluster' }, criarBotao({ texto: 'Avanço, medição e estoque', icone: 'documento', variante: 'outline', onClick: abrirRelatorios })),
     }).elemento,
     criarPainel({ titulo: '🧪 Testar relatórios', conteudo: painelTestarRelatorios() }).elemento);   // v6.36.0
 }
@@ -22021,24 +22092,24 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
       /* v6.3: menu no padrao do Controle de Custos (vidro claro, emojis, cascata e Sair/Trocar)
          v6.6: modo apontador (Controlador sem papel Admin): so o que se usa em campo */
       secoes: apontador ? [
-        { titulo: 'Campo', itens: [{ id: 'campo', texto: 'Campo', emoji: '🗺️' }, { id: 'estoque', texto: 'Estoque de pré-moldados', emoji: '📦' }] },
-        { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: 'Apontamento (salvar e ferramentas)', emoji: '👤' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
+        { titulo: 'Campo', itens: [{ id: 'campo', texto: 'Campo', icone: 'mapa' }, { id: 'estoque', texto: 'Estoque de pré-moldados', icone: 'caixa' }] },
+        { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: 'Apontamento (salvar e ferramentas)', icone: 'usuario' }, { id: 'privacidade', texto: 'Privacidade e Termos', icone: 'escudo' }] },
       ] : [
         {
           titulo: 'Campo',
           itens: [
-            { id: 'campo', texto: 'Campo (prancha e 3D)', emoji: '🗺️' },
-            { id: 'painel', texto: 'Painel do dia', emoji: '📊' },
-            { id: 'estoque', texto: 'Estoque de pré-moldados', emoji: '📦' },
-            { id: 'avanco', texto: 'Avanço físico (cronograma)', emoji: '📈' },
-            { id: 'cronograma', texto: 'Cronograma', emoji: '🗓️' },
+            { id: 'campo', texto: 'Campo (prancha e 3D)', icone: 'mapa' },
+            { id: 'painel', texto: 'Painel do dia', icone: 'barras' },
+            { id: 'estoque', texto: 'Estoque de pré-moldados', icone: 'caixa' },
+            { id: 'avanco', texto: 'Avanço físico (cronograma)', icone: 'avanco' },
+            { id: 'cronograma', texto: 'Cronograma', icone: 'calendario' },
           ],
         },
         {
           titulo: 'Consulta',
           itens: [
             {
-              id: 'grupo-consulta', texto: 'Consulta', emoji: '🔎',
+              id: 'grupo-consulta', texto: 'Consulta', icone: 'busca',
               itens: [
                 { id: 'elementos', texto: 'Elementos' },
                 { id: 'banco', texto: 'Banco de dados' },
@@ -22047,9 +22118,9 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
             },
           ],
         },
-        { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, ...(['controlador', 'administrador'].includes(perfil) ? [{ id: 'avisos', texto: 'E-mails de aviso', emoji: '📧' }] : []), { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
+        { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, icone: 'usuario' }, ...(['controlador', 'administrador'].includes(perfil) ? [{ id: 'avisos', texto: 'E-mails de aviso', icone: 'email' }] : []), { id: 'sincronizacao', texto: 'Sincronização', icone: 'sinc' }, { id: 'privacidade', texto: 'Privacidade e Termos', icone: 'escudo' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.37.0' : 'Controle de Execução em Campo v6.37.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.38.0' : 'Controle de Execução em Campo v6.38.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -22089,7 +22160,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.37.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.38.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
