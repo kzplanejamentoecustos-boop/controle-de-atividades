@@ -1125,6 +1125,26 @@ img { max-width: 100%; display: block; }
   box-shadow: var(--ctc-shadow-2);
 }
 .ctc-dropdown__panel--right { left: auto; right: 0; }
+/* v6.36.0: Conferencia e Testar relatorios */
+.ctc-conf__cartoes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .ctc-conf__cartoes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ctc-conf__cartao { text-align: left; background: #fff; border: 1px solid var(--ctc-color-border); border-left: 5px solid #ca8a04; border-radius: 10px; padding: 10px 12px; cursor: pointer; font: inherit; }
+.ctc-conf__cartao small { display: block; color: var(--ctc-color-text-muted, #64748b); font-size: 12px; } .ctc-conf__cartao b { display: block; font-size: 24px; margin-top: 2px; }
+.ctc-conf__cartao--er { border-left-color: #dc2626; } .ctc-conf__cartao--ok { border-left-color: #16a34a; } .ctc-conf__cartao.is-on { outline: 2px solid #00144d; }
+.ctc-conf__barra { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ctc-conf__chip { border: 1px solid var(--ctc-color-border); background: #fff; border-radius: 999px; padding: 6px 12px; font-size: 12.5px; cursor: pointer; }
+.ctc-conf__chip.is-on { background: #00144d; color: #fff; border-color: #00144d; }
+.ctc-conf__busca { flex: 1; min-width: 180px; }
+.ctc-conf__tabela { overflow: auto; max-height: 60vh; border: 1px solid var(--ctc-color-border); border-radius: 10px; }
+.ctc-conf__tabela table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; }
+.ctc-conf__tabela th { position: sticky; top: 0; background: #00144d; color: #fff; text-align: left; padding: 8px 10px; font-size: 12px; z-index: 1; }
+.ctc-conf__tabela td { padding: 8px 10px; border-top: 1px solid var(--ctc-color-border); vertical-align: middle; }
+.ctc-conf__tabela tr.is-on td { background: #eff6ff; }
+.ctc-conf__selo { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.ctc-conf__selo--av { background: #fef9c3; color: #854d0e; } .ctc-conf__selo--er { background: #fee2e2; color: #991b1b; } .ctc-conf__selo--ok { background: #dcfce7; color: #166534; }
+.ctc-conf__progresso { height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+.ctc-conf__progresso i { display: block; height: 100%; background: linear-gradient(90deg, #005bab, #7cbf6a); transition: width .2s; }
+.ctc-conf__erro { background: #fef2f2; border: 1px solid #fecaca; color: #7f1d1d; border-radius: 8px; padding: 8px 10px; font-size: 12.5px; margin-bottom: 6px; }
 /* v6.35.0: faixa "Nova versao disponivel" */
 .ctc-faixa-versao { position: fixed; top: 0; left: 0; right: 0; z-index: 100000; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 14px; padding: 9px 44px 9px 14px; background: #00144d; color: #fff; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.25); }
 .ctc-faixa-versao__btn { border: 0; border-radius: 8px; padding: 7px 14px; background: #16a34a; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; }
@@ -7911,7 +7931,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.35.0
+   Versao: 6.36.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -8136,6 +8156,12 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           - Logo do consorcio no rodape das paginas internas.
           - Relatorio por blocos: planilha Excel junto (uma linha por etapa, com inicio, termino e situacao).
           - Cabecalho do arquivo corrigido (arquivo unico, editado direto).
+   6.36.0: Janela do Controlador:
+          - aba Conferencia: confere o Banco de dados (elementos com registro e sem bloco, etapa fora de ordem,
+            inicio depois do termino, datas no futuro); filtros, busca, Corrigir / Usar sugestao de bloco,
+            "Usar todas as sugestoes" e exportar a lista em Excel (so o Controlador corrige).
+          - aba Relatorios: "Testar relatorios" gera todos (por blocos, avanco, estoque, medicao; PDF, PowerPoint
+            e Excel) sem baixar e mostra o resultado de cada um; guarda os ultimos testes neste aparelho.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -19080,7 +19106,7 @@ const COR_BLOCO_PDF = { concluida: PDF_CORES.verde, execucao: '#facc15', 'nao-in
    v6.35.0: AVISO DE VERSAO NOVA — no site publicado, confere a versao do index.html (a cada 10 min e ao
    voltar para a aba); se houver uma mais nova, mostra a faixa com o botao Atualizar.
    ========================================================================== */
-const VERSAO_APP = '6.35.0';
+const VERSAO_APP = '6.36.0';
 function versaoMaior(a, b) {
   const pa = String(a).split('.').map(Number); const pb = String(b).split('.').map(Number);
   for (let i = 0; i < 3; i += 1) { if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0); }
@@ -21099,6 +21125,217 @@ function abrirExportarRelatorioBlocos() {
   modal.abrir();
 }
 /** Aba "Relatórios" (janela do Controlador) e pagina "Relatórios" do menu. */
+
+/* =============================================================================
+   v6.36.0: CONFERENCIA DO BANCO DE DADOS (aba da janela do Controlador)
+   ========================================================================== */
+const PROBLEMAS_CONF = {
+  'sem-bloco': { texto: 'Sem bloco', classe: 'av', cartao: 'Sem bloco (ficam fora do relatório por blocos)' },
+  ordem: { texto: 'Fora de ordem', classe: 'er', cartao: 'Etapa fora de ordem' },
+  datas: { texto: 'Datas', classe: 'er', cartao: 'Início depois do término' },
+  futuro: { texto: 'Data no futuro', classe: 'er', cartao: 'Datas no futuro' },
+};
+/** Bloco sugerido: o mais comum entre os elementos do mesmo grupo que ja tem bloco. */
+function sugestaoBloco(e) {
+  const cont = {};
+  elementos.forEach((x) => { if (x !== e && x.grupo && x.grupo === e.grupo) { const b = blocoDe(x); if (b) cont[b] = (cont[b] || 0) + 1; } });
+  const melhor = Object.entries(cont).sort((a, b) => b[1] - a[1])[0];
+  return melhor ? melhor[0] : '';
+}
+/** Lista de problemas: [{ e, tipo, detalhe, sugestao }]. */
+function conferirBanco() {
+  const hoje = hojeIso(); const dd = (iso) => dataTexto(iso).slice(0, 5);
+  const lista = [];
+  elementos.forEach((e) => {
+    const ets = etapasDe(e);
+    const regs = ets.map((et) => ({ et, r: e.reg[et.chave] })).filter((x) => x.r && (x.r.inicio || x.r.data));
+    if (!regs.length) return;
+    if (!blocoDe(e) && ['estaca-metalica', 'estaca-raiz', 'bloco'].includes(e.tipo)) {
+      const ult = regs[regs.length - 1];
+      lista.push({ e, tipo: 'sem-bloco', detalhe: `Tem registro (${ult.et.texto} ${dd(ult.r.data || ult.r.inicio)})`, sugestao: sugestaoBloco(e) });
+    }
+    const feitas = regs.filter((x) => x.r.data);
+    for (let i = 1; i < feitas.length; i += 1) {
+      const ant = feitas.slice(0, i).find((x) => x.r.data > feitas[i].r.data);
+      if (ant) { lista.push({ e, tipo: 'ordem', detalhe: `${feitas[i].et.texto} ${dd(feitas[i].r.data)} antes de ${ant.et.texto} ${dd(ant.r.data)}` }); break; }
+    }
+    regs.forEach(({ et, r: rg }) => {
+      if (rg.inicio && rg.data && rg.inicio > rg.data) lista.push({ e, tipo: 'datas', detalhe: `${et.texto}: início ${dd(rg.inicio)} depois do término ${dd(rg.data)}` });
+      const fut = [rg.inicio, rg.data].filter((d) => d && d > hoje);
+      if (fut.length) lista.push({ e, tipo: 'futuro', detalhe: `${et.texto}: ${fut.map(dataTexto).join(' / ')} (hoje é ${dataTexto(hoje)})` });
+    });
+  });
+  return lista.sort((a, b) => String(a.e.id).localeCompare(String(b.e.id), 'pt-BR', { numeric: true }));
+}
+function aplicarBlocos(pares) {   // [[e, bloco]]
+  pares.forEach(([e, b]) => { blocosElemento[e.id] = normalizarBloco(b); });
+  registrarAlteracao();
+}
+function abaConferencia() {
+  const podeCorrigir = sessao.obter().perfil === 'controlador';
+  const estado = { filtro: 'sem-bloco', busca: '', editando: null };
+  const raiz = h('div', { class: 'ctc-stack ctc-conf' });
+  const blocosExistentes = () => [...new Set(elementos.map(blocoDe).filter(Boolean))].sort(ordenarBlocos);
+  const desenhar = () => {
+    const todos = conferirBanco();
+    const n = (tp) => todos.filter((p) => p.tipo === tp).length;
+    if (estado.filtro !== 'todos' && !n(estado.filtro) && todos.length) estado.filtro = 'todos';
+    const busca = normalizarTexto(estado.busca);
+    const vis = todos.filter((p) => (estado.filtro === 'todos' || p.tipo === estado.filtro) && (!busca || normalizarTexto(`${p.e.id} ${p.e.rotulo}`).includes(busca)));
+    const cartoes = h('div', { class: 'ctc-conf__cartoes' }, ...Object.entries(PROBLEMAS_CONF).map(([tp, k]) => h('button', {
+      type: 'button', class: `ctc-conf__cartao ctc-conf__cartao--${n(tp) ? k.classe : 'ok'}${estado.filtro === tp ? ' is-on' : ''} ctc-allow-readonly`,
+      onClick: () => { estado.filtro = tp; desenhar(); },
+    }, h('small', {}, k.cartao), h('b', {}, String(n(tp))))));
+    const chips = h('div', { class: 'ctc-conf__barra' },
+      ...[...Object.keys(PROBLEMAS_CONF), 'todos'].map((tp) => h('button', { type: 'button', class: `ctc-conf__chip${estado.filtro === tp ? ' is-on' : ''} ctc-allow-readonly`, onClick: () => { estado.filtro = tp; desenhar(); } },
+        `${tp === 'todos' ? 'Todos' : PROBLEMAS_CONF[tp].texto} (${tp === 'todos' ? todos.length : n(tp)})`)),
+      (() => { const inp = h('input', { type: 'search', class: 'ctc-input ctc-conf__busca', placeholder: 'Procurar elemento (ex.: B2-3, 5-C)…', value: estado.busca }); inp.addEventListener('input', () => { estado.busca = inp.value; clearTimeout(inp.__t); inp.__t = setTimeout(() => { desenhar(); const novo = raiz.querySelector('.ctc-conf__busca'); if (novo) { novo.focus(); novo.setSelectionRange(novo.value.length, novo.value.length); } }, 250); }); return inp; })(),
+      criarBotao({ texto: '⬇️ Exportar lista (Excel)', variante: 'outline', onClick: () => {
+        const linhas = [['Elemento', 'Local', 'Tipo', 'Problema', 'Detalhe', 'Bloco atual', 'Sugestão de bloco']];
+        todos.forEach((p) => linhas.push([p.e.rotulo, textoLocal(p.e), TIPOS[p.e.tipo].nome, PROBLEMAS_CONF[p.tipo].texto, p.detalhe, blocoDe(p.e) || '', p.sugestao || '']));
+        baixarArquivo(montarXlsx(linhas, { nomePlanilha: 'Conferência', larguras: [12, 24, 28, 14, 60, 12, 16] }), `Conferencia do banco ${hojeIso()}.xlsx`);
+      } }));
+    const linhas = vis.map((p) => {
+      const k = PROBLEMAS_CONF[p.tipo];
+      let acao;
+      if (p.tipo === 'sem-bloco' && podeCorrigir) {
+        if (estado.editando === p.e.id) {
+          const idLista = `conf-blocos-${String(p.e.id).replace(/\W/g, '')}`;
+          const inp = h('input', { class: 'ctc-input', list: idLista, value: p.sugestao || '', placeholder: 'Ex.: Bloco 02', style: 'max-width:150px' });
+          const salvar = () => { const v = normalizarBloco(inp.value); if (!v) { toast.aviso('Informe o bloco', 'Ex.: Bloco 02 ou só 2.'); return; } aplicarBlocos([[p.e, v]]); estado.editando = null; toast.sucesso('Bloco salvo', `${p.e.rotulo}: ${v}`); desenhar(); };
+          inp.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') salvar(); });
+          setTimeout(() => inp.focus(), 0);
+          acao = h('div', { class: 'ctc-cluster' }, inp, h('datalist', { id: idLista }, ...blocosExistentes().map((b) => h('option', { value: b }))),
+            criarBotao({ texto: 'Salvar', variante: 'primary', tamanho: 'sm', onClick: salvar }),
+            criarBotao({ texto: 'Cancelar', variante: 'outline', tamanho: 'sm', onClick: () => { estado.editando = null; desenhar(); } }));
+        } else {
+          acao = h('div', { class: 'ctc-cluster' },
+            criarBotao({ texto: 'Corrigir', variante: 'primary', tamanho: 'sm', onClick: () => { estado.editando = p.e.id; desenhar(); } }),
+            p.sugestao ? criarBotao({ texto: `Usar ${p.sugestao}`, variante: 'outline', tamanho: 'sm', onClick: () => { aplicarBlocos([[p.e, p.sugestao]]); toast.sucesso('Bloco salvo', `${p.e.rotulo}: ${p.sugestao}`); desenhar(); } }) : null);
+        }
+      } else {
+        acao = criarBotao({ texto: 'Abrir ficha', variante: 'outline', tamanho: 'sm', onClick: () => abrirFichaElemento(p.e) });
+      }
+      return h('tr', { class: estado.editando === p.e.id ? 'is-on' : '' },
+        h('td', {}, h('b', {}, p.e.rotulo)), h('td', {}, textoLocal(p.e)), h('td', {}, TIPOS[p.e.tipo].nome.split(' (')[0]),
+        h('td', {}, h('span', { class: `ctc-conf__selo ctc-conf__selo--${k.classe}` }, k.texto)),
+        h('td', {}, p.detalhe + (p.sugestao && !podeCorrigir ? ` · sugestão: ${p.sugestao}` : '')), h('td', {}, acao));
+    });
+    const comSug = todos.filter((p) => p.tipo === 'sem-bloco' && p.sugestao);
+    const tabela = vis.length
+      ? h('div', { class: 'ctc-conf__tabela' }, h('table', {}, h('thead', {}, h('tr', {}, ...['Elemento', 'Local', 'Tipo', 'Problema', 'Detalhe', 'Ação'].map((c) => h('th', {}, c)))), h('tbody', {}, ...linhas)))
+      : criarAlerta({ tipo: 'success', titulo: todos.length ? 'Nada neste filtro' : 'Nenhum problema encontrado', mensagem: todos.length ? 'Escolha outro cartão ou limpe a busca.' : 'Todos os elementos com registro têm bloco e as datas estão em ordem.' });
+    raiz.replaceChildren(
+      h('p', { class: 'ctc-text-sm ctc-text-muted' }, `O controle confere o Banco de dados e lista o que pode deixar relatórios incompletos ou errados. Toque num cartão para filtrar.${podeCorrigir ? ' "Corrigir" e "Usar" gravam o bloco na hora (entra na sincronização).' : ' Só o Controlador corrige.'}`),
+      cartoes, chips, tabela,
+      podeCorrigir && comSug.length > 1 ? h('div', { class: 'ctc-cluster' }, criarBotao({ texto: `✓ Usar todas as sugestões de bloco (${comSug.length})`, variante: 'primary', onClick: async () => {
+        const ex = comSug.slice(0, 6).map((p) => `${p.e.rotulo} → ${p.sugestao}`).join(' · ');
+        const ok = await confirmar({ titulo: 'Usar as sugestões de bloco?', mensagem: `${comSug.length} elemento(s) recebem o bloco sugerido (o mais comum no mesmo grupo). Ex.: ${ex}${comSug.length > 6 ? ' …' : ''}`, textoConfirmar: 'Usar sugestões' });
+        if (!ok) return;
+        aplicarBlocos(comSug.map((p) => [p.e, p.sugestao])); toast.sucesso('Blocos salvos', `${comSug.length} elemento(s).`); desenhar();
+      } })) : null);
+  };
+  desenhar();
+  return raiz;
+}
+
+/* =============================================================================
+   v6.36.0: TESTAR RELATORIOS (aba Relatorios da janela do Controlador)
+   Gera todos sem baixar; confere se cada arquivo tem conteudo e paginas.
+   ========================================================================== */
+const CHAVE_TESTES_REL = 'controle-campo:testes-relatorios';
+async function testarRelatorios(aoProgresso) {
+  const segs = Object.keys(SEGMENTOS); const hoje = hojeIso();
+  const datas = elementos.flatMap((e) => Object.values(e.reg || {}).flatMap((r0) => [r0?.inicio, r0?.data])).filter(Boolean).sort();
+  const de = datas[0] || `${hoje.slice(0, 8)}01`;
+  const inicioMes = `${hoje.slice(0, 8)}01`;
+  const assinatura = async (blob) => { const b = new Uint8Array(await blob.slice(0, 4).arrayBuffer()); return String.fromCharCode(...b); };
+  const casos = [
+    { rel: 'Por blocos', fmt: 'PDF + PowerPoint + Excel', fn: async () => {
+      if (!elementos.some((e) => blocoDe(e))) return { aviso: 'Nenhum elemento com bloco: relatório não se aplica.' };
+      try {
+        const r0 = await gerarRelatorioBlocos({ formato: 'ambos', de, ate: hoje, etapas: [], nome: 'Teste' });
+        return { arquivos: r0.arquivos.map((a) => ({ tipo: a.tipo, blob: a.blob })), paginas: `${r0.paginas} pág.` };
+      } catch (erro) { if (/Nenhum elemento com bloco/.test(erro.message)) return { aviso: 'Nenhum elemento com bloco e registro no período.' }; throw erro; }
+    } },
+    ...['pdf', 'pptx'].flatMap((fmt) => [
+      { rel: 'Avanço', fmt, fn: () => gerarRelatorioAvanco(segs, fmt) },
+      { rel: 'Estoque', fmt, fn: () => gerarRelatorioEstoque(fmt) },
+      { rel: 'Medição', fmt, fn: () => gerarMedicao(segs, inicioMes, hoje, fmt) },
+    ]),
+  ];
+  const resultados = [];
+  for (let i = 0; i < casos.length; i += 1) {
+    const c = casos[i]; const t0 = performance.now();
+    if (aoProgresso) aoProgresso(i, casos.length, c);
+    await new Promise((res) => { setTimeout(res, 20); });
+    try {
+      const x = await c.fn();
+      if (x.aviso) { resultados.push({ rel: c.rel, fmt: c.fmt, ok: true, aviso: x.aviso, ms: performance.now() - t0 }); continue; }
+      const arquivos = x.arquivos || [{ tipo: x.tipo, blob: x.arquivo }];
+      for (const a of arquivos) {
+        const sig = await assinatura(a.blob);
+        if (!a.blob.size || !(sig.startsWith('%PDF') || sig.startsWith('PK'))) throw new Error(`${a.tipo}: arquivo vazio ou inválido`);
+      }
+      resultados.push({ rel: c.rel, fmt: c.fmt === 'pdf' ? 'PDF' : (c.fmt === 'pptx' ? 'PowerPoint' : c.fmt), ok: true, paginas: x.paginas != null ? (typeof x.paginas === 'number' ? `${x.paginas} pág.` : x.paginas) : '', ms: performance.now() - t0 });
+    } catch (erro) {
+      console.error(erro);
+      resultados.push({ rel: c.rel, fmt: c.fmt === 'pdf' ? 'PDF' : (c.fmt === 'pptx' ? 'PowerPoint' : c.fmt), ok: false, erro: erro.message || String(erro), pilha: String(erro.stack || '').split('\n').slice(0, 4).join('\n'), ms: performance.now() - t0 });
+    }
+  }
+  if (aoProgresso) aoProgresso(casos.length, casos.length, null);
+  const falhas = resultados.filter((x) => !x.ok).length;
+  try {
+    const hist = JSON.parse(localStorage.getItem(CHAVE_TESTES_REL) || '[]');
+    hist.unshift({ quando: new Date().toISOString(), versao: VERSAO_APP, falhas });
+    localStorage.setItem(CHAVE_TESTES_REL, JSON.stringify(hist.slice(0, 8)));
+  } catch (erro) { /* sem armazenamento */ }
+  return { resultados, falhas };
+}
+function painelTestarRelatorios() {
+  const corpo = h('div', { class: 'ctc-stack ctc-conf' });
+  const historico = () => {
+    let hist = []; try { hist = JSON.parse(localStorage.getItem(CHAVE_TESTES_REL) || '[]'); } catch (erro) { hist = []; }
+    if (!hist.length) return h('p', { class: 'ctc-text-sm ctc-text-muted' }, 'Nenhum teste feito neste aparelho ainda.');
+    return h('div', { class: 'ctc-conf__tabela' }, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Data'), h('th', {}, 'Versão'), h('th', {}, 'Resultado'))),
+      h('tbody', {}, ...hist.map((x) => h('tr', {}, h('td', {}, formatarData(x.quando, 'data-hora')), h('td', {}, `v${x.versao}`),
+        h('td', {}, h('span', { class: `ctc-conf__selo ctc-conf__selo--${x.falhas ? 'er' : 'ok'}` }, x.falhas ? `${x.falhas} falha(s)` : 'tudo OK')))))));
+  };
+  const caixaHist = h('div', {}, historico());
+  const area = h('div', { class: 'ctc-stack' });
+  const botao = criarBotao({ texto: '▶ Testar agora', variante: 'primary', onClick: async () => {
+    botao.disabled = true;
+    const barra = h('div', { class: 'ctc-conf__progresso' }, h('i', { style: 'width:0%' }));
+    const legenda = h('div', { class: 'ctc-text-sm ctc-text-muted' }, 'Começando…');
+    area.replaceChildren(barra, legenda);
+    const t0 = performance.now();
+    try {
+      const { resultados, falhas } = await testarRelatorios((i, n, c) => { barra.firstChild.style.width = `${Math.round((i / n) * 100)}%`; legenda.textContent = c ? `Gerando ${c.rel} · ${c.fmt === 'pdf' ? 'PDF' : (c.fmt === 'pptx' ? 'PowerPoint' : c.fmt)}… (${i + 1} de ${n})` : 'Concluído.'; });
+      legenda.textContent = `Concluído em ${formatarNumero((performance.now() - t0) / 1000, 0)} s · ${formatarData(new Date(), 'data-hora')} · ${falhas ? `${falhas} falha(s)` : 'tudo OK'}`;
+      const linhas = [];
+      resultados.forEach((x) => {
+        linhas.push(h('tr', { class: x.ok ? '' : 'is-on' }, h('td', {}, h('b', {}, x.rel)), h('td', {}, x.fmt),
+          h('td', {}, h('span', { class: `ctc-conf__selo ctc-conf__selo--${x.ok ? (x.aviso ? 'av' : 'ok') : 'er'}` }, x.ok ? (x.aviso ? 'Sem dados' : '✓ OK') : '✗ Falhou')),
+          h('td', {}, x.aviso || x.paginas || '—'), h('td', {}, `${formatarNumero(x.ms / 1000, 1)} s`)));
+        if (!x.ok) {
+          const det = `Relatório ${x.rel} (${x.fmt}) · v${VERSAO_APP}\n${x.erro}\n${x.pilha}`;
+          linhas.push(h('tr', {}, h('td', { colspan: 5 }, h('div', { class: 'ctc-conf__erro' }, h('b', {}, 'Erro: '), x.erro, h('br'), 'O relatório não seria gerado. Avise o suporte com os detalhes.'),
+            criarBotao({ texto: '📋 Copiar detalhes do erro', variante: 'outline', tamanho: 'sm', onClick: async () => { try { await navigator.clipboard.writeText(det); toast.sucesso('Copiado', 'Cole na mensagem para o suporte.'); } catch (erro) { toast.aviso('Não foi possível copiar', det); } } }))));
+        }
+      });
+      area.append(h('div', { class: 'ctc-conf__tabela' }, h('table', {}, h('thead', {}, h('tr', {}, ...['Relatório', 'Formato', 'Resultado', 'Páginas', 'Tempo'].map((c) => h('th', {}, c)))), h('tbody', {}, ...linhas))));
+      caixaHist.replaceChildren(historico());
+    } catch (erro) {
+      legenda.textContent = `Não foi possível testar: ${erro.message}`;
+    } finally { botao.disabled = false; }
+  } });
+  corpo.append(
+    h('p', { class: 'ctc-text-sm ctc-text-muted' }, 'Gera todos os relatórios com os dados atuais, sem baixar nada, e confere se cada arquivo abre e tem páginas. Leva alguns segundos e não altera a base.'),
+    h('div', { class: 'ctc-cluster' }, botao), area,
+    h('strong', { class: 'ctc-text-sm' }, 'Últimos testes neste aparelho'), caixaHist);
+  return corpo;
+}
+
 function abaRelatoriosBlocos() {
   return h('div', { class: 'ctc-stack' },
     criarPainel({
@@ -21108,9 +21345,10 @@ function abaRelatoriosBlocos() {
         h('div', { class: 'ctc-cluster' }, criarBotao({ texto: '🧾 Exportar relatório', variante: 'primary', onClick: abrirExportarRelatorioBlocos }))),
     }).elemento,
     criarPainel({
-      titulo: 'Outros relatórios em PDF', icone: 'download',
+      titulo: 'Outros relatórios (PDF e PowerPoint)', icone: 'download',
       conteudo: h('div', { class: 'ctc-cluster' }, criarBotao({ texto: 'Avanço, medição e estoque', variante: 'outline', onClick: abrirRelatorios })),
-    }).elemento);
+    }).elemento,
+    criarPainel({ titulo: '🧪 Testar relatórios', conteudo: painelTestarRelatorios() }).elemento);   // v6.36.0
 }
 const paginaRelatoriosBlocos = () => [abaRelatoriosBlocos()];
 
@@ -21728,7 +21966,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
       }),
       onSair: sair,
-      abasExtras: [{ id: 'relatorios', texto: 'Relatórios', conteudo: abaRelatoriosBlocos }, { id: 'memorias', texto: 'Memórias', conteudo: abaMemorias }],   // v6.17.0 · v6.29.0: Relatórios
+      abasExtras: [{ id: 'conferencia', texto: 'Conferência', conteudo: abaConferencia }, { id: 'relatorios', texto: 'Relatórios', conteudo: abaRelatoriosBlocos }, { id: 'memorias', texto: 'Memórias', conteudo: abaMemorias }],   // v6.36.0: Conferência   // v6.17.0 · v6.29.0: Relatórios
     }),
   });
   const app = montarAplicativo({
@@ -21777,7 +22015,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, ...(['controlador', 'administrador'].includes(perfil) ? [{ id: 'avisos', texto: 'E-mails de aviso', emoji: '📧' }] : []), { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.35.0' : 'Controle de Execução em Campo v6.35.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.36.0' : 'Controle de Execução em Campo v6.36.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -21817,7 +22055,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.35.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.36.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
