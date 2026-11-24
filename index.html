@@ -2024,6 +2024,24 @@ img { max-width: 100%; display: block; }
 .ctc-entrada__portal-btn { flex: none; padding: 6px 12px; border-radius: 999px; border: 1px solid #cbd5e1; background: #fff; font: inherit; font-size: 12px;
   font-weight: 600; color: #1e293b; cursor: pointer; }
 .ctc-entrada__portal-btn:hover { border-color: #1e3a5f; }
+/* v6.37.0: entrada com cartoes lado a lado (Importar / Projeto novo), perfil segmentado e botao Entrar */
+.ctc-ld-acoes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ctc-ld-imp.ctc-ld-acao { margin: 0; flex-direction: column; justify-content: flex-start; gap: 8px; padding: 18px 10px 16px; border: 1.5px solid #e2e8f0; text-align: center; }
+.ctc-ld-acao .ctc-ld-imp__txt { text-align: center; }
+.ctc-ld-acao .ctc-ld-imp__txt span { display: block; margin-top: 2px; }
+.ctc-ld-acao .ctc-ld-imp__seta { display: none; }
+.ctc-ld-acao.is-open { border-color: #1e3a5f; box-shadow: 0 0 0 1px #1e3a5f inset; }
+.ctc-ld-rotulo-perfil { margin: 20px 0 8px; }
+.ctc-ld-perfis { display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: #f1f5f9; }
+.ctc-ld-perfil { all: unset; box-sizing: border-box; flex: 1; text-align: center; cursor: pointer; padding: 9px 4px; border-radius: 8px; font-size: 13px; color: #64748b; transition: background .15s, color .15s, box-shadow .15s; }
+.ctc-ld-perfil:hover { color: #1e3a5f; }
+.ctc-ld-perfil.is-active { background: #fff; color: #1e3a5f; font-weight: 600; box-shadow: 0 1px 3px rgba(15,23,42,.18); }
+.ctc-ld-perfil:focus-visible, .ctc-ld-entrar:focus-visible { outline: 2px solid #4a7fb5; outline-offset: 2px; }
+.ctc-ld-entrar { all: unset; box-sizing: border-box; display: block; width: 100%; margin-top: 14px; padding: 12px; border-radius: 10px; background: #1e3a5f; color: #fff; text-align: center; font-weight: 600; font-size: 14.5px; cursor: pointer; transition: background .15s, transform .08s; }
+.ctc-ld-entrar:hover { background: #13263f; }
+.ctc-ld-entrar:active { transform: scale(.98); }
+.ctc-ld-entrar + .ctc-entrada__portal { margin: 14px 0 0; }
+@media (max-width: 360px) { .ctc-ld-acoes { grid-template-columns: 1fr; } }
 @media (max-width: 420px) { .ctc-ld-acessos { grid-template-columns: 1fr; } .ctc-landing__card.ctc-entrada { padding: 22px; } }
 
 /* Boas-vindas: o app desfocado ao fundo e um cartao de vidro */
@@ -6804,7 +6822,7 @@ function criarTelaEntrada({
     cartaoLd({ svg: SVG_LD.json, fundo: '#fef3c7', cor: '#b45309', titulo: 'Arquivo JSON', sub: 'Abrir um arquivo do computador', onClick: () => entrada.click() }));
   const setaImportar = h('span', { class: 'ctc-ld-imp__seta', 'aria-hidden': 'true' }, '▾');
   const botaoImportar = h('button', {
-    type: 'button', class: 'ctc-ld-imp', title: 'Importar os dados da obra', 'aria-expanded': 'false',
+    type: 'button', class: 'ctc-ld-imp ctc-ld-acao', title: 'Importar os dados da obra', 'aria-expanded': 'false',
     onClick: () => {
       const abrir = opcoesImportar.hidden;
       opcoesImportar.hidden = !abrir;
@@ -6813,13 +6831,32 @@ function criarTelaEntrada({
     },
   },
   icoLd('ctc-ld-imp__ico', SVG_LD.importar),
-  h('span', { class: 'ctc-ld-imp__txt' }, h('b', {}, 'Importar'), h('span', {}, armazenamento ? 'Versão na nuvem ou arquivo JSON' : 'Arquivo JSON')),
+  h('span', { class: 'ctc-ld-imp__txt' }, h('b', {}, 'Importar'), h('span', {}, armazenamento ? 'Nuvem ou arquivo JSON' : 'Arquivo JSON')),
   setaImportar);
 
-  const botaoProjetoNovo = h('button', { type: 'button', class: 'ctc-ld-imp ctc-ld-novo', title: 'Iniciar um controle em branco (pede a senha do administrador)', onClick: iniciarControle },
+  const botaoProjetoNovo = h('button', { type: 'button', class: 'ctc-ld-imp ctc-ld-acao ctc-ld-novo', title: 'Iniciar um controle em branco (pede a senha do administrador)', onClick: iniciarControle },
     icoLd('ctc-ld-imp__ico', SVG_LD.novo),
     h('span', { class: 'ctc-ld-imp__txt' }, h('b', {}, 'Projeto novo'), h('span', {}, 'Controle em branco')),
     h('span', { class: 'ctc-ld-imp__seta', 'aria-hidden': 'true' }, '➜'));
+
+  // v6.37.0: perfil escolhido no botao segmentado; o botao Entrar abre o perfil escolhido
+  const PERFIS_LD = [
+    { chave: 'visualizador', titulo: 'Visualizador', dica: 'Consulta (somente leitura)', entrar: entrarVisualizador },
+    { chave: 'apontamento', titulo: 'Apontamento', dica: 'Registra as etapas em campo; não desfaz nem altera datas já salvas', entrar: entrarApontamento },
+    { chave: 'controlador', titulo: 'Controlador', dica: 'Pode tudo: registra, desfaz e corrige datas', entrar: entrarControlador },
+  ];
+  let perfilLd = PERFIS_LD[0];
+  const botoesPerfil = PERFIS_LD.map((p) => h('button', {
+    type: 'button', class: 'ctc-ld-perfil', title: p.dica, 'aria-pressed': 'false',
+    onClick: () => escolherPerfilLd(p),
+  }, p.titulo));
+  const seletorPerfil = h('div', { class: 'ctc-ld-perfis', role: 'group', 'aria-label': 'Acessar como' }, ...botoesPerfil);
+  function escolherPerfilLd(p) {
+    perfilLd = p;
+    botoesPerfil.forEach((b, i) => { const ativo = PERFIS_LD[i] === p; b.classList.toggle('is-active', ativo); b.setAttribute('aria-pressed', String(ativo)); });
+  }
+  escolherPerfilLd(perfilLd);
+  const botaoEntrar = h('button', { type: 'button', class: 'ctc-ld-entrar', onClick: () => perfilLd.entrar() }, 'Entrar');
 
   const elPortal = h('div', { class: 'ctc-entrada__portal', hidden: !onLoginPortal });
   function atualizarPortal() {
@@ -6835,7 +6872,7 @@ function criarTelaEntrada({
         h('button', { type: 'button', class: 'ctc-entrada__portal-btn', onClick: () => loginPortal() }, 'Entrar com o painel'));
     }
     const sub = botaoProjetoNovo.querySelector('.ctc-ld-imp__txt span');
-    if (sub) sub.textContent = acessoPortal ? 'Controle em branco' : 'Controle em branco (senha do administrador)';
+    if (sub) sub.textContent = acessoPortal ? 'Controle em branco' : 'Em branco (senha do admin.)';
   }
 
   elLogoEntrada.className = 'ctc-landing__logo ctc-entrada__logo';
@@ -6846,21 +6883,16 @@ function criarTelaEntrada({
       elLogoEntrada,
       elTituloEntrada,
       h('p', { class: 'ctc-entrada__sub' }, subtitulo),
+      // v6.37.0: Importar e Projeto novo em cartoes lado a lado; perfil em botao segmentado + Entrar
+      h('div', { class: 'ctc-ld-acoes' }, botaoImportar, botaoProjetoNovo),
+      opcoesImportar,
+      status,
+      linkRemover,
+      entrada,
+      h('span', { class: 'ctc-entrada__rotulo ctc-ld-rotulo-perfil' }, 'Acessar como'),
+      seletorPerfil,
+      botaoEntrar,
       elPortal,
-      h('div', { class: 'ctc-entrada__bloco' },
-        h('span', { class: 'ctc-entrada__rotulo' }, '1. Importar dados da obra'),
-        botaoImportar,
-        opcoesImportar,
-        status,
-        linkRemover,
-        entrada),
-      botaoProjetoNovo,
-      h('div', { class: 'ctc-entrada__bloco' },
-        h('span', { class: 'ctc-entrada__rotulo' }, '2. Como você vai acessar?'),
-        h('div', { class: 'ctc-ld-acessos' },
-          cartaoLd({ svg: SVG_LD.olho, fundo: '#f1f5f9', cor: '#334155', titulo: 'Visualizador', sub: 'Consulta', dica: 'Somente leitura', onClick: entrarVisualizador }),
-          cartaoLd({ svg: SVG_LD.capacete, fundo: '#fef3c7', cor: '#b45309', titulo: 'Apontamento', sub: 'Registra em campo', dica: 'Registra as etapas; não desfaz nem altera datas já salvas', onClick: entrarApontamento }),
-          cartaoLd({ svg: SVG_LD.lapis, fundo: '#dbeafe', cor: '#1e3a8a', titulo: 'Controlador', sub: 'Pode tudo', dica: 'Registra, desfaz e corrige datas', onClick: entrarControlador }))),
       h('div', { class: 'ctc-entrada__links' },
         h('button', { type: 'button', onClick: () => abrirPrivacidade({ aba: 0 }) }, 'Privacidade'), ' · ',
         h('button', { type: 'button', onClick: () => abrirPrivacidade({ aba: 1 }) }, 'Termos de Uso')),
@@ -7931,7 +7963,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.36.0
+   Versao: 6.37.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -8162,6 +8194,8 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
             "Usar todas as sugestoes" e exportar a lista em Excel (so o Controlador corrige).
           - aba Relatorios: "Testar relatorios" gera todos (por blocos, avanco, estoque, medicao; PDF, PowerPoint
             e Excel) sem baixar e mostra o resultado de cada um; guarda os ultimos testes neste aparelho.
+   6.37.0: Tela de entrada: Importar e Projeto novo em cartoes lado a lado, perfil em botao segmentado
+          (padrao Visualizador) e botao Entrar; login do Portal KZ passa para baixo do Entrar.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -19106,7 +19140,7 @@ const COR_BLOCO_PDF = { concluida: PDF_CORES.verde, execucao: '#facc15', 'nao-in
    v6.35.0: AVISO DE VERSAO NOVA — no site publicado, confere a versao do index.html (a cada 10 min e ao
    voltar para a aba); se houver uma mais nova, mostra a faixa com o botao Atualizar.
    ========================================================================== */
-const VERSAO_APP = '6.36.0';
+const VERSAO_APP = '6.37.0';
 function versaoMaior(a, b) {
   const pa = String(a).split('.').map(Number); const pb = String(b).split('.').map(Number);
   for (let i = 0; i < 3; i += 1) { if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0); }
@@ -22015,7 +22049,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, ...(['controlador', 'administrador'].includes(perfil) ? [{ id: 'avisos', texto: 'E-mails de aviso', emoji: '📧' }] : []), { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.36.0' : 'Controle de Execução em Campo v6.36.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.37.0' : 'Controle de Execução em Campo v6.37.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -22055,7 +22089,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.36.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.37.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
