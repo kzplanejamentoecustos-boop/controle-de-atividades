@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Controle de Execução em Campo</title>
-<!-- ARQUIVO GERADO por ferramentas/gerar-arquivo-unico.py. Nao edite: altere os arquivos de origem e gere de novo. -->
+<!-- Controle de Execucao em Campo — ARQUIVO UNICO (nao ha arquivos de origem): edite este arquivo direto.
+     Cada versao e salva em "Controle Execucao Campo\Controle-Execucao-Campo vX.Y.Z.html" e publicada como index.html
+     no GitHub (kzplanejamentoecustos-boop/controle-de-atividades). Os marcadores "===== arquivo.js =====" so indicam a origem historica dos trechos. -->
 <style>
 /* =============================================================================
    CTC App Standard — Design System corporativo
@@ -1123,6 +1125,10 @@ img { max-width: 100%; display: block; }
   box-shadow: var(--ctc-shadow-2);
 }
 .ctc-dropdown__panel--right { left: auto; right: 0; }
+/* v6.35.0: faixa "Nova versao disponivel" */
+.ctc-faixa-versao { position: fixed; top: 0; left: 0; right: 0; z-index: 100000; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 14px; padding: 9px 44px 9px 14px; background: #00144d; color: #fff; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.25); }
+.ctc-faixa-versao__btn { border: 0; border-radius: 8px; padding: 7px 14px; background: #16a34a; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; }
+.ctc-faixa-versao__x { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: #cbd5e1; font-size: 22px; cursor: pointer; }
 /* v6.33.0: lista que abre dentro da janela (nao corta) e subtitulos de grupo / subgrupo */
 .ctc-dropdown--linha { display: block; }
 .ctc-dropdown--linha .ctc-dropdown__panel { position: static; margin-top: 6px; max-height: 48vh; box-shadow: none; width: 100%; }
@@ -7905,7 +7911,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.33.0
+   Versao: 6.35.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -8119,6 +8125,17 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           Correcao: o PDF de avanco travava ao desenhar o 3D (grupos de camadas tipos / diametros da v6.26).
    6.33.0: Exportar relatorio por blocos: a lista de etapas abre dentro da janela (nao corta mais) e vem com
           subtitulos: frente (ex.: FUNDACOES) > tipo (ex.: Estaca raiz Ø410 / Ø350, com "marcar todas") > etapas.
+   6.34.0: Interruptores (liga / desliga) de todo o controle no modelo "bolinha maior" (Android): trilho fino e
+          bolinha maior que ele; desligado cinza, ligado verde; desliza ao tocar.
+   6.35.0: Melhorias aprovadas (2, 5, 6, 7, 8, 10):
+          - Aviso de versao nova: no site, o controle confere a versao publicada (a cada 10 min e ao voltar
+            para a aba) e mostra a faixa "Nova versao disponivel" com o botao Atualizar.
+          - Sumario clicavel (PDF e PowerPoint): toque no item vai a pagina; "↑ Sumario" no rodape volta.
+          - Todos os relatorios deitados (A4 paisagem / slide 16:9), com capa e sumario do modelo; avanco,
+            estoque e medicao tambem em PowerPoint (escolha PDF, PowerPoint ou ambos).
+          - Logo do consorcio no rodape das paginas internas.
+          - Relatorio por blocos: planilha Excel junto (uma linha por etapa, com inicio, termino e situacao).
+          - Cabecalho do arquivo corrigido (arquivo unico, editado direto).
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -17800,16 +17817,21 @@ function paginaCampo() {
 
 /* ---- Interruptor (liga / desliga) desenhado em SVG, no padrao dos ajustes do celular ---- */
 const SVG_NS = 'http://www.w3.org/2000/svg';
-function criarInterruptor(ligado) {
+function criarInterruptor(ligado) {   // v6.34.0: modelo "bolinha maior" (Android): trilho fino, bolinha maior que ele
   const svg = document.createElementNS(SVG_NS, 'svg');
   const att = (el, a) => { Object.entries(a).forEach(([k, v]) => el.setAttribute(k, String(v))); return el; };
-  att(svg, { viewBox: '0 0 51 31', width: 46, height: 28, 'aria-hidden': 'true', focusable: 'false' });
-  const trilho = att(document.createElementNS(SVG_NS, 'rect'), { x: 0.5, y: 0.5, width: 50, height: 30, rx: 15 });
-  const botao = att(document.createElementNS(SVG_NS, 'circle'), { cy: 15.5, r: 13, fill: '#ffffff', stroke: '#d1d1d6', 'stroke-width': 0.6 });
-  svg.append(trilho, botao);
+  att(svg, { viewBox: '0 0 52 30', width: 48, height: 28, 'aria-hidden': 'true', focusable: 'false', class: 'ctc-interruptor' });
+  const trilho = att(document.createElementNS(SVG_NS, 'rect'), { x: 4, y: 7.5, width: 44, height: 15, rx: 7.5 });
+  const sombra = att(document.createElementNS(SVG_NS, 'circle'), { cx: 13, cy: 16, r: 11, fill: 'rgba(0,0,0,.18)' });
+  const bola = att(document.createElementNS(SVG_NS, 'circle'), { cx: 13, cy: 15, r: 11, 'stroke-width': 0.8 });
+  const grupo = att(document.createElementNS(SVG_NS, 'g'), {});
+  grupo.style.transition = 'transform .16s ease';
+  grupo.append(sombra, bola);
+  svg.append(trilho, grupo);
   svg.definir = (on) => {
-    att(trilho, { fill: on ? '#34c759' : '#e9e9eb', stroke: on ? '#34c759' : '#d1d1d6' });
-    att(botao, { cx: on ? 35.5 : 15.5 });
+    att(trilho, { fill: on ? '#86d3a0' : '#bcb8b1' });
+    att(bola, { fill: on ? '#16a34a' : '#f4f1ea', stroke: on ? '#15803d' : '#d6d2ca' });
+    grupo.style.transform = on ? 'translateX(26px)' : 'translateX(0px)';
   };
   svg.definir(ligado);
   return svg;
@@ -18874,7 +18896,7 @@ function criarDocumentoPdf({ largura = PDF_LARGURA, altura = PDF_ALTURA } = {}) 
     y: 0,
     aoQuebrar: null,
     novaPagina() {
-      atual = { ops: [] };
+      atual = { ops: [], links: [] };
       paginas.push(atual);
       doc.y = PDF_MARGEM;
       if (paginas.length > 1 && doc.aoQuebrar) doc.aoQuebrar();
@@ -18901,9 +18923,13 @@ function criarDocumentoPdf({ largura = PDF_LARGURA, altura = PDF_ALTURA } = {}) 
       imagens.push({ nome, largura: canvas.width, altura: canvas.height, bytes });
       atual.ops.push(`q ${numPdf(l)} 0 0 ${numPdf(a)} ${numPdf(x)} ${numPdf(altura - y - a)} cm /${nome} Do Q`);
     },
+    /** v6.35.0: link para outra pagina (indice 0..n-1); ir para uma pagina ja criada; "saida" generica. */
+    link(x, y, l, a, indice) { atual.links.push({ x, y, l, a, indice }); },
+    irPara(i) { atual = paginas[i]; },
+    saida() { return saidaPdf(doc); },
     /** Garante espaco vertical; se faltar, abre nova pagina (com o cabecalho reduzido). Retorna true se quebrou. */
     garantir(altura) {
-      if (doc.y + altura <= PDF_LIMITE_INFERIOR) return false;
+      if (doc.y + altura <= doc.altura - 60) return false;   // v6.35.0: vale para retrato e paisagem
       doc.novaPagina();
       return true;
     },
@@ -18947,7 +18973,8 @@ function montarBytesPdf({ paginas, imagens, largura = PDF_LARGURA, altura = PDF_
   paginas.forEach((pagina, i) => {
     const [idPagina, idConteudo] = idsPaginas[i];
     const conteudo = pagina.ops.join('\n');
-    objetos[idPagina - 1] = [`<< /Type /Page /Parent ${idPaginas} 0 R /MediaBox [0 0 ${largura} ${altura}] /Resources << /Font << /F1 ${idFonte} 0 R /F2 ${idFonteNegrito} 0 R >> /XObject << ${recursoImagens} >> >> /Contents ${idConteudo} 0 R >>`];
+    const anot = (pagina.links || []).filter((l) => idsPaginas[l.indice]).map((l) => `<< /Type /Annot /Subtype /Link /Rect [${numPdf(l.x)} ${numPdf(altura - l.y - l.a)} ${numPdf(l.x + l.l)} ${numPdf(altura - l.y)}] /Border [0 0 0] /Dest [${idsPaginas[l.indice][0]} 0 R /Fit] >>`);   // v6.35.0: links internos
+    objetos[idPagina - 1] = [`<< /Type /Page /Parent ${idPaginas} 0 R /MediaBox [0 0 ${largura} ${altura}] /Resources << /Font << /F1 ${idFonte} 0 R /F2 ${idFonteNegrito} 0 R >> /XObject << ${recursoImagens} >> >> /Contents ${idConteudo} 0 R${anot.length ? ` /Annots [${anot.join(' ')}]` : ''} >>`];
     objetos[idConteudo - 1] = [`<< /Length ${codificador.encode(conteudo).length} >>\nstream\n${conteudo}\nendstream`];
   });
 
@@ -18970,7 +18997,15 @@ function montarBytesPdf({ paginas, imagens, largura = PDF_LARGURA, altura = PDF_
  * Tabela no PDF com quebra de pagina e repeticao do cabecalho.
  * colunas: [{ titulo, largura, alinhar }]; linhas: [[valor | { texto, cor, negrito }]]
  */
-function tabelaPdf(doc, { colunas, linhas, total, fundoLinha, x0 = PDF_MARGEM, tamanho = 8 }) {
+function tabelaPdf(doc, { colunas: colunasOrig, linhas, total, fundoLinha, x0 = PDF_MARGEM, tamanho = 8 }) {
+  // v6.35.0: colunas desenhadas para o A4 em pe (515 pt uteis) crescem na mesma proporcao na pagina deitada
+  const util = doc.largura - 2 * PDF_MARGEM; const base = PDF_LARGURA - 2 * PDF_MARGEM;
+  const soma = colunasOrig.reduce((s, c) => s + c.largura, 0);
+  let colunas = colunasOrig;
+  if (util > base + 4 && Math.abs(soma - util) < 2) {
+    const outras = colunasOrig.slice(0, -1).reduce((s, c) => s + c.largura, 0); const k = util / base;
+    colunas = colunasOrig.map((c, i) => ({ ...c, largura: i < colunasOrig.length - 1 ? c.largura * k : Math.max(20, base - outras) * k }));
+  }
   const largura = colunas.reduce((s, c) => s + c.largura, 0);
   const alturaCab = 18;
   const alturaLinha = 15;
@@ -18999,7 +19034,7 @@ function tabelaPdf(doc, { colunas, linhas, total, fundoLinha, x0 = PDF_MARGEM, t
     doc.y += alturaLinha;
     doc.linha(x0, doc.y, x0 + largura, doc.y);
   };
-  if (doc.y + alturaCab + alturaLinha * 2 > PDF_LIMITE_INFERIOR) doc.novaPagina();
+  if (doc.y + alturaCab + alturaLinha * 2 > doc.altura - 60) doc.novaPagina();
   desenharCabecalho();
   linhas.forEach((l, i) => desenharLinha(l, { fundo: fundoLinha ? fundoLinha(i) : null }));
   if (total) desenharLinha(total, { negrito: true, fundo: PDF_CORES.trilha });
@@ -19039,6 +19074,43 @@ function quebrarTextoPdf(texto, largura, tamanho, maxLinhas = 4) {
 
 const dataPdf = (iso) => (iso ? formatarData(iso) : '—');
 const COR_BLOCO_PDF = { concluida: PDF_CORES.verde, execucao: '#facc15', 'nao-iniciada': PDF_CORES.cinza };
+
+
+/* =============================================================================
+   v6.35.0: AVISO DE VERSAO NOVA — no site publicado, confere a versao do index.html (a cada 10 min e ao
+   voltar para a aba); se houver uma mais nova, mostra a faixa com o botao Atualizar.
+   ========================================================================== */
+const VERSAO_APP = '6.35.0';
+function versaoMaior(a, b) {
+  const pa = String(a).split('.').map(Number); const pb = String(b).split('.').map(Number);
+  for (let i = 0; i < 3; i += 1) { if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0); }
+  return false;
+}
+function mostrarFaixaVersao(nova) {
+  if (document.querySelector('.ctc-faixa-versao')) return;
+  const atualizar = () => { const q = new URLSearchParams(location.search); q.set('v', nova); location.replace(`${location.pathname}?${q.toString()}${location.hash}`); };
+  const faixa = h('div', { class: 'ctc-faixa-versao', role: 'status' },
+    h('span', {}, `🔄 Nova versão do controle disponível (v${nova}). Os lançamentos ficam guardados.`),
+    h('button', { type: 'button', class: 'ctc-faixa-versao__btn ctc-allow-readonly', onClick: atualizar }, 'Atualizar agora'),
+    h('button', { type: 'button', class: 'ctc-faixa-versao__x ctc-allow-readonly', 'aria-label': 'Fechar aviso', onClick: () => faixa.remove() }, '×'));
+  document.body.append(faixa);
+}
+function vigiarVersaoNova() {
+  if (!/github\.io$/i.test(location.hostname)) return;   // so no site publicado
+  let avisada = false;
+  const conferir = async () => {
+    if (avisada || document.hidden) return;
+    try {
+      const resp = await fetch(`${location.pathname}?conferir-versao=${Date.now()}`, { cache: 'no-store' });
+      const m = (await resp.text()).match(/const VERSAO_APP = '(\d+\.\d+\.\d+)'/);
+      if (m && versaoMaior(m[1], VERSAO_APP)) { avisada = true; mostrarFaixaVersao(m[1]); }
+    } catch (erro) { /* sem internet: confere de novo depois */ }
+  };
+  setTimeout(conferir, 15000);
+  setInterval(conferir, 10 * 60 * 1000);
+  document.addEventListener('visibilitychange', conferir);
+}
+vigiarVersaoNova();
 
 /* =============================================================================
    v6.32.0: FORMATO PADRAO DAS APRESENTACOES (modelo Apresentacao1.pptx)
@@ -19190,8 +19262,33 @@ function comporSumarioModelo(out, W, H, { itens, primeiro = 0, subtitulo = '', c
     if (it.detalhe) out.txt(xt, y + 29 * kf, ajustarTextoPdf(it.detalhe, lt, 9 * kf), { tam: 9 * kf, cor: MODELO_COR.texto, fonte: 'Open Sans' });
     out.txt(x + colW, y + 19 * kf, pagTxt, { tam: 14 * kf, neg: true, cor: MODELO_COR.titulo, alinhar: 'direita', fonte: 'Open Sans' });
     out.lin(xt, y + rowH - 5 * kf, x + colW, y + rowH - 5 * kf, MODELO_COR.linha, 0.6);
+    if (out.link) out.link(x, y, colW, rowH - 4 * kf, it.pagina - 1);   // v6.35.0: toque no item vai a pagina
   });
   if (rodape) rodape();
+}
+/** v6.35.0: logo do consorcio sobre fundo branco (rodape das paginas internas; JPEG nao tem transparencia). */
+function canvasLogoRodape() {
+  if (CACHE_MODELO.logoRod) return CACHE_MODELO.logoRod;
+  const I = IMG_MODELO.logo; if (!imgModeloPronta(I)) return null;
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = Math.round((256 * I.naturalHeight) / I.naturalWidth);
+  const c = cv.getContext('2d'); c.fillStyle = '#ffffff'; c.fillRect(0, 0, cv.width, cv.height); c.drawImage(I, 0, 0, cv.width, cv.height);
+  CACHE_MODELO.logoRod = cv;
+  return cv;
+}
+/** v6.35.0: rodape padrao (logo, texto, "↑ Sumario" clicavel e numero da pagina). */
+function rodapeModelo(out, W, H, { texto, numero, total, comSumario, M = 28 }) {
+  out.lin(M, H - 26, W - M, H - 26, REL_COR.borda, 0.6);
+  const lg = canvasLogoRodape(); let xt = M;
+  if (lg) { const lh = 15; const lw = (lh * lg.width) / lg.height; out.img(lg, M, H - 22, lw, lh); xt = M + lw + 8; }
+  out.txt(xt, H - 12, ajustarTextoPdf(texto, W * 0.62, 8), { tam: 8, cor: REL_COR.suave });
+  const pag = `Página ${numero} de ${total}`;
+  out.txt(W - M, H - 12, pag, { tam: 8, cor: REL_COR.suave, alinhar: 'direita' });
+  if (comSumario && out.link) {
+    const xs = W - M - larguraTextoPdf(pag, 8) - 16;
+    out.txt(xs, H - 12, '« Sumário', { tam: 8, neg: true, cor: MODELO_COR.azul, alinhar: 'direita' });
+    const ls = larguraTextoPdf('« Sumário', 8, true);
+    out.link(xs - ls - 2, H - 22, ls + 4, 14, 1);
+  }
 }
 /** Quantas paginas de sumario o numero de itens ocupa. */
 const paginasSumario = (n, W, H) => { const { colunas, linhas } = capacidadeSumario(W, H); return Math.max(1, Math.ceil(n / (colunas * linhas))); };
@@ -19200,20 +19297,21 @@ const paginasSumario = (n, W, H) => { const { colunas, linhas } = capacidadeSuma
  * Moldura comum dos 3 relatorios (gerencial, medicao do cliente e de terceiros):
  * capa, titulos de secao, cartoes, barras, assinaturas, rodape e download.
  */
-function criarRelatorioPdf({ nomeRelatorio, subtitulo, selecao, fonte = 'Projetos OTF3' }) {
+function criarRelatorioPdf({ nomeRelatorio, subtitulo, selecao, fonte = 'Projetos OTF3', formato = 'pdf' }) {   // v6.35.0: deitado; PDF ou PowerPoint
   const agora = new Date();
   const { usuario, perfil } = sessao.obter();
   const emissor = usuario ? usuario.nome : NOME_PERFIL[perfil] || '—';
-  const larguraUtil = PDF_LARGURA - 2 * PDF_MARGEM;
-  const doc = criarDocumentoPdf();
+  const doc = formato === 'pptx' ? criarDocumentoPptx() : criarDocumentoPdf({ largura: PDF_ALTURA, altura: PDF_LARGURA });
+  const W = doc.largura; const H = doc.altura;
+  const larguraUtil = W - 2 * PDF_MARGEM;
   const obra = identidade.titulo && identidade.titulo !== MARCA.titulo ? identidade.titulo : '';
 
   const secoes = [];   // v6.32.0: titulos das secoes com a pagina (sumario)
   doc.aoQuebrar = () => {   // v6.32.0: faixa do modelo + titulo azul
-    faixaModelo(saidaPdf(doc), PDF_LARGURA, 7);
+    faixaModelo(doc.saida(), W, 7);
     doc.texto(PDF_MARGEM, 23, subtitulo ? `${nomeRelatorio} · ${subtitulo}` : nomeRelatorio, { tamanho: 9.5, negrito: true, cor: PDF_CORES.marca });
-    if (obra) doc.texto(PDF_LARGURA - PDF_MARGEM, 23, ajustarTextoPdf(obra, 220, 8.5), { tamanho: 8.5, cor: PDF_CORES.suave, alinhar: 'direita' });
-    doc.linha(PDF_MARGEM, 30, PDF_LARGURA - PDF_MARGEM, 30, PDF_CORES.borda, 0.6);
+    if (obra) doc.texto(W - PDF_MARGEM, 23, ajustarTextoPdf(obra, 220, 8.5), { tamanho: 8.5, cor: PDF_CORES.suave, alinhar: 'direita' });
+    doc.linha(PDF_MARGEM, 30, W - PDF_MARGEM, 30, PDF_CORES.borda, 0.6);
     doc.y = 46;
   };
 
@@ -19222,8 +19320,8 @@ function criarRelatorioPdf({ nomeRelatorio, subtitulo, selecao, fonte = 'Projeto
     secoes.push({ texto, detalhe: sub || '', pagina: doc.paginas.length });
     doc.retangulo(PDF_MARGEM, doc.y + 2, 4, 14, { preenchimento: PDF_CORES.marca });
     doc.texto(PDF_MARGEM + 10, doc.y + 13, texto, { tamanho: 11.5, negrito: true, cor: PDF_CORES.marca });
-    if (sub) doc.texto(PDF_LARGURA - PDF_MARGEM, doc.y + 13, sub, { tamanho: 8, cor: PDF_CORES.suave, alinhar: 'direita' });
-    doc.linha(PDF_MARGEM, doc.y + 21, PDF_LARGURA - PDF_MARGEM, doc.y + 21, PDF_CORES.borda, 0.8);
+    if (sub) doc.texto(W - PDF_MARGEM, doc.y + 13, sub, { tamanho: 8, cor: PDF_CORES.suave, alinhar: 'direita' });
+    doc.linha(PDF_MARGEM, doc.y + 21, W - PDF_MARGEM, doc.y + 21, PDF_CORES.borda, 0.8);
     doc.y += 30;
   };
 
@@ -19233,7 +19331,7 @@ function criarRelatorioPdf({ nomeRelatorio, subtitulo, selecao, fonte = 'Projeto
     doc.novaPagina();
     comCapa = true;
     const generico = /^controle de execu/i.test(nomeRelatorio);   // "Controle de execucao em campo" vai para o subtitulo
-    comporCapaModelo(saidaPdf(doc), PDF_LARGURA, PDF_ALTURA, {
+    comporCapaModelo(doc.saida(), W, H, {
       titulo: generico ? subtitulo : nomeRelatorio,
       subtitulo: generico ? nomeRelatorio : subtitulo,
       linhas: [obra, `Seleção: ${selecao}`, `Emitido em ${formatarData(agora, 'data-hora')} · por ${emissor}`, `Base: ${fonte}`],
@@ -19294,7 +19392,7 @@ function criarRelatorioPdf({ nomeRelatorio, subtitulo, selecao, fonte = 'Projeto
     doc.retangulo(PDF_MARGEM, doc.y, 4, 20, { preenchimento: PDF_CORES.marca });
     doc.texto(PDF_MARGEM + 12, doc.y + 14, `Bloco ${bloco}`, { tamanho: 10, negrito: true, cor: PDF_CORES.marca });
     if (situacao) doc.texto(PDF_MARGEM + 62, doc.y + 13.5, '', { tamanho: 7.5, cor: PDF_CORES.suave });
-    if (direita) doc.texto(PDF_LARGURA - PDF_MARGEM - 8, doc.y + 13.5, direita, { tamanho: 8, negrito: true, cor: PDF_CORES.texto, alinhar: 'direita' });
+    if (direita) doc.texto(W - PDF_MARGEM - 8, doc.y + 13.5, direita, { tamanho: 8, negrito: true, cor: PDF_CORES.texto, alinhar: 'direita' });
     doc.y += 24;
   };
 
@@ -19305,7 +19403,7 @@ function criarRelatorioPdf({ nomeRelatorio, subtitulo, selecao, fonte = 'Projeto
     doc.retangulo(PDF_MARGEM, doc.y, larguraUtil, altura, { preenchimento: fundo });
     doc.retangulo(PDF_MARGEM, doc.y, 4, altura, { preenchimento: cor });
     doc.texto(PDF_MARGEM + 12, doc.y + 14, tituloCartao, { tamanho: 10, negrito: true, cor });
-    if (info) doc.texto(PDF_LARGURA - PDF_MARGEM - 8, doc.y + 14, ajustarTextoPdf(info, 330, 7.5), { tamanho: 7.5, cor: PDF_CORES.suave, alinhar: 'direita' });
+    if (info) doc.texto(W - PDF_MARGEM - 8, doc.y + 14, ajustarTextoPdf(info, 330, 7.5), { tamanho: 7.5, cor: PDF_CORES.suave, alinhar: 'direita' });
     linhas.forEach((l, i) => doc.texto(PDF_MARGEM + 12, doc.y + 27 + i * 11, l, { tamanho: 8.5, cor: PDF_CORES.texto }));
     doc.y += altura + 6;
   };
@@ -19328,36 +19426,29 @@ function criarRelatorioPdf({ nomeRelatorio, subtitulo, selecao, fonte = 'Projeto
   const finalizar = (prefixoArquivo) => {
     // v6.32.0: sumario logo apos a capa (paginas ja com o deslocamento do proprio sumario)
     if (comCapa && secoes.length) {
-      const nSum = paginasSumario(secoes.length, PDF_LARGURA, PDF_ALTURA);
-      const { colunas, linhas } = capacidadeSumario(PDF_LARGURA, PDF_ALTURA); const porPag = colunas * linhas;
+      const nSum = paginasSumario(secoes.length, W, H);
+      const { colunas, linhas } = capacidadeSumario(W, H); const porPag = colunas * linhas;
       const itens = secoes.map((s) => ({ texto: s.texto.replace(/^\d+\.\s*/, ''), detalhe: s.detalhe, pagina: s.pagina + nSum }));
       doc.aoQuebrar = null;
       const antes = doc.paginas.length;
       for (let p = 0; p < nSum; p += 1) {
         doc.novaPagina();
-        comporSumarioModelo(saidaPdf(doc), PDF_LARGURA, PDF_ALTURA, { itens: itens.slice(p * porPag, (p + 1) * porPag), primeiro: p * porPag, subtitulo: `${nomeRelatorio} · ${subtitulo}`, continua: p > 0 });
+        comporSumarioModelo(doc.saida(), W, H, { itens: itens.slice(p * porPag, (p + 1) * porPag), primeiro: p * porPag, subtitulo: `${nomeRelatorio} · ${subtitulo}`, continua: p > 0 });
       }
       doc.paginas.splice(1, 0, ...doc.paginas.splice(antes));
     }
     const totalPaginas = doc.paginas.length;
+    const temSumario = comCapa && secoes.length > 0;
     doc.paginas.forEach((pagina, i) => {
       if (i === 0 && comCapa) return;   // capa sem rodape
-      pagina.ops.push(`${corPdf(PDF_CORES.borda)} RG 0.6 w ${numPdf(PDF_MARGEM)} ${numPdf(PDF_ALTURA - 806)} m ${numPdf(PDF_LARGURA - PDF_MARGEM)} ${numPdf(PDF_ALTURA - 806)} l S`);
-      const esquerda = `${nomeRelatorio} · ${selecao}`;
-      const direita = `Página ${i + 1} de ${totalPaginas}`;
-      pagina.ops.push(`BT /F1 7.5 Tf ${corPdf(PDF_CORES.suave)} rg ${numPdf(PDF_MARGEM)} ${numPdf(PDF_ALTURA - 818)} Td ${literalPdf(ajustarTextoPdf(esquerda, 400, 7.5))} Tj ET`);
-      pagina.ops.push(`BT /F1 7.5 Tf ${corPdf(PDF_CORES.suave)} rg ${numPdf(PDF_LARGURA - PDF_MARGEM - larguraTextoPdf(direita, 7.5))} ${numPdf(PDF_ALTURA - 818)} Td ${literalPdf(direita)} Tj ET`);
+      doc.irPara(i);
+      rodapeModelo(doc.saida(), W, H, { texto: `${nomeRelatorio} · ${subtitulo} · ${selecao}`, numero: i + 1, total: totalPaginas, comSumario: temSumario && i > 1, M: PDF_MARGEM });
     });
-    const arquivo = montarBytesPdf(doc);
+    // v6.35.0: so monta o arquivo; o download e pela janela "Relatorio pronto" (um botao por arquivo)
+    const arquivo = doc.tipo === 'pptx' ? montarPptx(doc.paginas, { titulo: `${nomeRelatorio} · ${subtitulo}` }) : montarBytesPdf(doc);
     const p = (n) => String(n).padStart(2, '0');
-    const nome = `${prefixoArquivo}_${agora.getFullYear()}-${p(agora.getMonth() + 1)}-${p(agora.getDate())}_${p(agora.getHours())}${p(agora.getMinutes())}.pdf`;
-    const url = URL.createObjectURL(arquivo);
-    const link = h('a', { href: url, download: nome });
-    document.body.append(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
-    return { nome, paginas: totalPaginas, arquivo };
+    const nome = `${prefixoArquivo}_${agora.getFullYear()}-${p(agora.getMonth() + 1)}-${p(agora.getDate())}_${p(agora.getHours())}${p(agora.getMinutes())}.${doc.tipo === 'pptx' ? 'pptx' : 'pdf'}`;
+    return { nome, paginas: totalPaginas, arquivo, tipo: doc.tipo === 'pptx' ? 'PowerPoint' : 'PDF' };
   };
 
   return { doc, larguraUtil, titulo, capa, cartoes, barraEmpilhada, segmentosStatus, legendaStatus, faixaBloco, cartaoTexto, assinaturas, finalizar };
@@ -20021,15 +20112,15 @@ function secaoEstoquePdf(r, numero) {
   }
 }
 
-function gerarRelatorioEstoque() {
-  const r = criarRelatorioPdf({ nomeRelatorio: 'Controle de execução em campo', subtitulo: 'Estoque de pré-moldados', selecao: `Posição em ${dataTexto(hojeIso())}` });
+function gerarRelatorioEstoque(formato = 'pdf') {
+  const r = criarRelatorioPdf({ formato, nomeRelatorio: 'Controle de execução em campo', subtitulo: 'Estoque de pré-moldados', selecao: `Posição em ${dataTexto(hojeIso())}` });
   r.capa();
   secaoEstoquePdf(r, 1);
   return r.finalizar('controle-campo-estoque-pm');
 }
 
-function gerarRelatorioAvanco(segs) {
-  const r = criarRelatorioPdf({ nomeRelatorio: 'Controle de execução em campo', subtitulo: 'Relatório de avanço', selecao: segs.map((s) => SEGMENTOS[s].texto).join(' · ') });
+function gerarRelatorioAvanco(segs, formato = 'pdf') {
+  const r = criarRelatorioPdf({ formato, nomeRelatorio: 'Controle de execução em campo', subtitulo: 'Relatório de avanço', selecao: segs.map((s) => SEGMENTOS[s].texto).join(' · ') });
   const { doc, larguraUtil } = r;
   r.capa();
   const todos = elementos.filter((e) => segs.includes(e.seg));
@@ -20050,11 +20141,11 @@ function gerarRelatorioAvanco(segs) {
       const tf = totaisDe(lista.filter((e) => tipoDe(e).frente === f));
       doc.garantir(18);
       doc.texto(PDF_MARGEM, doc.y + 10, FRENTES[f].texto, { tamanho: 8.5 });
-      r.barraEmpilhada(PDF_MARGEM + 150, doc.y + 2, 260, 11, [
+      r.barraEmpilhada(PDF_MARGEM + 150, doc.y + 2, larguraUtil - 150 - 120, 11, [
         { valor: tf.concluidos, cor: PDF_CORES.verde }, { valor: tf.execucao, cor: '#facc15' }, { valor: tf.pendencias, cor: PDF_CORES.vermelho },
         { valor: Math.max(tf.total - tf.concluidos - tf.execucao - tf.pendencias, 0), cor: PDF_CORES.trilha },
       ]);
-      doc.texto(PDF_LARGURA - PDF_MARGEM, doc.y + 10, `${tf.concluidos}/${tf.total} · ${formatarPercentual(percentual(tf.concluidos, tf.total), { casas: 0 })}`, { tamanho: 8.5, negrito: true, alinhar: 'direita' });
+      doc.texto(doc.largura - PDF_MARGEM, doc.y + 10, `${tf.concluidos}/${tf.total} · ${formatarPercentual(percentual(tf.concluidos, tf.total), { casas: 0 })}`, { tamanho: 8.5, negrito: true, alinhar: 'direita' });
       doc.y += 17;
     });
     doc.y += 6;
@@ -20063,8 +20154,11 @@ function gerarRelatorioAvanco(segs) {
     doc.novaPagina();
     r.titulo(`${i + 2}. Vista 3D — ${SEGMENTOS[seg].texto}`, 'cores do status');
     const c = canvas3dRelatorio(seg);
-    const alt = (larguraUtil * c.height) / c.width;
-    doc.imagem(c, PDF_MARGEM, doc.y, larguraUtil, alt);
+    // v6.35.0: na pagina deitada a imagem cabe pela altura (centralizada)
+    let larg3d = larguraUtil; let alt = (larguraUtil * c.height) / c.width;
+    const cabe3d = doc.altura - 60 - doc.y - 22;
+    if (alt > cabe3d) { alt = cabe3d; larg3d = (alt * c.width) / c.height; }
+    doc.imagem(c, PDF_MARGEM + (larguraUtil - larg3d) / 2, doc.y, larg3d, alt);
     doc.y += alt + 14;
     const listaSeg = elementos.filter((e) => e.seg === seg);
     const contagem = Object.fromEntries(ORDEM_STATUS.map((st) => [st, listaSeg.filter((e) => statusDe(e) === st).length]));
@@ -20110,8 +20204,8 @@ function gerarRelatorioAvanco(segs) {
 }
 
 /** Medicao: elementos concluidos no periodo, por tipo, com volumes de projeto e lancados. */
-function gerarMedicao(segs, de, ate) {
-  const r = criarRelatorioPdf({ nomeRelatorio: 'Medição de serviços executados', subtitulo: 'Quantidades (sem valores)', selecao: `${segs.map((s) => SEGMENTOS[s].texto).join(', ')} · ${de ? dataTexto(de) : 'início'} a ${dataTexto(ate || hojeIso())}` });
+function gerarMedicao(segs, de, ate, formato = 'pdf') {
+  const r = criarRelatorioPdf({ formato, nomeRelatorio: 'Medição de serviços executados', subtitulo: 'Quantidades (sem valores)', selecao: `${segs.map((s) => SEGMENTOS[s].texto).join(', ')} · ${de ? dataTexto(de) : 'início'} a ${dataTexto(ate || hojeIso())}` });
   const { doc, larguraUtil } = r;
   const lista = elementos.filter((e) => segs.includes(e.seg) && concluido(e) && !e.pendencia && (!de || dataConclusao(e) >= de) && (!ate || dataConclusao(e) <= ate));
   r.capa(PDF_CORES.marca);
@@ -20163,9 +20257,10 @@ function abrirRelatorios() {
   const formulario = criarFormulario({
     colunas: 2,
     semBotoes: true,
-    valores: { tipo: 'avanco', de: '', ate: hojeIso() },
+    valores: { tipo: 'avanco', formato: 'pdf', de: '', ate: hojeIso() },
     campos: [
       { nome: 'tipo', rotulo: 'Relatório', tipo: 'radio', larguraTotal: true, opcoes: [{ valor: 'avanco', texto: 'Avanço (gerencial) com vistas 3D e estoque' }, { valor: 'medicao', texto: 'Medição do período (quantidades)' }, { valor: 'estoque', texto: 'Estoque de pré-moldados (recebido · montado · saldo)' }] },
+      { nome: 'formato', rotulo: 'Formato', tipo: 'radio', larguraTotal: true, opcoes: [{ valor: 'pdf', texto: 'PDF' }, { valor: 'pptx', texto: 'PowerPoint' }, { valor: 'ambos', texto: 'Ambos' }] },
       { nome: 'de', rotulo: 'Medição de', tipo: 'data' },
       { nome: 'ate', rotulo: 'até', tipo: 'data' },
     ],
@@ -20175,9 +20270,11 @@ function abrirRelatorios() {
       if (!segs.length && v.tipo !== 'estoque') { toast.aviso('Escolha os locais', 'Ligue pelo menos um local no botão "Locais".'); return; }
       await new Promise((res) => { setTimeout(res, 30); });
       try {
-        const { nome, paginas } = v.tipo === 'medicao' ? gerarMedicao(segs, v.de, v.ate) : (v.tipo === 'estoque' ? gerarRelatorioEstoque() : gerarRelatorioAvanco(segs));
-        toast.sucesso('Relatório gerado', `${nome} — ${paginas} página(s)`);
+        const gerar = (fmt) => (v.tipo === 'medicao' ? gerarMedicao(segs, v.de, v.ate, fmt) : (v.tipo === 'estoque' ? gerarRelatorioEstoque(fmt) : gerarRelatorioAvanco(segs, fmt)));
+        const formatos = v.formato === 'ambos' ? ['pdf', 'pptx'] : [v.formato || 'pdf'];
+        const feitos = formatos.map(gerar);
         modal.fechar();
+        abrirArquivosRelatorio({ texto: `${feitos[0].paginas} página(s).`, arquivos: feitos.map((x) => ({ tipo: x.tipo, blob: x.arquivo, nome: x.nome })) });   // v6.35.0
       } catch (erro) {
         console.error(erro);
         toast.erro('Falha ao gerar o relatório', erro.message);
@@ -20185,9 +20282,9 @@ function abrirRelatorios() {
     },
   });
   const modal = criarModal({
-    titulo: 'Relatórios em PDF', tamanho: 'md', destruirAoFechar: true,
+    titulo: 'Relatórios (PDF e PowerPoint)', tamanho: 'md', destruirAoFechar: true,
     conteudo: [h('div', { class: 'ctc-cluster' }, h('strong', {}, 'Locais do relatório:'), selLocais.elemento), formulario.elemento],
-    acoes: [{ texto: 'Cancelar', variante: 'outline' }, { texto: 'Gerar PDF', variante: 'primary', fechar: false, onClick: () => formulario.enviar() }],
+    acoes: [{ texto: 'Cancelar', variante: 'outline' }, { texto: 'Gerar relatório', variante: 'primary', fechar: false, onClick: () => formulario.enviar() }],
   });
   modal.abrir();
 }
@@ -20594,11 +20691,7 @@ function comporPaginaRelatorio(out, pg, ctx, W, H) {
     if (direita) out.txt(W - M, 34, direita, { tam: 10, cor: REL_COR.suave, alinhar: 'direita' });
     out.lin(M, 45, W - M, 45, REL_COR.borda, 0.8);
   };
-  const rodape = () => {
-    out.lin(M, H - 26, W - M, H - 26, REL_COR.borda, 0.6);
-    out.txt(M, H - 12, ajustarTextoPdf(`${nome} · ${obra} · emitido em ${emissao}`, W * 0.7, 8), { tam: 8, cor: REL_COR.suave });
-    out.txt(W - M, H - 12, `Página ${numero} de ${total}`, { tam: 8, cor: REL_COR.suave, alinhar: 'direita' });
-  };
+  const rodape = () => rodapeModelo(out, W, H, { texto: `${nome} · ${obra} · emitido em ${emissao}`, numero, total, comSumario: pg.tipo !== 'sumario', M });   // v6.35.0: logo + ↑ Sumario
   if (pg.tipo === 'capa') {   // v6.32.0: capa no formato do modelo
     const sub = String(nome || '').replace(/^relat[óo]rio por blocos\s*[—–-]?\s*/i, '') || periodoTxt;
     comporCapaModelo(out, W, H, {
@@ -20725,22 +20818,32 @@ function saidaPdf(doc) {
     txt: (x, y, texto, { tam = 9, neg = false, cor = REL_COR.texto, alinhar = 'esquerda' } = {}) => doc.texto(x, y, String(texto ?? ''), { tamanho: tam, negrito: neg, cor, alinhar }),
     img: (cv, x, y, w, h0) => doc.imagem(cv, x, y, w, h0),
     lin: (x1, y1, x2, y2, cor = REL_COR.borda, lw = 0.6) => doc.linha(x1, y1, x2, y2, cor, lw),
+    link: (x, y, w, h0, indice) => doc.link(x, y, w, h0, indice),   // v6.35.0
   };
 }
 
 /* ---- saida PowerPoint (.pptx): zip sem compressao com slides, mestre, layout e tema minimos ---- */
 const xmlEsc = (s) => String(s ?? '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const EMU = (pt) => Math.round(pt * 12700);
+/** Cor '#abc' ou '#aabbcc' -> 'AABBCC' (PowerPoint). */
+const hex6 = (c) => { let s = String(c || '#000000').replace('#', ''); if (s.length === 3) s = s.split('').map((ch) => ch + ch).join(''); return s.slice(0, 6); };
 function saidaPptx(slide) {
   let id = 2;
-  const forma = (x, y, w, h0, { fill, stroke, lw }) => `<p:sp><p:nvSpPr><p:cNvPr id="${id++}" name="Forma ${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${EMU(x)}" y="${EMU(y)}"/><a:ext cx="${EMU(Math.max(w, 0.1))}" cy="${EMU(Math.max(h0, 0.1))}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>${fill ? `<a:solidFill><a:srgbClr val="${fill.slice(1)}"/></a:solidFill>` : '<a:noFill/>'}${stroke ? `<a:ln w="${EMU(lw || 0.6)}"><a:solidFill><a:srgbClr val="${stroke.slice(1)}"/></a:solidFill></a:ln>` : '<a:ln><a:noFill/></a:ln>'}</p:spPr></p:sp>`;
+  const forma = (x, y, w, h0, { fill, stroke, lw }) => `<p:sp><p:nvSpPr><p:cNvPr id="${id++}" name="Forma ${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${EMU(x)}" y="${EMU(y)}"/><a:ext cx="${EMU(Math.max(w, 0.1))}" cy="${EMU(Math.max(h0, 0.1))}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>${fill ? `<a:solidFill><a:srgbClr val="${hex6(fill)}"/></a:solidFill>` : '<a:noFill/>'}${stroke ? `<a:ln w="${EMU(lw || 0.6)}"><a:solidFill><a:srgbClr val="${hex6(stroke)}"/></a:solidFill></a:ln>` : '<a:ln><a:noFill/></a:ln>'}</p:spPr></p:sp>`;
+  if (!slide.links) slide.links = [];   // eslint-disable-line no-param-reassign
   return {
     ret: (x, y, w, h0, op = {}) => slide.formas.push(forma(x, y, w, h0, op)),
+    /** v6.35.0: area clicavel (transparente) que leva ao slide "indice" (0..n-1) na apresentacao. */
+    link: (x, y, w, h0, indice) => {
+      const rid = `rIdL${slide.links.length + 1}`;
+      slide.links.push({ rid, indice });
+      slide.formas.push(`<p:sp><p:nvSpPr><p:cNvPr id="${id++}" name="Link ${id}"><a:hlinkClick r:id="${rid}" action="ppaction://hlinksldjump"/></p:cNvPr><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${EMU(x)}" y="${EMU(y)}"/><a:ext cx="${EMU(Math.max(w, 1))}" cy="${EMU(Math.max(h0, 1))}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="FFFFFF"><a:alpha val="0"/></a:srgbClr></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr></p:sp>`);
+    },
     txt: (x, y, texto, { tam = 9, neg = false, cor = REL_COR.texto, alinhar = 'esquerda', fonte = 'Arial' } = {}) => {
       const t = String(texto ?? ''); const larg = larguraTextoPdf(t, tam, neg) * (fonte === 'Arial' ? 1 : 1.1) + 6; const alt = tam * 1.35;
       const x0 = alinhar === 'direita' ? x - larg : (alinhar === 'centro' ? x - larg / 2 : x);
       const algn = alinhar === 'direita' ? 'r' : (alinhar === 'centro' ? 'ctr' : 'l');
-      slide.formas.push(`<p:sp><p:nvSpPr><p:cNvPr id="${id++}" name="Texto ${id}"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${EMU(x0)}" y="${EMU(y - tam * 1.02)}"/><a:ext cx="${EMU(larg)}" cy="${EMU(alt)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr><p:txBody><a:bodyPr wrap="none" lIns="0" tIns="0" rIns="0" bIns="0" anchor="t"><a:noAutofit/></a:bodyPr><a:lstStyle/><a:p><a:pPr algn="${algn}"/><a:r><a:rPr lang="pt-BR" sz="${Math.round(tam * 100)}"${neg ? ' b="1"' : ''} dirty="0"><a:solidFill><a:srgbClr val="${cor.slice(1)}"/></a:solidFill><a:latin typeface="${xmlEsc(fonte)}"/><a:cs typeface="${xmlEsc(fonte)}"/></a:rPr><a:t>${xmlEsc(t)}</a:t></a:r></a:p></p:txBody></p:sp>`);
+      slide.formas.push(`<p:sp><p:nvSpPr><p:cNvPr id="${id++}" name="Texto ${id}"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x="${EMU(x0)}" y="${EMU(y - tam * 1.02)}"/><a:ext cx="${EMU(larg)}" cy="${EMU(alt)}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr><p:txBody><a:bodyPr wrap="none" lIns="0" tIns="0" rIns="0" bIns="0" anchor="t"><a:noAutofit/></a:bodyPr><a:lstStyle/><a:p><a:pPr algn="${algn}"/><a:r><a:rPr lang="pt-BR" sz="${Math.round(tam * 100)}"${neg ? ' b="1"' : ''} dirty="0"><a:solidFill><a:srgbClr val="${hex6(cor)}"/></a:solidFill><a:latin typeface="${xmlEsc(fonte)}"/><a:cs typeface="${xmlEsc(fonte)}"/></a:rPr><a:t>${xmlEsc(t)}</a:t></a:r></a:p></p:txBody></p:sp>`);
     },
     img: (cv, x, y, w, h0) => {
       const rid = `rId${slide.imagens.length + 2}`;
@@ -20749,7 +20852,7 @@ function saidaPptx(slide) {
     },
     lin: (x1, y1, x2, y2, cor = REL_COR.borda, lw = 0.6) => {
       const x = Math.min(x1, x2); const y = Math.min(y1, y2); const flip = (x2 - x1) * (y2 - y1) < 0 ? ' flipV="1"' : '';
-      slide.formas.push(`<p:cxnSp><p:nvCxnSpPr><p:cNvPr id="${id++}" name="Linha ${id}"/><p:cNvCxnSpPr/><p:nvPr/></p:nvCxnSpPr><p:spPr><a:xfrm${flip}><a:off x="${EMU(x)}" y="${EMU(y)}"/><a:ext cx="${EMU(Math.abs(x2 - x1))}" cy="${EMU(Math.abs(y2 - y1))}"/></a:xfrm><a:prstGeom prst="line"><a:avLst/></a:prstGeom><a:ln w="${EMU(lw)}"><a:solidFill><a:srgbClr val="${cor.slice(1)}"/></a:solidFill></a:ln></p:spPr></p:cxnSp>`);
+      slide.formas.push(`<p:cxnSp><p:nvCxnSpPr><p:cNvPr id="${id++}" name="Linha ${id}"/><p:cNvCxnSpPr/><p:nvPr/></p:nvCxnSpPr><p:spPr><a:xfrm${flip}><a:off x="${EMU(x)}" y="${EMU(y)}"/><a:ext cx="${EMU(Math.abs(x2 - x1))}" cy="${EMU(Math.abs(y2 - y1))}"/></a:xfrm><a:prstGeom prst="line"><a:avLst/></a:prstGeom><a:ln w="${EMU(lw)}"><a:solidFill><a:srgbClr val="${hex6(cor)}"/></a:solidFill></a:ln></p:spPr></p:cxnSp>`);
     },
   };
 }
@@ -20757,7 +20860,7 @@ function saidaPptx(slide) {
 const TABELA_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n += 1) { let c = n; for (let k = 0; k < 8; k += 1) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
 function crc32(bytes) { let c = 0xffffffff; for (let i = 0; i < bytes.length; i += 1) c = TABELA_CRC[(c ^ bytes[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
 /** Zip "store" (sem compressao): arquivos = [{ nome, bytes }]. */
-function montarZip(arquivos) {
+function montarZip(arquivos, tipo = 'application/vnd.openxmlformats-officedocument.presentationml.presentation') {
   const enc = new TextEncoder(); const partes = []; const centrais = []; let pos = 0;
   const u16 = (v) => [v & 0xff, (v >>> 8) & 0xff]; const u32 = (v) => [v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, (v >>> 24) & 0xff];
   arquivos.forEach(({ nome, bytes }) => {
@@ -20769,10 +20872,10 @@ function montarZip(arquivos) {
   });
   const tamCentral = centrais.reduce((s, b) => s + b.length, 0);
   const fim = new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(arquivos.length), ...u16(arquivos.length), ...u32(tamCentral), ...u32(pos), ...u16(0)]);
-  return new Blob([...partes, ...centrais, fim], { type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' });
+  return new Blob([...partes, ...centrais, fim], { type: tipo });
 }
 const bytesJpeg = (cv) => { const b = atob(cv.toDataURL('image/jpeg', 0.9).split(',')[1]); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i += 1) u[i] = b.charCodeAt(i); return u; };
-function montarPptx(slides) {
+function montarPptx(slides, { titulo = 'Relatório por blocos' } = {}) {
   const enc = (s) => new TextEncoder().encode(s);
   const NS = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"';
   const grupo = '<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>';
@@ -20785,13 +20888,14 @@ function montarPptx(slides) {
     add(`ppt/slides/slide${i + 1}.xml`, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:sld ${NS}><p:cSld><p:spTree>${grupo}${s.formas.join('')}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`);
     const rels = [`<Relationship Id="rId1" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>`];
     s.imagens.forEach((im) => { nImg += 1; const nome = `image${nImg}.jpeg`; midias.push({ nome, canvas: im.canvas }); rels.push(`<Relationship Id="${im.rid}" Type="${REL}/image" Target="../media/${nome}"/>`); });
+    (s.links || []).forEach((l) => { const alvo = Math.min(Math.max(0, l.indice), slides.length - 1) + 1; rels.push(`<Relationship Id="${l.rid}" Type="${REL}/slide" Target="slide${alvo}.xml"/>`); });   // v6.35.0
     add(`ppt/slides/_rels/slide${i + 1}.xml.rels`, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${rels.join('')}</Relationships>`);
   });
   midias.forEach((m) => add(`ppt/media/${m.nome}`, bytesJpeg(m.canvas)));
   add('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>${slides.map((_, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`).join('')}</Types>`);
   add('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${REL}/officeDocument" Target="ppt/presentation.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="${REL}/extended-properties" Target="docProps/app.xml"/></Relationships>`);
   const agoraIso = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
-  add('docProps/core.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>Relatório por blocos</dc:title><dc:creator>Controle de Execução em Campo</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${agoraIso}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${agoraIso}</dcterms:modified></cp:coreProperties>`);
+  add('docProps/core.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${xmlEsc(titulo)}</dc:title><dc:creator>Controle de Execução em Campo</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${agoraIso}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${agoraIso}</dcterms:modified></cp:coreProperties>`);
   add('docProps/app.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>Microsoft Office PowerPoint</Application><Slides>${slides.length}</Slides><PresentationFormat>Widescreen</PresentationFormat></Properties>`);
   add('ppt/presentation.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:presentation ${NS}><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst><p:sldIdLst>${slides.map((_, i) => `<p:sldId id="${256 + i}" r:id="rId${i + 3}"/>`).join('')}</p:sldIdLst><p:sldSz cx="12192000" cy="6858000"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>`);
   add('ppt/_rels/presentation.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${REL}/slideMaster" Target="slideMasters/slideMaster1.xml"/><Relationship Id="rId2" Type="${REL}/theme" Target="theme/theme1.xml"/>${slides.map((_, i) => `<Relationship Id="rId${i + 3}" Type="${REL}/slide" Target="slides/slide${i + 1}.xml"/>`).join('')}</Relationships>`);
@@ -20803,6 +20907,67 @@ function montarPptx(slides) {
   const fill = '<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>';
   add('ppt/theme/theme1.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="CTC"><a:themeElements><a:clrScheme name="CTC"><a:dk1><a:srgbClr val="0F172A"/></a:dk1><a:lt1><a:srgbClr val="FFFFFF"/></a:lt1>${cor('dk2', '00144D')}${cor('lt2', 'F2F2F2')}${cor('accent1', '005BAB')}${cor('accent2', '7CBF6A')}${cor('accent3', 'FDB913')}${cor('accent4', 'DC2626')}${cor('accent5', '2F5D8C')}${cor('accent6', '64748B')}${cor('hlink', '2563EB')}${cor('folHlink', '7C3AED')}</a:clrScheme><a:fontScheme name="CTC"><a:majorFont><a:latin typeface="Open Sans"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont><a:minorFont><a:latin typeface="Arial"/><a:ea typeface=""/><a:cs typeface=""/></a:minorFont></a:fontScheme><a:fmtScheme name="CTC"><a:fillStyleLst>${fill}${fill}${fill}</a:fillStyleLst><a:lnStyleLst><a:ln w="6350"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="12700"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="19050"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst>${fill}${fill}${fill}</a:bgFillStyleLst></a:fmtScheme></a:themeElements><a:objectDefaults/><a:extraClrSchemeLst/></a:theme>`);
   return montarZip(arquivos);
+}
+
+
+/**
+ * v6.35.0: "documento" PowerPoint com a mesma interface do criarDocumentoPdf (retangulo, linha, texto, imagem,
+ * novaPagina, garantir, y, aoQuebrar, link, irPara, saida): os relatorios de avanco, estoque e medicao saem
+ * tambem em PowerPoint 16:9 (960 x 540 pt) sem reescrever o conteudo.
+ */
+function criarDocumentoPptx({ largura = 960, altura = 540 } = {}) {
+  const paginas = [];
+  let atual = null;
+  const doc = {
+    tipo: 'pptx', paginas, largura, altura, y: 0, aoQuebrar: null,
+    novaPagina() {
+      atual = { formas: [], imagens: [], links: [] };
+      atual.out = saidaPptx(atual);
+      paginas.push(atual);
+      doc.y = PDF_MARGEM;
+      if (paginas.length > 1 && doc.aoQuebrar) doc.aoQuebrar();
+    },
+    irPara(i) { atual = paginas[i]; },
+    saida() { return atual.out; },
+    retangulo(x, y, l, a, { preenchimento, contorno, espessura = 0.6 } = {}) { atual.out.ret(x, y, l, a, { fill: preenchimento, stroke: contorno, lw: espessura }); },
+    linha(x1, y1, x2, y2, cor = PDF_CORES.borda, espessura = 0.6) { atual.out.lin(x1, y1, x2, y2, cor, espessura); },
+    texto(x, y, conteudo, { tamanho = 9, negrito = false, cor = PDF_CORES.texto, alinhar = 'esquerda' } = {}) { atual.out.txt(x, y, conteudo, { tam: tamanho, neg: negrito, cor, alinhar }); },
+    imagem(canvas, x, y, l, a) { atual.out.img(canvas, x, y, l, a); },
+    link(x, y, l, a, indice) { atual.out.link(x, y, l, a, indice); },
+    garantir(alt) { if (doc.y + alt <= doc.altura - 60) return false; doc.novaPagina(); return true; },
+  };
+  return doc;
+}
+
+/**
+ * v6.35.0: planilha Excel (.xlsx) simples: 1a linha = cabecalho (negrito, fundo azul, filtro e congelada).
+ * linhas: [[texto | numero | { data: 'aaaa-mm-dd' }]]; larguras: largura de cada coluna (caracteres).
+ */
+function montarXlsx(linhas, { nomePlanilha = 'Dados', larguras = [] } = {}) {
+  const enc = (s) => new TextEncoder().encode(s);
+  const letra = (i) => { let s = ''; let n = i + 1; while (n) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); } return s; };
+  const serial = (iso) => { const [a, m, d] = String(iso).slice(0, 10).split('-').map(Number); return (Date.UTC(a, m - 1, d) - Date.UTC(1899, 11, 30)) / 86400000; };
+  const nCol = Math.max(1, ...linhas.map((l) => l.length));
+  const celula = (v, ref, cab) => {
+    if (v == null || v === '') return '';
+    if (typeof v === 'number' && Number.isFinite(v)) return `<c r="${ref}"><v>${v}</v></c>`;
+    if (typeof v === 'object' && v.data) return /^\d{4}-\d{2}-\d{2}/.test(v.data) ? `<c r="${ref}" s="2"><v>${serial(v.data)}</v></c>` : '';
+    return `<c r="${ref}" t="inlineStr"${cab ? ' s="1"' : ''}><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+  };
+  const dados = linhas.map((l, i) => `<row r="${i + 1}">${l.map((v, k) => celula(v, `${letra(k)}${i + 1}`, i === 0)).join('')}</row>`).join('');
+  const cols = Array.from({ length: nCol }, (_, k) => `<col min="${k + 1}" max="${k + 1}" width="${larguras[k] || 14}" customWidth="1"/>`).join('');
+  const ultimo = `${letra(nCol - 1)}${Math.max(1, linhas.length)}`;
+  const NSX = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+  const RELX = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const arquivos = [
+    ['[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`],
+    ['_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${RELX}/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+    ['xl/workbook.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="${NSX}" xmlns:r="${RELX}"><sheets><sheet name="${xmlEsc(String(nomePlanilha).slice(0, 31))}" sheetId="1" r:id="rId1"/></sheets><definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">'${xmlEsc(String(nomePlanilha).slice(0, 31))}'!$A$1:$${letra(nCol - 1)}$${Math.max(1, linhas.length)}</definedName></definedNames></workbook>`],
+    ['xl/_rels/workbook.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${RELX}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${RELX}/styles" Target="styles.xml"/></Relationships>`],
+    ['xl/styles.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="${NSX}"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF00144D"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="14" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`],
+    ['xl/worksheets/sheet1.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="${NSX}" xmlns:r="${RELX}"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${cols}</cols><sheetData>${dados}</sheetData><autoFilter ref="A1:${ultimo}"/></worksheet>`],
+  ];
+  return montarZip(arquivos.map(([nome, txt]) => ({ nome, bytes: enc(txt) })), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 }
 
 /* ---- geracao ---- */
@@ -20858,7 +21023,17 @@ async function gerarRelatorioBlocos({ formato, de, ate, etapas, nome, aoProgress
   }
   if (formato !== 'pdf') {
     const slides = paginas.map((pg, i) => { const s = { formas: [], imagens: [] }; comporPaginaRelatorio(saidaPptx(s), pg, { ...ctxBase, numero: i + 1 }, 960, 540); return s; });
-    arquivos.push({ tipo: 'PowerPoint', blob: montarPptx(slides), nome: `${base}.pptx` });
+    arquivos.push({ tipo: 'PowerPoint', blob: montarPptx(slides, { titulo: nome }), nome: `${base}.pptx` });
+  }
+  // v6.35.0: planilha Excel junto (uma linha por etapa de cada elemento do relatorio)
+  {
+    const cab = ['Bloco', 'Elemento', 'Tipo', 'Local', 'Etapa', 'Início', 'Término', 'Etapa no período', 'Situação do elemento', 'Etapa atual'];
+    const linhasX = [cab];
+    paginas.filter((p) => p.tipo === 'elemento').forEach(({ bloco, e }) => {
+      const situacao = CATEGORIAS_REL[categoriaRel(e)].texto; const atualTxt = etapaExataRel(e);
+      etapasRelatorio(e, de, ate).forEach((l) => linhasX.push([bloco, e.rotulo, TIPOS[e.tipo].nome, textoLocal(e), l.texto, l.inicio ? { data: l.inicio } : '', l.termino ? { data: l.termino } : '', l.noPeriodo ? 'Sim' : 'Não', situacao, atualTxt]));
+    });
+    arquivos.push({ tipo: 'Excel', blob: montarXlsx(linhasX, { nomePlanilha: 'Etapas por bloco', larguras: [11, 12, 30, 22, 34, 12, 12, 10, 20, 60] }), nome: `${base}.xlsx` });
   }
   return { arquivos, paginas: paginas.length, elementos: paginas.filter((p) => p.tipo === 'elemento').length, blocos: paginas.filter((p) => p.tipo === 'planta').length };
 }
@@ -20870,7 +21045,7 @@ function abrirArquivosRelatorio(r) {
   criarModal({
     titulo: 'Relatório pronto', tamanho: 'sm', destruirAoFechar: true,
     conteudo: [
-      h('p', { class: 'ctc-text-sm' }, `${r.blocos} bloco(s), ${r.elementos} elemento(s), ${r.paginas} página(s). Toque em cada arquivo para baixar.`),
+      h('p', { class: 'ctc-text-sm' }, `${r.texto || `${r.blocos} bloco(s), ${r.elementos} elemento(s), ${r.paginas} página(s).`} Toque em cada arquivo para baixar.`),
       h('div', { class: 'ctc-stack' }, botoes),
     ],
     acoes: [{ texto: 'Fechar', variante: 'outline' }],
@@ -21602,7 +21777,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, ...(['controlador', 'administrador'].includes(perfil) ? [{ id: 'avisos', texto: 'E-mails de aviso', emoji: '📧' }] : []), { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.33.0' : 'Controle de Execução em Campo v6.33.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.35.0' : 'Controle de Execução em Campo v6.35.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -21642,7 +21817,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.33.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.35.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
