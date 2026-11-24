@@ -1123,6 +1123,13 @@ img { max-width: 100%; display: block; }
   box-shadow: var(--ctc-shadow-2);
 }
 .ctc-dropdown__panel--right { left: auto; right: 0; }
+/* v6.33.0: lista que abre dentro da janela (nao corta) e subtitulos de grupo / subgrupo */
+.ctc-dropdown--linha { display: block; }
+.ctc-dropdown--linha .ctc-dropdown__panel { position: static; margin-top: 6px; max-height: 48vh; box-shadow: none; width: 100%; }
+.ctc-multi__grupo { padding: 10px 12px 4px; font-size: 11.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #00144d; border-top: 1px solid var(--ctc-color-border); background: #f1f5f9; }
+.ctc-multi__sub { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px 2px 18px; font-size: 13px; font-weight: 700; color: var(--ctc-color-text, #0f172a); }
+.ctc-multi__sub .ctc-link { font-size: 12px; font-weight: 500; }
+.ctc-dropdown__item.ctc-multi__item--sub { padding-left: 30px; }
 .ctc-dropdown__panel.is-open,
 .ctc-popover.is-open { display: block; }
 .ctc-popover { position: fixed; z-index: var(--ctc-z-popover); padding: var(--ctc-sp-3); width: 280px; max-height: 420px; }
@@ -7898,7 +7905,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.32.0
+   Versao: 6.33.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -8110,6 +8117,8 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           Relatorio por blocos: o resumo por bloco sai da capa e vira a pagina "Resumo" (so o quadro, largura
           toda): Total no bloco = todos os elementos do bloco no Banco + situacao atual por categoria.
           Correcao: o PDF de avanco travava ao desenhar o 3D (grupos de camadas tipos / diametros da v6.26).
+   6.33.0: Exportar relatorio por blocos: a lista de etapas abre dentro da janela (nao corta mais) e vem com
+          subtitulos: frente (ex.: FUNDACOES) > tipo (ex.: Estaca raiz Ø410 / Ø350, com "marcar todas") > etapas.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -17818,7 +17827,7 @@ document.addEventListener('click', (ev) => {
  * por opcao, mais "Todas" e "Nenhuma". Nenhuma ligada = sem filtro (todas), quando semFiltroVazio.
  * Retorna { elemento, obterSelecionados, definirSelecionados }.
  */
-function criarSeletorMultiplo({ rotulo, icone = 'filtro', opcoes = [], selecionados = [], onMudar, direita = false, semFiltroVazio = true }) {
+function criarSeletorMultiplo({ rotulo, icone = 'filtro', opcoes = [], selecionados = [], onMudar, direita = false, semFiltroVazio = true, emLinha = false }) {
   let marcados = new Set(selecionados.map(String));
   const itens = [];
   const texto = h('span', {});
@@ -17832,7 +17841,22 @@ function criarSeletorMultiplo({ rotulo, icone = 'filtro', opcoes = [], seleciona
     const it = itens.find((x) => x.valor === String(valor));
     if (it) { it.sw.definir(ligar); it.botao.setAttribute('aria-checked', String(ligar)); }
   };
-  const painel = h('div', { class: classesMenu(direita) },
+  // v6.33.0: opcoes com grupo / subgrupo ganham subtitulos (o subgrupo liga / desliga todas as suas opcoes)
+  const comCabecalhos = (lista) => {
+    const out = []; let g0 = null; let s0 = null;
+    lista.forEach((o) => {
+      if (o.grupo && o.grupo !== g0) { g0 = o.grupo; s0 = null; out.push(h('div', { class: 'ctc-multi__grupo' }, o.grupo)); }
+      if (o.subgrupo && o.subgrupo !== s0) {
+        s0 = o.subgrupo;
+        const doSub = lista.filter((x) => x.grupo === o.grupo && x.subgrupo === o.subgrupo);
+        out.push(h('div', { class: 'ctc-multi__sub' }, h('span', {}, o.subgrupo),
+          h('button', { type: 'button', class: 'ctc-link ctc-allow-readonly', onClick: () => { const ligar = !doSub.every((x) => marcados.has(String(x.valor))); doSub.forEach((x) => definir(x.valor, ligar)); avisar(); } }, 'marcar / desmarcar todas')));
+      }
+      out.push(o.__botao);
+    });
+    return out;
+  };
+  const painel = h('div', { class: `${classesMenu(direita)}${emLinha ? ' ctc-dropdown__panel--linha' : ''}` },
     h('div', { class: 'ctc-dropdown__footer' }, h('strong', {}, rotulo),
       h('span', { class: 'ctc-cluster' },
         h('button', { type: 'button', class: 'ctc-link ctc-allow-readonly', onClick: () => { opcoes.forEach((o) => definir(o.valor, true)); avisar(); } }, 'Todas'),
@@ -17844,13 +17868,16 @@ function criarSeletorMultiplo({ rotulo, icone = 'filtro', opcoes = [], seleciona
         onClick: () => { definir(o.valor, !marcados.has(String(o.valor))); avisar(); },
       }, h('span', {}, o.texto), h('span', { class: 'ctc-spacer' }), sw);
       itens.push({ valor: String(o.valor), sw, botao });
+      if (o.subgrupo) botao.classList.add('ctc-multi__item--sub');
+      o.__botao = botao;   // eslint-disable-line no-param-reassign
       return botao;
-    }));
+    }).filter(() => !opcoes.some((o) => o.grupo || o.subgrupo)),
+    ...(opcoes.some((o) => o.grupo || o.subgrupo) ? comCabecalhos(opcoes) : []));
   const botao = h('button', {
     type: 'button', class: 'ctc-btn ctc-btn--outline ctc-btn--sm ctc-allow-readonly', 'aria-haspopup': 'true', 'aria-expanded': 'false',
     onClick: () => abrir(!painel.classList.contains('is-open')),
   }, criarIcone(icone, 14), texto, criarIcone('chevron-baixo', 14));
-  const elemento = h('div', { class: 'ctc-dropdown' }, botao, painel);
+  const elemento = h('div', { class: `ctc-dropdown${emLinha ? ' ctc-dropdown--linha' : ''}` }, botao, painel);
   const menu = { elemento, fechar: () => abrir(false) };
   function abrir(sim) {
     painel.classList.toggle('is-open', sim);
@@ -20178,11 +20205,14 @@ const REL_COR = { marca: '#00144d', marca2: '#2f5d8c', texto: '#0f172a', suave: 
 const REL_STATUS_COR = { concluida: '#16a34a', execucao: '#eab308', pendencia: '#dc2626', 'nao-iniciada': '#94a3b8' };
 
 /** Etapas que podem ser escolhidas: dos tipos que tem elemento com bloco. valor = "tipo|chave". */
-function opcoesEtapasRelatorio() {
-  const tipos = [...new Set(elementos.filter((e) => blocoDe(e)).map((e) => e.tipo))];
+function opcoesEtapasRelatorio() {   // v6.33.0: agrupadas por frente (grupo) e tipo (subgrupo)
+  const ordemFrente = Object.keys(FRENTES);
+  const tipos = [...new Set(elementos.filter((e) => blocoDe(e)).map((e) => e.tipo))]
+    .sort((a, b) => ordemFrente.indexOf(TIPOS[a].frente) - ordemFrente.indexOf(TIPOS[b].frente));
   return tipos.flatMap((tp) => {
     const nomeTipo = TIPOS[tp].nome.split(' (')[0];
-    return TIPOS[tp].etapas.map((et) => ({ valor: `${tp}|${et.chave}`, texto: `${nomeTipo} — ${et.texto}` }));
+    const grupo = FRENTES[TIPOS[tp].frente]?.texto || 'Outros';
+    return TIPOS[tp].etapas.map((et) => ({ valor: `${tp}|${et.chave}`, texto: et.texto, grupo, subgrupo: nomeTipo, completo: `${nomeTipo} — ${et.texto}` }));
   });
 }
 const dentroPeriodo = (iso, de, ate) => Boolean(iso) && (!de || iso >= de) && (!ate || iso <= ate);
@@ -20803,7 +20833,7 @@ async function gerarRelatorioBlocos({ formato, de, ate, etapas, nome, aoProgress
     paginas.splice(1, 0, ...sums);
   }
   const opcoes = opcoesEtapasRelatorio();
-  const textoEtapas = etapas.length ? etapas.map((v) => (opcoes.find((o) => o.valor === v) || { texto: v }).texto).join(' · ') : 'Todas (qualquer etapa executada no período)';
+  const textoEtapas = etapas.length ? etapas.map((v) => { const o = opcoes.find((x) => x.valor === v); return o ? (o.completo || o.texto) : v; }).join(' · ') : 'Todas (qualquer etapa executada no período)';
   const { usuario, perfil } = sessao.obter();
   const ctxBase = {
     nome, de, ate, textoEtapas, emissao: formatarData(new Date(), 'data-hora'), emissor: usuario ? usuario.nome : (NOME_PERFIL[perfil] || '—'),
@@ -20853,7 +20883,7 @@ function abrirExportarRelatorioBlocos() {
   const hoje = hojeIso(); const inicioMes = `${hoje.slice(0, 8)}01`;
   const sugestao = (de, ate) => `Relatório por blocos — ${de ? dataTexto(de) : 'início'} a ${ate ? dataTexto(ate) : dataTexto(hoje)}`;
   let nomeEditado = false;
-  const selEtapas = criarSeletorMultiplo({ rotulo: 'Etapas', opcoes, selecionados: [], semFiltroVazio: true });
+  const selEtapas = criarSeletorMultiplo({ rotulo: 'Etapas', opcoes, selecionados: [], semFiltroVazio: true, emLinha: true });
   const formulario = criarFormulario({
     colunas: 2, semBotoes: true,
     valores: { formato: 'ambos', de: inicioMes, ate: hoje, nome: sugestao(inicioMes, hoje) },
@@ -20886,7 +20916,7 @@ function abrirExportarRelatorioBlocos() {
     titulo: 'Exportar relatório por blocos', tamanho: 'md', destruirAoFechar: true,
     conteudo: [
       h('p', { class: 'ctc-text-sm ctc-text-muted' }, 'Entram os elementos com bloco preenchido (Banco de dados) e com a etapa escolhida concluída no período. Sem etapa escolhida: tudo o que teve alguma etapa executada no período. Por bloco: planta com o contorno do bloco e uma página por elemento, com o esquema 3D e as datas reais.'),
-      h('div', { class: 'ctc-cluster' }, h('strong', {}, 'Etapas (nenhuma = tudo):'), selEtapas.elemento),
+      h('div', { class: 'ctc-stack', style: 'gap:6px' }, h('strong', {}, 'Etapas (nenhuma marcada = todas)'), selEtapas.elemento),
       formulario.elemento,
     ],
     acoes: [{ texto: 'Cancelar', variante: 'outline' }, { texto: 'Gerar relatório', variante: 'primary', fechar: false, onClick: () => formulario.enviar() }],
@@ -21572,7 +21602,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, emoji: '👤' }, ...(['controlador', 'administrador'].includes(perfil) ? [{ id: 'avisos', texto: 'E-mails de aviso', emoji: '📧' }] : []), { id: 'sincronizacao', texto: 'Sincronização', emoji: '🔄' }, { id: 'privacidade', texto: 'Privacidade e Termos', emoji: '🛡️' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.32.0' : 'Controle de Execução em Campo v6.32.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.33.0' : 'Controle de Execução em Campo v6.33.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -21612,7 +21642,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.32.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.33.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
