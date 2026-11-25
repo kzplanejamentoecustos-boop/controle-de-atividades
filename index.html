@@ -8028,7 +8028,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.38.0
+   Versao: 6.39.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -8267,6 +8267,9 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           - menu lateral: estilo D (icone azul-claro; item ativo em #00144D com barra amarela);
           - botoes da ficha e de acao: estilo E (principal em #00144D com icone amarelo; secundario azul-claro
             com icone azul). Vale para todos os botoes principais / contorno do controle.
+   6.39.0: Relatorio por blocos: a "ameba" e a etiqueta BLOCO NN da planta viram chamada no estilo de prancha
+          (retangulo de cantos arredondados lilas, tracejado, girado com o bloco; linha de chamada ate uma
+          bolha azul dividida com o numero do bloco em cima e o segmento embaixo).
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -19211,7 +19214,7 @@ const COR_BLOCO_PDF = { concluida: PDF_CORES.verde, execucao: '#facc15', 'nao-in
    v6.35.0: AVISO DE VERSAO NOVA — no site publicado, confere a versao do index.html (a cada 10 min e ao
    voltar para a aba); se houver uma mais nova, mostra a faixa com o botao Atualizar.
    ========================================================================== */
-const VERSAO_APP = '6.38.0';
+const VERSAO_APP = '6.39.0';
 function versaoMaior(a, b) {
   const pa = String(a).split('.').map(Number); const pb = String(b).split('.').map(Number);
   for (let i = 0; i < 3; i += 1) { if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0); }
@@ -20562,6 +20565,67 @@ function etapaExataRel(e) {
   return 'Não iniciada';
 }
 /**
+ * v6.39.0: chamada do bloco no estilo de prancha (callout): retangulo de cantos arredondados, lilas translucido,
+ * contorno tracejado, girado com o bloco; linha de chamada ate uma bolha dividida (numero do bloco / segmento).
+ */
+const REL_CHAMADA = { fundo: 'rgba(167,139,250,0.38)', contorno: '#334155', bolha: '#1d4ed8', linha: '#334155' };
+/** Menor retangulo (girado) que envolve os pontos do casco: { cx, cy, ang, w, h, r }. Angulo entre -45 e 45 graus. */
+function retanguloMinimoRel(casco) {
+  if (!casco || casco.length < 3) return null;
+  let melhor = null;
+  for (let i = 0; i < casco.length; i += 1) {
+    const a = casco[i]; const b = casco[(i + 1) % casco.length];
+    let ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+    while (ang > Math.PI / 4) ang -= Math.PI / 2;
+    while (ang <= -Math.PI / 4) ang += Math.PI / 2;
+    const co = Math.cos(ang); const si = Math.sin(ang);
+    let u0 = Infinity; let u1 = -Infinity; let v0 = Infinity; let v1 = -Infinity;
+    casco.forEach(([x, y]) => { const u = x * co + y * si; const v = -x * si + y * co; u0 = Math.min(u0, u); u1 = Math.max(u1, u); v0 = Math.min(v0, v); v1 = Math.max(v1, v); });
+    const area = (u1 - u0) * (v1 - v0);
+    if (!melhor || area < melhor.area - 1e-6) {
+      const uc = (u0 + u1) / 2; const vc = (v0 + v1) / 2;
+      melhor = { area, ang, w: u1 - u0, h: v1 - v0, cx: uc * co - vc * si, cy: uc * si + vc * co };
+    }
+  }
+  melhor.r = Math.min(40, 0.18 * Math.min(melhor.w, melhor.h));
+  return melhor;
+}
+function caminhoChamadaRel(ctx, k) {
+  if (!k) return;
+  ctx.translate(k.cx, k.cy); ctx.rotate(k.ang);
+  ctx.beginPath(); ctx.roundRect(-k.w / 2, -k.h / 2, k.w, k.h, k.r);
+  ctx.rotate(-k.ang); ctx.translate(-k.cx, -k.cy);
+}
+/** Bolha dividida (numero em cima, segmento embaixo) acima e a esquerda do canto superior esquerdo do retangulo. */
+function desenharBolhaChamadaRel(c, k, nomeBloco, seg, lim) {
+  if (!k) return;
+  const co = Math.cos(k.ang); const si = Math.sin(k.ang);
+  const mundo = (u, v) => [k.cx + u * co - v * si, k.cy + u * si + v * co];
+  // ponto no arco do canto mais ao alto/esquerda (menor x + y)
+  const f = k.r * (1 - Math.SQRT1_2);
+  const cantos = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([su, sv]) => ({ p: mundo(su * (k.w / 2 - f), sv * (k.h / 2 - f)), q: mundo(su * k.w / 2, sv * k.h / 2) }));
+  const canto = cantos.reduce((m, t) => (t.q[0] + t.q[1] < m.q[0] + m.q[1] ? t : m), cantos[0]).p;
+  const R = 46;
+  const bx = Math.min(lim.xMax - R, Math.max(lim.xMin + R, canto[0] - 190));
+  const by = Math.min(lim.yMax - R, Math.max(lim.yMin + R, canto[1] - 150));
+  // linha de chamada (da borda da bolha ate o canto)
+  const d = Math.hypot(canto[0] - bx, canto[1] - by) || 1;
+  c.save();
+  c.strokeStyle = REL_CHAMADA.linha; c.lineWidth = 1.8; c.setLineDash([]);
+  if (d > R + 4) { c.beginPath(); c.moveTo(bx + ((canto[0] - bx) / d) * R, by + ((canto[1] - by) / d) * R); c.lineTo(canto[0], canto[1]); c.stroke(); }
+  // bolha
+  c.fillStyle = '#ffffff'; c.strokeStyle = REL_CHAMADA.bolha; c.lineWidth = 2.5;
+  c.beginPath(); c.arc(bx, by, R, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.beginPath(); c.moveTo(bx - R, by); c.lineTo(bx + R, by); c.lineWidth = 2; c.stroke();
+  const num = (String(nomeBloco).match(/[0-9]+[A-Za-z]?/g) || [String(nomeBloco)]).pop().toUpperCase();
+  c.fillStyle = REL_CHAMADA.bolha; c.textAlign = 'center'; c.textBaseline = 'middle';
+  const ajustar = (txt, tam, larg) => { let t = tam; c.font = `${t}px Arial`; while (t > 12 && c.measureText(txt).width > larg) { t -= 1; c.font = `${t}px Arial`; } };
+  ajustar(num, 38, R * 1.55); c.fillText(num, bx, by - R * 0.42);
+  const inf = seg ? `SEG ${String(seg).toUpperCase()}` : '';
+  ajustar(inf, 24, R * 1.5); c.fillText(inf, bx, by + R * 0.44);
+  c.restore();
+}
+/**
  * Planta 2D do bloco: area em volta do bloco com eixos e linhas, elementos vizinhos claros, os do bloco nas
  * cores da situacao (os que estao no relatorio fortes, os demais do bloco claros) e a ameba contornando o bloco.
  */
@@ -20588,8 +20652,9 @@ function canvasPlantaBloco(nomeBloco, doBloco, noRelatorio, W = 1700, H = 1150) 
     (seg === '01' ? LINHAS_TODAS : LINHAS).forEach((l) => { const y = GEO_Y_TODAS[l]; if (y < y0 || y > y1) return; const [, py] = P(0, y); c.beginPath(); c.moveTo(mE - 10, py); c.lineTo(W - 20, py); c.stroke(); bolha(mE - 40, py, l); });
   }
   c.restore();
-  // ameba (atras dos elementos)
+  // v6.39.0: chamada do bloco no estilo de prancha (retangulo arredondado girado com o bloco, atras dos elementos)
   const casco = cascoConvexoRel(doBloco.flatMap((e) => e.geo.flatMap((gg) => pontosForma(gg, 1.6)))).map(([x, y]) => P(x, y));
+  const caixa = retanguloMinimoRel(casco);
   // elementos do local dentro da area: vizinhos claros, os do bloco coloridos
   const ids = new Set(doBloco.map((e) => e.id)); const rel = new Set(noRelatorio.map((e) => e.id));
   const desenharForma = (gg, preencher, contorno, lw) => {
@@ -20604,7 +20669,7 @@ function canvasPlantaBloco(nomeBloco, doBloco, noRelatorio, W = 1700, H = 1150) 
     if (pts.every(([x, y]) => x < x0 || x > x1 || y < y0 || y > y1)) return;
     desenharForma(gg, 'rgba(241,245,249,0.6)', '#e2e8f0', 1);
   });
-  c.save(); caminhoAmeba(c, casco); c.fillStyle = 'rgba(30,58,95,0.10)'; c.fill(); c.restore();
+  c.save(); caminhoChamadaRel(c, caixa); c.fillStyle = REL_CHAMADA.fundo; c.fill(); c.restore();
   const ehCirculo = (e) => e.geo[0].x != null && e.geo[0].forma !== 'caixa' && e.geo[0].forma !== 'prisma';
   doBloco.filter((e) => !ehCirculo(e)).forEach((e) => {   // forma do bloco / viga (clara)
     const forte = rel.has(e.id); const cor = corStatusRel(e);
@@ -20614,7 +20679,7 @@ function canvasPlantaBloco(nomeBloco, doBloco, noRelatorio, W = 1700, H = 1150) 
     const gg = e.geo[0]; const [px, py] = P(gg.x, gg.y); const R = Math.max(10, (gg.r || 0.4) * esc);
     c.save(); c.globalAlpha = rel.has(e.id) ? 1 : 0.4; desenharEstacaRel(c, e, px, py, R); c.restore();
   });
-  c.save(); caminhoAmeba(c, casco); c.lineWidth = 5; c.strokeStyle = REL_COR.ameba; c.setLineDash([22, 10]); c.stroke(); c.restore();
+  c.save(); caminhoChamadaRel(c, caixa); c.lineWidth = 2.5; c.strokeStyle = REL_CHAMADA.contorno; c.setLineDash([16, 8]); c.stroke(); c.restore();
   // codigos dos elementos do bloco
   c.font = 'bold 19px Arial'; c.textAlign = 'center'; c.textBaseline = 'top';
   doBloco.filter(ehCirculo).forEach((e) => {
@@ -20623,11 +20688,8 @@ function canvasPlantaBloco(nomeBloco, doBloco, noRelatorio, W = 1700, H = 1150) 
     const txt = String(e.rotulo || e.id);
     c.lineWidth = 5; c.strokeStyle = '#ffffff'; c.strokeText(txt, px, py + 6); c.fillStyle = rel.has(e.id) ? '#0f172a' : '#64748b'; c.fillText(txt, px, py + 6);
   });
-  // nome do bloco no topo da ameba
-  const topo = casco.reduce((m, p) => (p[1] < m[1] ? p : m), casco[0] || [W / 2, mT]);
-  const nome = nomeBloco.toUpperCase(); c.font = 'bold 30px Arial'; const lw = c.measureText(nome).width + 34;
-  c.fillStyle = REL_COR.ameba; c.beginPath(); c.roundRect(topo[0] - lw / 2, topo[1] - 58, lw, 44, 22); c.fill();
-  c.fillStyle = '#ffffff'; c.textBaseline = 'middle'; c.fillText(nome, topo[0], topo[1] - 36);
+  // bolha da chamada (numero do bloco / segmento) com linha de chamada ate o canto superior esquerdo
+  desenharBolhaChamadaRel(c, caixa, nomeBloco, seg, { xMin: mE + 20, yMin: mT + 20, xMax: W - 20, yMax: H - 60 });
   // escala grafica
   const passo = esc * 5; c.fillStyle = '#0f172a'; c.fillRect(W - 40 - passo, H - 34, passo, 8); c.font = '18px Arial'; c.textAlign = 'center'; c.textBaseline = 'bottom';
   c.fillText('5 m', W - 40 - passo / 2, H - 40);
@@ -22120,7 +22182,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, icone: 'usuario' }, ...(['controlador', 'administrador'].includes(perfil) ? [{ id: 'avisos', texto: 'E-mails de aviso', icone: 'email' }] : []), { id: 'sincronizacao', texto: 'Sincronização', icone: 'sinc' }, { id: 'privacidade', texto: 'Privacidade e Termos', icone: 'escudo' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.38.0' : 'Controle de Execução em Campo v6.38.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.39.0' : 'Controle de Execução em Campo v6.39.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -22160,7 +22222,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.38.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.39.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
