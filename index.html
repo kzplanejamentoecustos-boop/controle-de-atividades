@@ -8028,7 +8028,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.39.0
+   Versao: 6.39.1
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -8270,6 +8270,8 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
    6.39.0: Relatorio por blocos: a "ameba" e a etiqueta BLOCO NN da planta viram chamada no estilo de prancha
           (retangulo de cantos arredondados lilas, tracejado, girado com o bloco; linha de chamada ate uma
           bolha azul dividida com o numero do bloco em cima e o segmento embaixo).
+   6.39.1: Resumo por bloco: o proprio bloco de coroamento nao entra no Total nem nas categorias (contava 11 no
+          Bloco 01 = 10 estacas + o bloco).
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -19214,7 +19216,7 @@ const COR_BLOCO_PDF = { concluida: PDF_CORES.verde, execucao: '#facc15', 'nao-in
    v6.35.0: AVISO DE VERSAO NOVA — no site publicado, confere a versao do index.html (a cada 10 min e ao
    voltar para a aba); se houver uma mais nova, mostra a faixa com o botao Atualizar.
    ========================================================================== */
-const VERSAO_APP = '6.39.0';
+const VERSAO_APP = '6.39.1';
 function versaoMaior(a, b) {
   const pa = String(a).split('.').map(Number); const pb = String(b).split('.').map(Number);
   for (let i = 0; i < 3; i += 1) { if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0); }
@@ -20915,7 +20917,8 @@ function comporPaginaRelatorio(out, pg, ctx, W, H) {
       ty += 17;
     };
     pg.blocos.slice(0, maxLinhas).forEach((b, i) => {
-      const todos = b.todos || b.lista;
+      // v6.39.1: o proprio bloco de coroamento nao entra na contagem (so os elementos do bloco: estacas etc.)
+      const todos = (b.todos || b.lista).filter((e) => e.tipo !== 'bloco');
       const cont = (cat) => todos.filter((e) => categoriaRel(e) === cat).length;
       const nums = [todos.length, cont('nao'), cont('execucao'), cont('executado'), cont('concretado'), cont('arrasado'), cont('ensaio'), cont('pendencia')];
       nums.forEach((v, k) => { soma[k + 1] += v; });
@@ -20924,7 +20927,7 @@ function comporPaginaRelatorio(out, pg, ctx, W, H) {
     if (pg.blocos.length > 1) linha(['Total', ...soma.slice(1).map(String)], 0, true);
     out.lin(x0, ty, x0 + larg, ty, REL_COR.borda, 0.6);
     if (pg.blocos.length > maxLinhas) out.txt(x0, ty + 14, `… e mais ${pg.blocos.length - maxLinhas} bloco(s)`, { tam: 8.5, cor: REL_COR.suave });
-    out.txt(x0, ty + 30, 'Total no bloco: todos os elementos do bloco no Banco de dados (situação atual, como no Campo).', { tam: 8.5, cor: REL_COR.suave });
+    out.txt(x0, ty + 30, 'Total no bloco: elementos do bloco no Banco de dados, sem contar o próprio bloco de coroamento (situação atual, como no Campo).', { tam: 8.5, cor: REL_COR.suave });
     if (!pg.blocos.length) out.txt(x0, ty + 60, 'Nenhum elemento com bloco no filtro escolhido.', { tam: 10, cor: REL_COR.suave });
     rodape();
     return;
@@ -22182,7 +22185,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, icone: 'usuario' }, ...(['controlador', 'administrador'].includes(perfil) ? [{ id: 'avisos', texto: 'E-mails de aviso', icone: 'email' }] : []), { id: 'sincronizacao', texto: 'Sincronização', icone: 'sinc' }, { id: 'privacidade', texto: 'Privacidade e Termos', icone: 'escudo' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.39.0' : 'Controle de Execução em Campo v6.39.0',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.39.1' : 'Controle de Execução em Campo v6.39.1',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -22222,7 +22225,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.39.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.39.1 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
