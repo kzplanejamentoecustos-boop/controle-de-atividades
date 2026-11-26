@@ -8028,7 +8028,7 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    Controle de Execução em Campo — Laje Estaqueada OTF3 (TECON Salvador) — app.js
-   Versao: 6.39.1
+   Versao: 6.40.0
    Construido sobre o CTC App Base 1.6.0 (CTC App Standard).
 
    6.1.0: tela de entrada, boas-vindas e carregamento no modelo do Controle de Custos
@@ -8272,6 +8272,11 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
           bolha azul dividida com o numero do bloco em cima e o segmento embaixo).
    6.39.1: Resumo por bloco: o proprio bloco de coroamento nao entra no Total nem nas categorias (contava 11 no
           Bloco 01 = 10 estacas + o bloco).
+   6.40.0: Estaca raiz na sequencia executiva real: 1 perfuracao e cravacao da camisa Ø410 (juntas), 2 perfuracao
+          do pino Ø350 em rocha, 3 insercao da armadura, 4 concretagem do pino e da camisa, 5 arrasamento, 6 ensaio.
+          Ao concluir cada etapa o app pede a quantidade real (Ø410 m, Ø350 m, pressao e volume, cota de arrasamento,
+          resultado do ensaio). Registros antigos convertidos (perfuracao+camisa -> etapa 1 com o Ø410; Ø350 -> etapa 2).
+          Desenho e relatorios (blocos, avanco, medicao) com as quantidades reais.
 
    6.0.0: reconstrucao para uso em TABLET no campo, a partir dos projetos das pastas
           "01. CENTRAL DE CONCRETO" e "07. PROJETO EXECUTIVO".
@@ -8545,19 +8550,29 @@ const TIPOS = {
   },
   'estaca-raiz': {
     frente: 'fundacoes', nome: 'Estaca raiz Ø410 / Ø350',
+    // v6.40.0: sequencia executiva real (perfuracao e camisa juntas; pino em rocha; armadura; concretagem do pino e da
+    // camisa juntas; arrasamento; ensaio). Ao concluir cada etapa o apontador informa a quantidade real executada.
     etapas: [
-      E('perfuracao', 'Perfuração', {
+      E('perfuracao', 'Perfuração e cravação da camisa Ø410', {
         campos: [
-          { chave: 'l410', rotulo: 'Comprimento real perfurado Ø410 (m)', projeto: 'l410' },
-          { chave: 'l350', rotulo: 'Comprimento real perfurado Ø350 (m)', projeto: 'l350' },
-          { chave: 'motivo', rotulo: 'Motivo da mudança', texto: true },
+          { chave: 'l410', rotulo: 'Comprimento real perfurado / camisa Ø410 (m)', projeto: 'l410', minimo: 0, obrigatorio: true },
+          { chave: 'motivo', rotulo: 'Motivo da mudança (se diferente do projeto)', texto: true },
         ],
       }),
-      E('camisa', 'Implantação da camisa Ø410'),
+      E('pino', 'Perfuração do pino Ø350 em rocha', {
+        campos: [
+          { chave: 'l350', rotulo: 'Comprimento real do pino Ø350 (m)', projeto: 'l350', minimo: 0, obrigatorio: true },
+          { chave: 'motivo', rotulo: 'Motivo da mudança (se diferente do projeto)', texto: true },
+        ],
+      }),
+      E('armadura', 'Inserção da armadura'),
       // nota 22 do DWG-00008: pressao de injecao minima de 150 mca
-      E('concretagem', 'Concretagem / injeção', { campos: [{ chave: 'pressao', rotulo: 'Pressão de injeção (mca) — mínimo 150', minimo: 0, obrigatorio: true }, CAMPO_VOLUME_REAL] }),
-      E('arrasamento', 'Arrasamento e ensaios', { conclui: true }),   // v6.22.0: obrigatorio; conclui a estaca raiz
-      E('pit', 'Ensaio (integridade)', { opcional: true, pontual: true, rotuloData: 'Data do ensaio', campos: CAMPOS_PIT }),
+      E('concretagem', 'Concretagem do pino e da camisa', { campos: [{ chave: 'pressao', rotulo: 'Pressão de injeção (mca) — mínimo 150', minimo: 0, obrigatorio: true }, { ...CAMPO_VOLUME_REAL, obrigatorio: true }] }),
+      E('arrasamento', 'Arrasamento da estaca', {   // v6.22.0: obrigatorio; conclui a estaca raiz
+        conclui: true,
+        campos: [{ chave: 'cota', rotulo: 'Cota real de arrasamento (EL. m)', projeto: 'arrasamento', obrigatorio: true }],
+      }),
+      E('pit', 'Ensaio (integridade)', { opcional: true, pontual: true, rotuloData: 'Data do ensaio', campos: CAMPOS_PIT.map((c, i) => (i === 0 ? { ...c, obrigatorio: true } : c)) }),
     ],
   },
   bloco: {
@@ -8730,15 +8745,32 @@ function geoEstacaMetalica(x, y, diametro, arras, peCamisa, pePino) {
   ];
 }
 /** v6.21.0: estaca raiz: camisa Ø410 (implantacao), trecho Ø350 (perfuracao), injecao e armadura (concretagem) e arrasamento. */
-function geoEstacaRaiz(x, y, topo, l410, l350) {
+// v6.40.0: etapas da sequencia nova (camisa = perfuracao Ø410; pino Ø350; armadura; concretagem) e a cota de
+// arrasamento pode ser a real (arr): o desenho acompanha as quantidades executadas (ver geoRealRaiz).
+function geoEstacaRaiz(x, y, topo, l410, l350, arr = topo) {
   return [
-    cilindro(x, y, 0.205, topo - l410, topo, { parte: 'camisa Ø410', etapa: 'camisa', casca: true, camada: 3 }),
-    cilindro(x, y, 0.175, topo - l410 - l350, topo - l410, { parte: 'perfuração Ø350', etapa: 'perfuracao', clarear: 0.45, camada: 1, semPrancha: true }),
-    cilindro(x, y, 0.185, topo - l410, topo - 0.1, { parte: 'injeção de argamassa', etapa: 'concretagem', so3d: true, camada: 1 }),
-    { forma: 'gaiola', x, y, r: 0.13, z0: topo - l410 - l350 + 0.3, z1: topo - 0.15, barras: 6, passo: 1.5, parte: 'armadura', etapa: 'concretagem', so3d: true, camada: 2 },
-    cilindro(x, y, 0.215, topo - 0.1, topo, { parte: 'arrasamento', etapa: 'arrasamento', so3d: true, camada: 4 }),
-    cilindro(x, y, 0.205, topo, topo + 1.0, { parte: 'cabeça a arrasar', etapa: 'arrasamento', so3d: true, cabeca: true, hachura: true, camada: 5 }),
+    cilindro(x, y, 0.205, topo - l410, topo, { parte: 'camisa Ø410', etapa: 'perfuracao', casca: true, camada: 3 }),
+    cilindro(x, y, 0.175, topo - l410 - l350, topo - l410, { parte: 'pino Ø350', etapa: 'pino', clarear: 0.45, camada: 1, semPrancha: true }),
+    cilindro(x, y, 0.185, topo - l410 - l350, arr - 0.1, { parte: 'injeção de argamassa', etapa: 'concretagem', so3d: true, camada: 1 }),
+    { forma: 'gaiola', x, y, r: 0.13, z0: topo - l410 - l350 + 0.3, z1: arr - 0.15, barras: 6, passo: 1.5, parte: 'armadura', etapa: 'armadura', so3d: true, camada: 2 },
+    cilindro(x, y, 0.215, arr - 0.1, arr, { parte: 'arrasamento', etapa: 'arrasamento', so3d: true, camada: 4 }),
+    cilindro(x, y, 0.205, arr, arr + 1.0, { parte: 'cabeça a arrasar', etapa: 'arrasamento', so3d: true, cabeca: true, hachura: true, camada: 5 }),
   ];
+}
+/** Valor real registrado numa etapa (ou null). */
+const valorReal = (e, etapa, chave) => { const v = e.reg?.[etapa]?.valores?.[chave]; return temValor(v) ? num(v) : null; };
+/**
+ * v6.40.0: estaca raiz desenhada com as quantidades reais (camisa Ø410, pino Ø350, cota de arrasamento) quando ja
+ * registradas; sem registro vale o projeto. Chamada ao carregar a base e a cada alteracao.
+ */
+function geoRealRaiz(e) {
+  if (e.tipo !== 'estaca-raiz' || !e.geo?.length) return;
+  if (!e._geoBase) { const g = e.geo[0]; e._geoBase = { x: g.x, y: g.y, topo: g.z1 }; }
+  const b = e._geoBase;
+  const l410 = valorReal(e, 'perfuracao', 'l410') ?? e.info.l410;
+  const l350 = valorReal(e, 'pino', 'l350') ?? e.info.l350;
+  const arr = valorReal(e, 'arrasamento', 'cota') ?? b.topo;
+  e.geo = geoEstacaRaiz(b.x, b.y, b.topo, l410, l350, arr);
 }
 const cilindro = (x, y, r, z0, z1, extra = {}) => ({ forma: 'cilindro', x, y, r, z0, z1, ...extra });
 /** Prisma: planta poligonal (pontos [x, y]) extrudada de z0 a z1 — pecas inclinadas como as do eixo −1. */
@@ -8871,7 +8903,7 @@ function blocosERaiz() {
       lista.push(novoElemento({
         id, seg: '01A', tipo: 'estaca-raiz', rotulo: id, grupo: `Bloco ${b.bloco}`,
         sub: `Estaca raiz · Ø410 ${formatarNumero(b.l410, 2)} m (camisa perdida) + Ø350 12,00 m`,
-        info: { l410: b.l410, l350: 12, bloco: b.bloco },
+        info: { l410: b.l410, l350: 12, bloco: b.bloco, arrasamento: b.fundo },   // v6.40.0: arrasamento = fundo do bloco (topo da estaca no desenho)
         geo: geoEstacaRaiz(x, y, b.fundo, b.l410, 12),
       }));
     }
@@ -9987,6 +10019,27 @@ function normalizarRegistro(e, reg) {
     delete novo[chFim];
   };
   if (e.tipo === 'estaca-raiz') juntar('inicioPerfuracao', 'fimPerfuracao', 'perfuracao');
+  // v6.40.0: sequencia antiga da raiz (Perfuracao Ø410+Ø350 -> Implantacao da camisa) para a nova:
+  // etapa 1 (perfuracao + camisa) = inicio da perfuracao ate o fim da camisa, com o Ø410;
+  // etapa 2 (pino Ø350) = datas da perfuracao antiga, com o Ø350. Concretagem, arrasamento e ensaio continuam.
+  if (e.tipo === 'estaca-raiz' && !novo.pino && (novo.camisa || temValor(novo.perfuracao?.valores?.l350))) {
+    const perf = novo.perfuracao; const cam = novo.camisa;
+    const { l410, l350, motivo } = perf?.valores || {};
+    if (perf) {
+      // camisa antiga ainda em andamento: a etapa 1 continua em andamento
+      const fim = cam ? (cam.data ? (perf.data && perf.data > cam.data ? perf.data : cam.data) : undefined) : perf.data;
+      novo.perfuracao = { ...(perf.inicio ? { inicio: perf.inicio } : {}), ...(fim ? { data: fim } : {}),
+        ...(temValor(l410) ? { valores: { l410, ...(motivo ? { motivo } : {}), ...(perf.valores?.geologo ? { geologo: perf.valores.geologo } : {}) } } : {}) };
+      novo.pino = { ...(perf.inicio ? { inicio: perf.inicio } : {}), ...(perf.data ? { data: perf.data } : {}),
+        ...(temValor(l350) ? { valores: { l350, ...(motivo ? { motivo } : {}) } } : {}) };
+    } else if (cam) {
+      novo.perfuracao = { ...cam };
+    }
+    delete novo.camisa;
+    // a armadura ia junto com a concretagem: estaca ja concretando ganha a etapa 3 no dia do inicio da concretagem
+    const conc = novo.concretagem; const diaArm = conc?.inicio || conc?.data;
+    if (diaArm && !novo.armadura) novo.armadura = { inicio: diaArm, data: diaArm };
+  }
   // estaca metalica: a validacao do geologo (nota 19) passou a ser um campo da pinagem
   if (e.tipo === 'estaca-metalica' && novo.geologo) {
     const nome = novo.geologo.valores?.nome || 'validado';
@@ -10042,6 +10095,7 @@ function carregarDados(base) {
     ? { emails: Array.isArray(dados.avisos.emails) ? dados.avisos.emails : [], url: dados.avisos.url || '', chave: dados.avisos.chave || '' }
     : { emails: [], url: '', chave: '' };   // v6.25.0
   blocosElemento = dados.blocos && typeof dados.blocos === 'object' && !Array.isArray(dados.blocos) ? { ...dados.blocos } : {};   // v6.28.0
+  elementos.forEach(geoRealRaiz);   // v6.40.0: estacas raiz com as medidas reais
   reiniciarPrevisto();
   funcionarios = Array.isArray(dados.funcionarios) ? dados.funcionarios : [];
   apropriacoes = Array.isArray(dados.apropriacoes) ? dados.apropriacoes : [];
@@ -13706,7 +13760,7 @@ function validarRegistro(e, etapa, data, valores, inicio = e.reg[etapa.chave]?.i
     if (data < inicio) return { campo: 'data', mensagem: `O término não pode ser antes do início (${dataTexto(inicio)}).` };
   }
   for (const c of etapa.campos || []) {
-    if (c.obrigatorio && !temValor(valores[c.chave])) return { campo: c.chave, mensagem: `Informe ${c.rotulo.toLowerCase()}.` };
+    if (c.obrigatorio && !temValor(valores[c.chave])) return { campo: c.chave, mensagem: `Informe: ${c.rotulo}.` };
   }
   // metragem das estacas (cotas e comprimentos) sem restricao: diferenca do projeto so pede a validacao do geologo
   if (etapa.chave === 'resistencia1' && num(valores.mpa) < BLOCO_FC_VIGAS) return { campo: 'mpa', mensagem: `Abaixo de ${BLOCO_FC_VIGAS} MPa: as vigas U não podem ser posicionadas sobre a 1ª fase (nota 14 do DWG-00046). Registre novo ensaio quando atingir.` };
@@ -13729,11 +13783,12 @@ function divergenciaProjeto(e, etapa, valores) {
     const exigida = cotaExigidaPino(e);
     if (difere(valores.cota, exigida)) return { campo: 'cota', texto: `Cota final do pino ${cotaTexto(valores.cota)} diferente da exigida pelo projeto ${cotaTexto(exigida)} (${notaPino(e)}).` };
   }
-  if (e.tipo === 'estaca-raiz' && etapa.chave === 'perfuracao') {
-    const partes = [];
-    if (difere(valores.l410, e.info.l410)) partes.push(`Ø410 ${formatarNumero(valores.l410, 2)} m (projeto ${formatarNumero(e.info.l410, 2)} m)`);
-    if (difere(valores.l350, e.info.l350)) partes.push(`Ø350 ${formatarNumero(valores.l350, 2)} m (projeto ${formatarNumero(e.info.l350, 2)} m)`);
-    if (partes.length) return { campo: difere(valores.l410, e.info.l410) ? 'l410' : 'l350', texto: `Comprimento executado diferente do projeto: ${partes.join(' · ')} (nota 20 do DWG-00008).` };
+  // v6.40.0: Ø410 na etapa 1 (perfuracao + camisa) e Ø350 na etapa 2 (pino)
+  if (e.tipo === 'estaca-raiz' && etapa.chave === 'perfuracao' && difere(valores.l410, e.info.l410)) {
+    return { campo: 'l410', texto: `Comprimento executado diferente do projeto: Ø410 ${formatarNumero(valores.l410, 2)} m (projeto ${formatarNumero(e.info.l410, 2)} m) (nota 20 do DWG-00008).` };
+  }
+  if (e.tipo === 'estaca-raiz' && etapa.chave === 'pino' && difere(valores.l350, e.info.l350)) {
+    return { campo: 'l350', texto: `Comprimento executado diferente do projeto: Ø350 ${formatarNumero(valores.l350, 2)} m (projeto ${formatarNumero(e.info.l350, 2)} m) (nota 20 do DWG-00008).` };
   }
   return null;
 }
@@ -14989,7 +15044,7 @@ const COR_ESTACA = { exec: '#facc15', pronto: '#16a34a', concreto: '#2563eb', co
 /** Situacao das partes da estaca: { cam, pino, aco, conc, arr, pit } com '-' a executar, 'a' em execucao, 'f' feita. */
 function partesEstaca(e) {
   const est = (ch) => (!ch ? '-' : (feita(e, ch) ? 'f' : (emAndamento(e, ch) ? 'a' : '-')));
-  if (e.tipo === 'estaca-raiz') return { cam: est('perfuracao'), pino: est('camisa'), aco: '-', conc: est('concretagem'), arr: est('arrasamento'), pit: est('pit') };
+  if (e.tipo === 'estaca-raiz') return { cam: est('perfuracao'), pino: est('pino'), aco: est('armadura'), conc: est('concretagem'), arr: est('arrasamento'), pit: est('pit') };   // v6.40.0
   return { cam: est('cravacao'), pino: est('escavacao'), aco: est('armadura'), conc: est('concretagem'), arr: est('arrasamento'), pit: est('pit') };
 }
 const TOM_TIPO = {
@@ -15940,7 +15995,7 @@ function cenaSegmento(seg) {
         if (!emCorte) g = { ...g0, casca: false };
         if (emCorte && g0.so3d && !g0.cabeca) {                          // partes internas so depois que comecam
           const parte = g0.parte === 'armadura' ? 'aco' : (/concreto|injeção/.test(g0.parte) ? 'conc' : (g0.parte === 'arrasamento' ? 'arr' : null));
-          const estadoParte = parte === 'aco' && e.tipo === 'estaca-raiz' ? pt.conc : (parte ? pt[parte] : '-');
+          const estadoParte = parte ? pt[parte] : '-';   // v6.40.0: a raiz tem etapa propria de armadura
           if (estadoParte === '-') return;
         }
       }
@@ -16017,6 +16072,7 @@ function cenaSegmento(seg) {
    ========================================================================== */
 
 function registrarAlteracao() {
+  elementos.forEach(geoRealRaiz);   // v6.40.0: desenho da raiz acompanha as medidas reais registradas
   sessao.marcarAlteracao();
   agendarSalvamentoLocal();
   if (aplicativo) aplicativo.navegar(aplicativo.paginaAtual());
@@ -16045,12 +16101,13 @@ function campoDeEtapa(c, extra = {}) {
   return { nome: c.chave, rotulo: c.rotulo, tipo: 'numero', regras, ...extra };
 }
 
-function abrirRegistroEtapa(e, etapa, { aoSalvar } = {}) {
+function abrirRegistroEtapa(e, etapa, { aoSalvar, data: dataEscolhida } = {}) {
   const campos = etapa.campos || [];
   const atual = e.reg[etapa.chave] || {};
   const valoresIniciais = etapa.pontual
     ? { data: atual.data || hojeIso() }
-    : { inicio: atual.inicio || hojeIso(), data: atual.data || (atual.inicio ? hojeIso() : '') };
+    : { inicio: atual.inicio || hojeIso(), data: atual.data || (atual.inicio ? (dataEscolhida || hojeIso()) : '') };
+  if (etapa.pontual && dataEscolhida && !atual.data) valoresIniciais.data = dataEscolhida;
   campos.forEach((c) => { valoresIniciais[c.chave] = atual.valores?.[c.chave] ?? (c.hora ? horaAgora() : ''); });
   const camposDatas = etapa.pontual
     ? [{ nome: 'data', rotulo: etapa.rotuloData || (etapa.texto === 'Montagem' ? 'Data da montagem' : 'Data'), tipo: 'data', obrigatorio: true, tamanho: 'lg' }]
@@ -16120,6 +16177,10 @@ function abrirRegistroEtapa(e, etapa, { aoSalvar } = {}) {
   if (e.tipo === 'estaca-metalica' && etapa.chave === 'cravacao') avisos.push(criarAlerta({ tipo: 'info', mensagem: `Pé da camisa de projeto: ${cotaTexto(e.info.peCamisa)}.` }));
   if (e.id === 'Bloco B1' && etapa.chave.startsWith('concretagem')) avisos.push(criarAlerta({ tipo: 'warning', titulo: 'Antes de concretar (nota 14 do DWG-00086)', mensagem: 'Verificar o DWG-00089: há armaduras do muro de contenção e da ala que devem ser ancoradas neste bloco.' }));
   if (e.tipo === 'estaca-raiz' && etapa.chave === 'concretagem') avisos.push(criarAlerta({ tipo: 'info', mensagem: `Pressão de injeção mínima de ${RAIZ_PRESSAO_MIN} mca (nota 22 do DWG-00008, anexo K da NBR 6122).` }));
+  // v6.40.0: referencia de projeto ao lado do campo da quantidade real
+  const refProjeto = campos.filter((c) => c.projeto && temValor(e.info[c.projeto]))
+    .map((c) => `${c.rotulo.replace(/^(Comprimento real|Cota real de)\s*/i, '').replace(/\s*\((m|EL\. m)\)$/, '')}: ${c.chave === 'cota' ? cotaTexto(e.info[c.projeto]) : `${formatarNumero(e.info[c.projeto], 2)} m`}`);
+  if (refProjeto.length) avisos.push(criarAlerta({ tipo: 'info', mensagem: `Projeto — ${refProjeto.join(' · ')}. Informe o valor REAL executado ao concluir a etapa.` }));
   if (e.tipo === 'prov-pilar' && etapa.chave === 'fixacao') avisos.push(criarAlerta({ tipo: 'info', mensagem: `Concreto fck 40 com altura mínima de ${PILAR_FIXACAO_MIN} cm; manilha Ø1 m × 1 m ou forma quadrada (notas 8 a 10 do DWG-00236).` }));
   if (etapa.chave === 'resistencia1') avisos.push(criarAlerta({ tipo: 'info', mensagem: `As vigas U só podem ser posicionadas sobre a 1ª fase com ${BLOCO_FC_VIGAS} MPa e pelo menos 7 dias após a concretagem (nota 14 do DWG-00046).` }));
   if (etapa.chave === 'desforma') avisos.push(criarAlerta({ tipo: 'info', mensagem: `Desforma somente com resistência de ${PM_FC_DESFORMA} MPa ou mais.` }));
@@ -16205,7 +16266,7 @@ function registrarHoje(e, etapa, data = hojeIso()) {
     registrarAlteracao();
     return;
   }
-  if ((etapa.campos || []).some((c) => c.obrigatorio) || etapa.chave === 'escavacao') { abrirRegistroEtapa(e, etapa); return; }
+  if ((etapa.campos || []).some((c) => c.obrigatorio) || etapa.chave === 'escavacao') { abrirRegistroEtapa(e, etapa, { data: hoje }); return; }   // v6.40.0: leva a data escolhida
   const erro = validarRegistro(e, etapa, hoje, {});
   if (erro) { abrirRegistroEtapa(e, etapa); return; }
   e.reg[etapa.chave] = { ...e.reg[etapa.chave], data: hoje };
@@ -16324,6 +16385,32 @@ function abrirPendencia(e) {
   modal.abrir();
 }
 
+/** v6.40.0: quantidades REAIS executadas da estaca raiz ([rotulo, texto]); "—" enquanto a etapa nao tem registro. */
+function quantidadesReaisRaiz(e) {
+  const l410 = valorReal(e, 'perfuracao', 'l410'); const l350 = valorReal(e, 'pino', 'l350');
+  const vol = valorReal(e, 'concretagem', 'volume'); const pres = valorReal(e, 'concretagem', 'pressao');
+  const cota = valorReal(e, 'arrasamento', 'cota'); const pit = e.reg.pit?.valores || {};
+  const m = (v) => (v == null ? '—' : `${formatarNumero(v, 2)} m`);
+  const geologo = ['perfuracao', 'pino'].map((k) => e.reg[k]?.valores?.geologo).filter(Boolean);
+  return [
+    ['Perfuração / camisa Ø410', m(l410)],
+    ['Pino Ø350 em rocha', m(l350)],
+    ['Comprimento total', l410 != null && l350 != null ? m(l410 + l350) : '—'],
+    ['Armadura inserida', feita(e, 'armadura') ? `sim (${dataTexto(e.reg.armadura.data)})` : '—'],
+    ['Volume de concreto', vol == null ? '—' : formatarM3(vol)],
+    ['Pressão de injeção', pres == null ? '—' : `${formatarNumero(pres, 0)} mca`],
+    ['Cota de arrasamento', cota == null ? '—' : cotaTexto(cota)],
+    ['Ensaio', pit.resultado ? `${pit.resultado}${pit.relatorio ? ` · relatório ${pit.relatorio}` : ''}` : '—'],
+    ...(geologo.length ? [['Validação do geólogo', geologo.join(' · ')]] : []),
+  ];
+}
+/** Resumo curto das quantidades reais da raiz (tabelas): "Ø410 15,90 m · Ø350 12,00 m · 2,10 m³ · arras. EL +0,85". */
+function resumoRealRaiz(e) {
+  const l410 = valorReal(e, 'perfuracao', 'l410'); const l350 = valorReal(e, 'pino', 'l350');
+  const vol = valorReal(e, 'concretagem', 'volume'); const cota = valorReal(e, 'arrasamento', 'cota');
+  return [l410 != null ? `Ø410 ${formatarNumero(l410, 2)} m` : '', l350 != null ? `Ø350 ${formatarNumero(l350, 2)} m` : '',
+    vol != null ? formatarM3(vol) : '', cota != null ? `arras. ${cotaTexto(cota)}` : ''].filter(Boolean).join(' · ');
+}
 const valoresTexto = (reg) => Object.entries(reg?.valores || {}).map(([k, v]) => {
   if (k === 'cota') return cotaTexto(v);
   if (k === 'volume') return formatarM3(v);
@@ -16969,7 +17056,7 @@ function ligacoesExtrasPrevisto(a) {
   }
   if (expansao) {
     const s4 = (...tipos) => elementos.filter((e) => e.trecho === '04' && tipos.includes(e.tipo));
-    if (/Perfura/i.test(nome)) out.push({ els: s4('estaca-raiz'), etapas: ['perfuracao', 'camisa', 'concretagem'] });
+    if (/Perfura/i.test(nome)) out.push({ els: s4('estaca-raiz'), etapas: ['perfuracao', 'pino', 'armadura', 'concretagem'] });
     else if (/Arrasamento e Ensaios/i.test(nome)) out.push({ els: s4('estaca-raiz'), etapas: ['arrasamento'] });
     else if (/Forma \(Bloco\)/i.test(nome)) out.push({ els: s4('bloco'), etapas: ['magro'] });
     else if (/Armadura\s*\/\s*Concretagem \(Bloco\)/i.test(nome)) out.push({ els: s4('bloco'), etapas: ['armacao1', 'concretagem1'] });
@@ -16979,7 +17066,7 @@ function ligacoesExtrasPrevisto(a) {
   if (a.disc === 'raiz' && al.bloco) {
     const bloco = porId.get(`Bloco ${al.bloco}`);
     const estacas = elementos.filter((e) => e.tipo === 'estaca-raiz' && e.info.bloco === al.bloco && e.trecho === '01A');
-    if (/Perfura/i.test(nome)) out.push({ els: estacas, etapas: ['perfuracao', 'camisa'] });
+    if (/Perfura/i.test(nome)) out.push({ els: estacas, etapas: ['perfuracao', 'pino'] });
     if (bloco && /Forma \(Bloco\)/i.test(nome)) out.push({ els: [bloco], etapas: ['magro'] });
     if (bloco && /Armadura.*Concretagem \(Bloco\)/i.test(nome)) out.push({ els: [bloco], etapas: ['armacao1'] });
   }
@@ -17309,7 +17396,8 @@ function abrirFichaCompleta(e) {
     (et.campos || []).forEach((c) => {
       const salvo = atual.valores?.[c.chave];
       // comprimento real da raiz: abre com o de projeto para so confirmar ou corrigir
-      valores[c.chave] = salvo ?? (c.projeto && e.info[c.projeto] != null ? e.info[c.projeto] : '');
+      // v6.40.0: quantidade real obrigatoria abre vazia (o apontador informa o que foi executado)
+      valores[c.chave] = salvo ?? (c.projeto && !c.obrigatorio && e.info[c.projeto] != null ? e.info[c.projeto] : '');
     });
     const des = { desabilitado: !podeEditar };
     const campos = [
@@ -17457,7 +17545,7 @@ function abrirFichaCompleta(e) {
       const valores = {};
       campos.forEach((c) => { if (temValor(v[c.chave])) valores[c.chave] = (c.texto || c.hora || c.opcoes) ? String(v[c.chave]) : num(v[c.chave]); });
       // comprimento igual ao de projeto nao e "mudanca": nao grava so por ter aberto com o valor de projeto
-      campos.filter((c) => c.projeto).forEach((c) => { if (temValor(valores[c.chave]) && Math.abs(num(valores[c.chave]) - num(e.info[c.projeto])) < 0.005 && !backup[et.chave]?.valores?.[c.chave]) delete valores[c.chave]; });
+      campos.filter((c) => c.projeto && !c.obrigatorio).forEach((c) => { if (temValor(valores[c.chave]) && Math.abs(num(valores[c.chave]) - num(e.info[c.projeto])) < 0.005 && !backup[et.chave]?.valores?.[c.chave]) delete valores[c.chave]; });
       const antigo = backup[et.chave];
       if (antigo && !podeCorrigirRegistros()) {
         const mudouInicio = Boolean(antigo.inicio) && antigo.inicio !== v.inicio;
@@ -17472,14 +17560,15 @@ function abrirFichaCompleta(e) {
         continue;
       }
       if (!et.pontual && !v.inicio) return falhar(et, 'inicio', 'Informe a data de início.');
-      if (v.data) {
-        const falta = (et.campos || []).find((c) => c.obrigatorio && !temValor(v[c.chave]));
-        if (falta) return falhar(et, falta.chave, `Informe: ${falta.rotulo}.`);
-      }
       if (antigo?.valores?.geologo) valores.geologo = antigo.valores.geologo;
       const novo = { ...(et.pontual ? {} : { inicio: v.inicio }), ...(v.data ? { data: v.data } : {}), ...(Object.keys(valores).length ? { valores } : {}) };
       const semGeologo = (r) => JSON.stringify({ ...r, valores: r?.valores ? { ...r.valores, geologo: undefined } : undefined });
       if (antigo && semGeologo(antigo) === semGeologo(novo)) { e.reg[et.chave] = antigo; continue; }   // sem mudanca: mantem
+      // v6.40.0: quantidades obrigatorias so sao cobradas na etapa que mudou (registros antigos sem medida nao travam o Salvar tudo)
+      if (v.data) {
+        const falta = (et.campos || []).find((c) => c.obrigatorio && !temValor(v[c.chave]));
+        if (falta) return falhar(et, falta.chave, `Informe: ${falta.rotulo}.`);
+      }
       delete e.reg[et.chave];
       const erroInicio = validarInicio(e, et, et.pontual ? v.data : v.inicio, et.pontual ? 'data' : 'inicio');
       if (erroInicio) return falhar(et, erroInicio.campo, erroInicio.mensagem);
@@ -19216,7 +19305,7 @@ const COR_BLOCO_PDF = { concluida: PDF_CORES.verde, execucao: '#facc15', 'nao-in
    v6.35.0: AVISO DE VERSAO NOVA — no site publicado, confere a versao do index.html (a cada 10 min e ao
    voltar para a aba); se houver uma mais nova, mostra a faixa com o botao Atualizar.
    ========================================================================== */
-const VERSAO_APP = '6.39.1';
+const VERSAO_APP = '6.40.0';
 function versaoMaior(a, b) {
   const pa = String(a).split('.').map(Number); const pb = String(b).split('.').map(Number);
   for (let i = 0; i < 3; i += 1) { if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0); }
@@ -20330,7 +20419,7 @@ function gerarRelatorioAvanco(segs, formato = 'pdf') {
       colunas: [{ titulo: 'Elemento', largura: 150 }, { titulo: 'Etapa atual', largura: 170 }, { titulo: 'Conclusão', largura: 60, alinhar: 'centro' }, { titulo: 'Registro', largura: 80 }, { titulo: 'Status', largura: larguraUtil - 460, alinhar: 'centro' }],
       linhas: lista.map((e) => {
         const st = statusDe(e);
-        return [{ texto: e.rotulo, negrito: true }, etapaAtualTexto(e), dataPdf(dataConclusao(e)), valoresTexto(e.reg[etapaConclusao(e).chave]), { texto: textoStatus(e), cor: PDF_STATUS[st].cor, negrito: true }];
+        return [{ texto: e.rotulo, negrito: true }, etapaAtualTexto(e), dataPdf(dataConclusao(e)), (e.tipo === 'estaca-raiz' ? resumoRealRaiz(e) : valoresTexto(e.reg[etapaConclusao(e).chave])), { texto: textoStatus(e), cor: PDF_STATUS[st].cor, negrito: true }];
       }),
       fundoLinha: (i) => PDF_STATUS[statusDe(lista[i])].fundo,
     });
@@ -20346,7 +20435,7 @@ function gerarMedicao(segs, de, ate, formato = 'pdf') {
   const lista = elementos.filter((e) => segs.includes(e.seg) && concluido(e) && !e.pendencia && (!de || dataConclusao(e) >= de) && (!ate || dataConclusao(e) <= ate));
   r.capa(PDF_CORES.marca);
   const volProj = lista.reduce((s, e) => s + num(e.info.volume), 0);
-  const volLanc = lista.reduce((s, e) => s + num(e.reg[etapaConclusao(e).chave]?.valores?.volume), 0);
+  const volLanc = lista.reduce((s, e) => s + volumeLancado(e), 0);
   r.cartoes([['Itens medidos', String(lista.length), PDF_CORES.verde], ['Concreto (projeto)', formatarM3(volProj), PDF_CORES.marca], ['Concreto lançado', formatarM3(volLanc), '#0ea5e9'], ['Peso pré-moldado', `${formatarNumero(lista.reduce((s, e) => s + num(e.info.peso), 0), 1)} t`, '#64748b', true]]);
   quebrarTextoPdf('Critério: elementos com a etapa de conclusão registrada no período e sem pendência. Volume de projeto conforme os desenhos; volume lançado conforme o registro de campo.', larguraUtil, 8, 3).forEach((l) => { doc.texto(PDF_MARGEM, doc.y + 8, l, { tamanho: 8, cor: PDF_CORES.suave }); doc.y += 11; });
   doc.y += 8;
@@ -20354,7 +20443,7 @@ function gerarMedicao(segs, de, ate, formato = 'pdf') {
   r.titulo('Resumo por tipo', `${porTipo.length} tipo(s)`);
   tabelaPdf(doc, {
     colunas: [{ titulo: 'Tipo', largura: 250 }, { titulo: 'Quant.', largura: 50, alinhar: 'centro' }, { titulo: 'Concreto projeto (m³)', largura: 110, alinhar: 'direita' }, { titulo: 'Lançado (m³)', largura: larguraUtil - 410, alinhar: 'direita' }],
-    linhas: porTipo.map(({ chave, itens }) => [{ texto: chave, negrito: true }, String(itens.length), formatarNumero(itens.reduce((s, e) => s + num(e.info.volume), 0), 2), formatarNumero(itens.reduce((s, e) => s + num(e.reg[etapaConclusao(e).chave]?.valores?.volume), 0), 2)]),
+    linhas: porTipo.map(({ chave, itens }) => [{ texto: chave, negrito: true }, String(itens.length), formatarNumero(itens.reduce((s, e) => s + num(e.info.volume), 0), 2), formatarNumero(itens.reduce((s, e) => s + volumeLancado(e), 0), 2)]),
     total: ['Total', String(lista.length), formatarNumero(volProj, 2), formatarNumero(volLanc, 2)],
   });
   doc.y += 14;
@@ -20374,12 +20463,27 @@ function gerarMedicao(segs, de, ate, formato = 'pdf') {
     r.cartaoTexto({ tituloCartao: 'Nenhuma atividade do cronograma avançou no período.', linhas: [], cor: PDF_CORES.cinza, fundo: PDF_CORES.fundo });
   }
   doc.y += 14;
+  // v6.40.0: estacas raiz com as quantidades reais executadas (comprimentos, volume e cota de arrasamento)
+  const raizes = lista.filter((e) => e.tipo === 'estaca-raiz');
+  if (raizes.length) {
+    const q = (e) => ({ l410: valorReal(e, 'perfuracao', 'l410'), l350: valorReal(e, 'pino', 'l350'), vol: valorReal(e, 'concretagem', 'volume'), cota: valorReal(e, 'arrasamento', 'cota') });
+    const f2 = (v) => (v == null ? '—' : formatarNumero(v, 2));
+    const soma = (k) => raizes.reduce((s, e) => s + (q(e)[k] || 0), 0);
+    r.titulo('Estacas raiz — quantidades reais executadas', `${raizes.length} estaca(s)`);
+    tabelaPdf(doc, {
+      tamanho: 7.2,
+      colunas: [{ titulo: 'Estaca', largura: 80 }, { titulo: 'Conclusão', largura: 60, alinhar: 'centro' }, { titulo: 'Camisa Ø410 (m)', largura: 80, alinhar: 'direita' }, { titulo: 'Pino Ø350 (m)', largura: 75, alinhar: 'direita' }, { titulo: 'Total (m)', largura: 65, alinhar: 'direita' }, { titulo: 'Concreto (m³)', largura: 70, alinhar: 'direita' }, { titulo: 'Arrasamento', largura: larguraUtil - 430, alinhar: 'direita' }],
+      linhas: raizes.map((e) => { const v = q(e); return [{ texto: e.rotulo, negrito: true }, dataPdf(dataConclusao(e)), f2(v.l410), f2(v.l350), v.l410 != null && v.l350 != null ? f2(v.l410 + v.l350) : '—', f2(v.vol), v.cota == null ? '—' : cotaTexto(v.cota)]; }),
+      total: ['Total', '', formatarNumero(soma('l410'), 2), formatarNumero(soma('l350'), 2), formatarNumero(soma('l410') + soma('l350'), 2), formatarNumero(soma('vol'), 2), ''],
+    });
+    doc.y += 14;
+  }
   const codigos = codigosCronogramaPorElemento();
   r.titulo('Itens medidos', `${lista.length}`);
   tabelaPdf(doc, {
     tamanho: 6.8,
     colunas: [{ titulo: 'Código cronograma', largura: 250 }, { titulo: 'Elemento', largura: 75 }, { titulo: 'Local', largura: 35 }, { titulo: 'Conclusão', largura: 55, alinhar: 'centro' }, { titulo: 'Projeto m³', largura: 50, alinhar: 'direita' }, { titulo: 'Lançado m³', largura: larguraUtil - 465, alinhar: 'direita' }],
-    linhas: lista.map((e) => [{ texto: (codigos.get(e.id) || []).join(', ') || '—', cor: PDF_CORES.marca }, { texto: e.rotulo, negrito: true }, textoLocal(e), dataPdf(dataConclusao(e)), e.info.volume != null ? formatarNumero(e.info.volume, 2) : '—', temValor(e.reg[etapaConclusao(e).chave]?.valores?.volume) ? formatarNumero(e.reg[etapaConclusao(e).chave].valores.volume, 2) : '']),
+    linhas: lista.map((e) => [{ texto: (codigos.get(e.id) || []).join(', ') || '—', cor: PDF_CORES.marca }, { texto: e.rotulo, negrito: true }, textoLocal(e), dataPdf(dataConclusao(e)), e.info.volume != null ? formatarNumero(e.info.volume, 2) : '—', volumeLancado(e) ? formatarNumero(volumeLancado(e), 2) : '']),   // v6.40.0: volume de qualquer etapa (raiz: concretagem)
   });
   r.assinaturas(['Responsável pela obra', 'Fiscalização / contratada']);
   return r.finalizar('controle-campo-medicao');
@@ -20991,8 +21095,11 @@ function comporPaginaRelatorio(out, pg, ctx, W, H) {
   out.lin(xr, y, xr + lr, y, REL_COR.borda, 0.6);
   out.txt(xr, y + 12, 'Verde: data dentro do período do relatório · "—": sem registro', { tam: 7.5, cor: REL_COR.suave });
   y += 30;
-  out.txt(xr, y, 'Dados do projeto', { tam: 12, neg: true, cor: REL_COR.marca }); y += 8;
-  const dados = [['Bloco', pg.bloco], ['Local', textoLocal(e)], ['Tipo', TIPOS[e.tipo].nome], ...dadosProjeto(e).map(([r, v]) => [r, valorBanco(v)])];
+  // v6.40.0: estaca raiz mostra as quantidades REAIS executadas (nao as de projeto)
+  const ehRaiz = e.tipo === 'estaca-raiz';
+  out.txt(xr, y, ehRaiz ? 'Quantidades executadas (real)' : 'Dados do projeto', { tam: 12, neg: true, cor: REL_COR.marca }); y += 8;
+  const dados = [['Bloco', pg.bloco], ['Local', textoLocal(e)], ['Tipo', TIPOS[e.tipo].nome],
+    ...(ehRaiz ? quantidadesReaisRaiz(e) : dadosProjeto(e).map(([r, v]) => [r, valorBanco(v)]))];
   const cabeDados = Math.max(3, Math.floor((H - 40 - y - (e.pendencia || e.observacao ? 50 : 0)) / 14));
   dados.slice(0, cabeDados).forEach(([r, v]) => {
     y += 14;
@@ -22185,7 +22292,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         },
         { titulo: 'Sistema', itens: [{ id: 'painel-sessao', texto: perfil === 'visualizador' ? 'Sessão (Visualizador)' : `${NOME_PERFIL[perfil] || 'Controlador'} (salvar e ferramentas)`, icone: 'usuario' }, ...(['controlador', 'administrador'].includes(perfil) ? [{ id: 'avisos', texto: 'E-mails de aviso', icone: 'email' }] : []), { id: 'sincronizacao', texto: 'Sincronização', icone: 'sinc' }, { id: 'privacidade', texto: 'Privacidade e Termos', icone: 'escudo' }] },
       ],
-      rodape: apontador ? 'Modo apontador · Controle de Campo v6.39.1' : 'Controle de Execução em Campo v6.39.1',
+      rodape: apontador ? 'Modo apontador · Controle de Campo v6.40.0' : 'Controle de Execução em Campo v6.40.0',
     },
     paginas: {
       campo: { titulo: '', nomeCurto: 'Campo', caminho: [], render: paginaCampo },
@@ -22225,7 +22332,7 @@ const telaEntrada = criarTelaEntrada({
   armazenamento,
   criarBaseNova: criarBaseDoProjeto,
   textoBaseInicial: 'Nenhuma base importada: será usado o projeto (Segmentos 01A e 01B, central de concreto e obras provisórias) sem registros. Bases do Controle de Estacas anterior também podem ser importadas.',
-  rodape: 'Controle de Execução em Campo v6.39.1 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
+  rodape: 'Controle de Execução em Campo v6.40.0 — acesso pelo login do Portal KZ (ou pelos controladores da base).',
   nomeControle: NOME_CONTROLE_KZ,
   onLoginPortal: async () => { await garantirNuvemKZ(); return true; },
   onEntrar: abrirAplicativo,
